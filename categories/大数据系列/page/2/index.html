@@ -9,7 +9,7 @@
     <meta http-equiv="Cache-Control" content="no-siteapp">
     <title>
         
-            12.sqoop配置(1.4.2).m
+            分类 - 大数据系列
         
     </title>
     <link rel="shortcut icon" href="#"/>
@@ -32,40 +32,15 @@
 <meta name="generator" content="Hexo 7.3.0"></head>
 <body>
     <a id="cover"></a>
-    <link type="text/css" rel="stylesheet" href="/css/post.css">
+    <link type="text/css" rel="stylesheet" href="/css/archive.css">
 <div id="header" class="header">
     <div class="vertical">
         <div class="inner">
             
-                <h1 class="header-subtitle">12.sqoop配置(1.4.2).m</h1>
+                <h1 class="header-subtitle">分类归档</h1>
                 <div class="header-subinfo">
-                    <p class="article-info-text">
-                        <span>
-                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
-                        </span>
-                        
-                            
-                                <span id="/2024/11/08/12-sqoop配置-1-4-2-m/" class="leancloud_visitors" data-flag-title="12.sqoop配置(1.4.2).m">
-                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
-                                </span>
-                            
-                            
-                                <span>
-                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/12-sqoop配置-1-4-2-m/"></span>
-                                </span>
-                              
-                        
-                    </p>
-                    
-                        
-                            <span class="category-color">大数据系列</span>
-                        
-                    
-                    
-                        
-                            <span class="tag-color">大数据运维</span>
-                        
-                    
+                    <p class="article-info-text Chinese"></p>
+                    <p class="article-info-text English"></p>                  
                 </div>
             
         </div>
@@ -74,172 +49,85 @@
 </div>
 <div id="container">
     
-        <!-- 文章页面 -->
-        <div id="article">
-            <div class="toc"></div>
-            <div class="article-body">
-                <h1 id="sqoop配置"><a href="#sqoop配置" class="headerlink" title="sqoop配置"></a>sqoop配置</h1><h2 id="1-sqoop简介"><a href="#1-sqoop简介" class="headerlink" title="1.sqoop简介"></a>1.sqoop简介</h2><p>​	Sqoop是Hadoop和关系数据库服务器之间传送数据的一种工具。它是用来从关系数据库如：MySQL，Oracle到Hadoop的HDFS，并从Hadoop的文件系统导出数据到关系数据库。</p>
-<p>​	传统的应用管理系统，也就是与关系型数据库的使用RDBMS应用程序的交互，是产生大数据的来源之一。这样大的数据，由关系数据库生成的，存储在关系数据库结构关系数据库服务器。</p>
-<p>​	当大数据存储器和分析器，如MapReduce, Hive, HBase, Cassandra, Pig等，Hadoop的生态系统等应运而生图片，它们需要一个工具来用的导入和导出的大数据驻留在其中的关系型数据库服务器进行交互。在这里，Sqoop占据着Hadoop生态系统提供关系数据库服务器和Hadoop HDFS之间的可行的互动。</p>
-<p>Sqoop：“SQL 到 Hadoop 和 Hadoop 到SQL”<br>Sqoop(发音：skup)是一款开源的工具，主要<code>用于在Hadoop(Hive)与传统的数据库(mysql、postgresql…)间进行数据的传递</code>，可以将一个关系型数据库（例如 ： MySQL ,Oracle ,Postgres等）中的数据导进到Hadoop的HDFS中，也可以将HDFS的数据导进到关系型数据库中。<br>下图描述了Sqoop的工作流程:</p>
-<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171527522.png" alt="image-20240117152738459"></p>
-<blockquote>
-<p>sqoop导入:</p>
-</blockquote>
-<p>​	导入工具从RDBMS到HDFS导入单个表。表中的每一行被视为HDFS的记录。所有记录被存储在文本文件的文本数据或者在Avro和序列文件的二进制数据。</p>
-<blockquote>
-<p>Sqoop导出:</p>
-</blockquote>
-<p>​	导出工具从HDFS导出一组文件到一个RDBMS。作为输入到Sqoop文件包含记录，这被称为在表中的行。那些被读取并解析成一组记录和分隔使用用户指定的分隔符。</p>
-<p><strong>sqoop1与sqoop2对比</strong>:</p>
-<p>两代之间是两个<code>完全不同的版本</code>，<code>不兼容</code><br>sqoop1：<code>1.4.x</code><br>sqoop2：<code>1.99.x</code></p>
-<p><strong>sqoop2比sqoop1的改进:</strong><br>(1) 引入sqoop server，集中化管理connector等<br>(2) 多种访问方式：CLI,Web UI，REST API<br>(3) 引入基于角色 的安全机制</p>
-<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171557812.png" alt="image-20240117155752728"></p>
-<blockquote>
-<p>Sqoop1架构:</p>
-</blockquote>
-<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171558350.png" alt="image-20240117155834285"></p>
-<blockquote>
-<p>sqoop2架构:</p>
-</blockquote>
-<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171559321.png" alt="image-20240117155930256"></p>
-<h2 id="2-sqoop1安装"><a href="#2-sqoop1安装" class="headerlink" title="2. sqoop1安装"></a>2. sqoop1安装</h2><h3 id="2-1-解压重命名安装"><a href="#2-1-解压重命名安装" class="headerlink" title="2.1 解压重命名安装"></a>2.1 解压重命名安装</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/sqoop-1.4.2.bin__hadoop-2.0.0-alpha.tar.gz -C /opt/module/</span><br><span class="line">[root@master ~]# <span class="built_in">mv</span> /opt/module/sqoop-1.4.2.bin__hadoop-2.0.0-alpha/ /opt/module/sqoop-1.4.2</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-2-添加环境变量"><a href="#2-2-添加环境变量" class="headerlink" title="2.2 添加环境变量"></a>2.2 添加环境变量</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /etc/profile</span><br></pre></td></tr></table></figure>
-
-<p>添加以下内容:</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#SQOOP_HOME</span></span><br><span class="line"><span class="built_in">export</span> SQOOP_HOME=/opt/module/sqoop-1.4.2</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$SQOOP_HOME</span>/bin</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-3-修改sqoop-env-sh-配置文件"><a href="#2-3-修改sqoop-env-sh-配置文件" class="headerlink" title="2.3 修改sqoop-env.sh 配置文件"></a>2.3 修改sqoop-env.sh 配置文件</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#进入sqoop配置目录</span></span><br><span class="line">[root@master ~]# <span class="built_in">cd</span> <span class="variable">$SQOOP_HOME</span>/conf</span><br><span class="line"><span class="comment">#拷贝一份模板来进行修改</span></span><br><span class="line">[root@master conf]# <span class="built_in">cp</span> sqoop-env-template.sh sqoop-env.sh</span><br><span class="line">[root@master conf]# vim sqoop-env.sh</span><br></pre></td></tr></table></figure>
-
-<p>根据自己的集群情况来进行配置：</p>
-<p><img src="https://gitee.com/master_hj/pic/raw/master/img/image-20230322131454005.png" alt="image-20230322131454005"></p>
-<p>修改结果如下:</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master conf]# grep -Ev <span class="string">&quot;^$|^#&quot;</span> sqoop-env.sh</span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/module/hadoop-3.1.3/</span><br><span class="line"><span class="built_in">export</span> HBASE_HOME=/opt/module/hbase-2.2.3</span><br><span class="line"><span class="built_in">export</span> HIVE_HOME=/opt/module/apache-hive-3.1.2</span><br><span class="line"><span class="built_in">export</span> ZOOCFGDIR=/opt/module/apache-zookeeper-3.5.7/data</span><br></pre></td></tr></table></figure>
-
-<h3 id="2-4-拷贝-MySQL-Hive-驱动到-Sqoop-中的-lib-目录中："><a href="#2-4-拷贝-MySQL-Hive-驱动到-Sqoop-中的-lib-目录中：" class="headerlink" title="2.4 拷贝 MySQL,Hive 驱动到 Sqoop 中的 lib 目录中："></a>2.4 拷贝 MySQL,Hive 驱动到 Sqoop 中的 <code>lib</code> 目录中：</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-5.1.47.jar <span class="variable">$SQOOP_HOME</span>/lib</span><br></pre></td></tr></table></figure>
-
-<p>为了后续方便操作 Hive，我们需要将 Hive 的驱动放入 Sqoop 的 <code>lib</code> 目录中</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> <span class="variable">$HIVE_HOME</span>/lib/hive-common-3.1.2.jar <span class="variable">$SQOOP_HOME</span>/lib</span><br></pre></td></tr></table></figure>
-
-<p>查看是否拷贝成功:</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master conf]# ll <span class="variable">$SQOOP_HOME</span>/lib | grep mysql</span><br><span class="line">-rw-r--r-- 1 root root 1007502 Jan 17 08:33 mysql-connector-java-5.1.47.jar</span><br><span class="line">[root@master conf]# ll <span class="variable">$SQOOP_HOME</span>/lib | grep hive</span><br><span class="line">-rw-r--r-- 1 root root  492628 Jan 17 08:33 hive-common-3.1.2.jar</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="2-5-版本验证："><a href="#2-5-版本验证：" class="headerlink" title="2.5 版本验证："></a>2.5 版本验证：</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master conf]# sqoop version</span><br><span class="line">Sqoop 1.4.2</span><br><span class="line">git commit <span class="built_in">id</span></span><br><span class="line">Compiled by ag on Tue Aug 14 18:38:15 IST 2012</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-<h3 id="2-6-功能测试："><a href="#2-6-功能测试：" class="headerlink" title="2.6 功能测试："></a>2.6 功能测试：</h3><blockquote>
-<p>测试Sqoop连接容器master节点的MySQL数据库中的  sys表  是否成功并展示所有的  tables</p>
-</blockquote>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">根据自己的信息填写：</span><br><span class="line">sqoop list-tables \</span><br><span class="line">--connect jdbc:mysql://localhost:3306/sys \</span><br><span class="line">--username root \</span><br><span class="line">--password 123456</span><br><span class="line"></span><br><span class="line">sqoop list-tables --connect jdbc:mysql://localhost:3306/sys --username root --password 123456</span><br></pre></td></tr></table></figure>
-
-<p>结果：<img src="https://gitee.com/master_hj/pic/raw/master/img/image-20230322131953756.png" alt="image-20230322131953756"></p>
-<blockquote>
-<p>测试Sqoop连接容器master节点的MySQL数据库是否成功并展示所有的database</p>
-</blockquote>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">根据自己的信息填写：</span><br><span class="line">sqoop list-databases \</span><br><span class="line">--connect jdbc:mysql://localhost:3306 \</span><br><span class="line">--username root \</span><br><span class="line">--password 123456</span><br><span class="line"></span><br><span class="line">sqoop list-databases --connect jdbc:mysql://localhost:3306 --username root --password 123456</span><br></pre></td></tr></table></figure>
-
-<p>结果：<img src="https://gitee.com/master_hj/pic/raw/master/img/image-20230322132016274.png" alt="image-20230322132016274"></p>
-<p>测试成功</p>
-<h2 id="3-Sqoop的简单使用案例"><a href="#3-Sqoop的简单使用案例" class="headerlink" title="3. Sqoop的简单使用案例"></a>3. Sqoop的简单使用案例</h2><h3 id="3-1-导入数据"><a href="#3-1-导入数据" class="headerlink" title="3.1 导入数据"></a>3.1 导入数据</h3><p>在Sqoop中，“导入”概念指：从非大数据集群（RDBMS）向大数据集（HDFS，HIVE，HBASE）中传输数据，叫做：<code>导入</code>，即使用<code>import关键字</code>。</p>
-<h4 id="3-1-1-RDBMS到HDFS"><a href="#3-1-1-RDBMS到HDFS" class="headerlink" title="3.1.1 RDBMS到HDFS"></a>3.1.1 RDBMS到HDFS</h4><blockquote>
-<p>(1) 确定Mysql服务开启正常</p>
-</blockquote>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# systemctl status mysqld</span><br></pre></td></tr></table></figure>
-
-<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171640305.png" alt="image-20240117164051239"></p>
-<blockquote>
-<p>(2) 在Mysql中新建一张表并插入一些数据</p>
-</blockquote>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">-</span>uroot <span class="operator">-</span>p123456 <span class="operator">-</span>e &quot;create database company;create table company.staff(id int(4) primary key not null auto_increment, name varchar(255), sex varchar(255));insert into company.staff(name, sex) values(&#x27;Thomas&#x27;, &#x27;Male&#x27;);insert into company.staff(name, sex) values(&#x27;Catalina&#x27;, &#x27;FeMale&#x27;);&quot;</span><br></pre></td></tr></table></figure>
-
-<p>查看数据是否创建成功:</p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# mysql -uroot -p123456 -e <span class="string">&quot;select * from company.staff;&quot;</span></span><br><span class="line">mysql: [Warning] Using a password on the <span class="built_in">command</span> line interface can be insecure.</span><br><span class="line">+----+----------+--------+</span><br><span class="line">| <span class="built_in">id</span> | name     | sex    |</span><br><span class="line">+----+----------+--------+</span><br><span class="line">|  1 | Thomas   | Male   |</span><br><span class="line">|  2 | Catalina | FeMale |</span><br><span class="line">+----+----------+--------+</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p>(3) 导入数据</p>
-</blockquote>
-<p>:one:<strong>全部导入</strong></p>
-<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">sqoop import \</span><br><span class="line">--connect jdbc:mysql://master:3306/company \</span><br><span class="line">--username root \</span><br><span class="line">--password 123456 \</span><br><span class="line">--table staff \</span><br><span class="line">--target-dir /user/company \</span><br><span class="line">--delete-target-dir \</span><br><span class="line">--num-mappers 1 \</span><br><span class="line">--fields-terminated-by <span class="string">&quot;\t&quot;</span></span><br><span class="line"></span><br><span class="line">sqoop import --connect jdbc:mysql://localhost:3306/company --username root --password 123456 --table staff --target-dir /user/company --delete-target-dir --num-mappers 1 --fields-terminated-by <span class="string">&quot;\t&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p><strong>参数详解:</strong></p>
-<ul>
-<li><code>--connect</code>：指定MySQL数据库的JDBC连接URL。在这里，是<code>jdbc:mysql://master:3306/company</code>。</li>
-<li><code>--username</code>：指定连接数据库的用户名。在这里，是<code>root</code>。</li>
-<li><code>--password</code>：指定连接用户名的密码。在这里，是<code>123456</code>。</li>
-<li><code>--table</code>：指定要导入数据的表。在这里，是<code>staff</code>。</li>
-<li><code>--target-dir</code>：指定数据存储在HDFS（Hadoop分布式文件系统）中的目录。在这里，是<code>/user/company</code>。</li>
-<li><code>--delete-target-dir</code>：在导入之前删除目标目录，以确保从头开始。</li>
-<li><code>--num-mappers</code>：指定用于导入的并行映射任务的数量。在这里，设置为<code>1</code>。</li>
-<li><code>--fields-terminated-by</code>：指定数据中分隔字段的字符。在这里，是制表符（<code>\t</code>），表示字段是以制表符分隔的。</li>
-</ul>
-<p>版本过低,导致一些参数没有,待整理</p>
-
-                
-                <p class="end">__END__</p>
-            </div>
-            <div class="article-footer">
-                <div class="suffix-box">
-    <div class="suffix-box-left">
-        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
-    </div>
-    <div class="suffix-box-right">
-        <span class="suffix-box-title">文章作者：</span>wylblog
-        <br>
-        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/12-sqoop%E9%85%8D%E7%BD%AE-1-4-2-m/" target="_blank">12.sqoop配置(1.4.2).m</a>
-        <br>
-        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
-        <br>
-        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
-        <br>
-        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
-        <br>
-    </div>
-    <div style="clear: both;"></div>
-</div>
-                
-                    <div class="category">
-                        分类：
+        
+            <!-- 归档页面、分类归档页面、标签归档页面 -->
+            <div class="articles">
+                <div class="articles-wrap">
+                    <span class="archive-move-on"></span>
+                    <span class="archive-counter">
                         
-                            <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%B3%BB%E5%88%97/">大数据系列</a>
+                            当前分类：<span class="category">大数据系列</span>
                         
-                    </div>
-                
-                
-                    <div class="tag">
-                        标签：
-                        
-                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
-                        
-                    </div>
-                
-                <div class="article-prev-next">
-                    
-                        <a href="/2024/11/08/13-Azkaban%E8%B0%83%E5%BA%A6%E5%99%A8/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/13-Azkaban%E8%B0%83%E5%BA%A6%E5%99%A8/" title="发布于 2024-11-08 03:33">13.Azkaban调度器</a>
-                        <br>
+                    </span>
                     
                     
-                        <a href="/2024/11/08/11-redis%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E5%BA%93-md/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/11-redis%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E5%BA%93-md/" title="发布于 2024-11-08 03:29">11.redis分布式缓存数据库.md</a>
+                        
+                            <div class="archive-title">
+                                <h2 class="archive-year">2024</h2>
+                            </div>
+                            
+                           
+                        <div class="article">
+                            <div class="article-header">
+                                <h1 class="article-title"><a href="/2024/11/08/05-Hbase%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2/"><span>05.Hbase完全分布式部署</span></a></h1>
+                                <div class="article-meta">
+                                    <span class="article-time">11-08</span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                           
+                        <div class="article">
+                            <div class="article-header">
+                                <h1 class="article-title"><a href="/2024/11/08/03-Hive%E4%B9%8BHiveserver2-metastore%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/"><span>03.Hive之Hiveserver2 metastore环境部署</span></a></h1>
+                                <div class="article-meta">
+                                    <span class="article-time">11-08</span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                           
+                        <div class="article">
+                            <div class="article-header">
+                                <h1 class="article-title"><a href="/2024/11/08/02-2-%E8%A1%A5%E5%85%85-Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2/"><span>02.2(补充)-Hadoop伪分布式部署</span></a></h1>
+                                <div class="article-meta">
+                                    <span class="article-time">11-08</span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                           
+                        <div class="article">
+                            <div class="article-header">
+                                <h1 class="article-title"><a href="/2024/11/08/02-1-Hadoop-3-1-3%E9%83%A8%E7%BD%B2%E6%B1%87%E6%80%BB/"><span>02.1 Hadoop-3.1.3部署汇总</span></a></h1>
+                                <div class="article-meta">
+                                    <span class="article-time">11-08</span>
+                                </div>
+                            </div>
+                        </div>
+                    
+                           
+                        <div class="article">
+                            <div class="article-header">
+                                <h1 class="article-title"><a href="/2024/11/08/01-Ubuntu%E5%9F%BA%E7%A1%80%E9%85%8D%E7%BD%AE-18-04-Docker%E9%85%8D%E7%BD%AE%E5%92%8C%E4%BD%BF%E7%94%A8-%E5%AE%B9%E5%99%A8%E5%8C%96centos7%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%8E%AF%E5%A2%83%E5%87%86%E5%A4%87/"><span>01.Ubuntu基础配置(18.04)+Docker配置和使用+容器化centos7大数据环境准备</span></a></h1>
+                                <div class="article-meta">
+                                    <span class="article-time">11-08</span>
+                                </div>
+                            </div>
+                        </div>
                     
                 </div>
             </div>
             
-    <div class="article-comments">
         
-            <div class="comments-title">
-                评论列表
-            </div>
-        
-        <div class="comments-content"></div>
-    </div>
-    
- 
+    <div class="pagination-bottom">
+        <div class="pagination">
+            
+                <a class="extend prev" rel="prev" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%B3%BB%E5%88%97/">上一页</a><a class="page-number" href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE%E7%B3%BB%E5%88%97/">1</a><span class="page-number current">2</span>
+            
         </div>
+    </div>
+
     
 </div>
     <div id="footer">
