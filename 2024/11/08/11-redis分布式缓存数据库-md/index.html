@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            11.redis分布式缓存数据库.md
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">11.redis分布式缓存数据库.md</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/11-redis分布式缓存数据库-md/" class="leancloud_visitors" data-flag-title="11.redis分布式缓存数据库.md">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/11-redis分布式缓存数据库-md/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                            <span class="tag-color">数据库系列</span>
+                        
+                            <span class="tag-color">nosql</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="redis分布式缓存数据库"><a href="#redis分布式缓存数据库" class="headerlink" title="redis分布式缓存数据库"></a>redis分布式缓存数据库</h1><h2 id="1、什么是NoSQL数据库"><a href="#1、什么是NoSQL数据库" class="headerlink" title="1、什么是NoSQL数据库"></a>1、什么是NoSQL数据库</h2><p>泛指非关系型数据库，NoSQL数据库并没有一个统一的架构，每种NoSQL数据库都各不相同，在各自不同的场景与领域发挥着不同的用途。</p>
+<h2 id="2、NoSQL数据库的分类"><a href="#2、NoSQL数据库的分类" class="headerlink" title="2、NoSQL数据库的分类"></a>2、NoSQL数据库的分类</h2><p>总体分四大类：键值（key-value）数据库，列存储数据库，文档数据库，图形数据库</p>
+<h3 id="2-1-键值对数据库"><a href="#2-1-键值对数据库" class="headerlink" title="2.1. 键值对数据库"></a>2.1. 键值对数据库</h3><p>键值对数据库主要是维护一个哈希表，表里存储着一个特定键值对。这类数据库操作简单常见的键值对数据库有Redis和Memcached等。</p>
+<h3 id="2-2-列存储数据库"><a href="#2-2-列存储数据库" class="headerlink" title="2.2.列存储数据库"></a>2.2.列存储数据库</h3><p>列存储数据库通常用于分布式存储场景中。常见的列存储数据库HBase。</p>
+<h3 id="2-3-文档数据库"><a href="#2-3-文档数据库" class="headerlink" title="2.3.文档数据库"></a>2.3.文档数据库</h3><p>文档数据库与键值对数据库类似，它没有特定的格式、结构，但比键值对数据库的效率要高。常见的文档数据库是MongoDB。</p>
+<h3 id="2-4-图形数据库"><a href="#2-4-图形数据库" class="headerlink" title="2.4*.*图形数据库"></a>2.4*.*图形数据库</h3><p>图形数据库很容易理解，也就是存储一些图像的数据库。它使用比较灵活的图形模型，可以扩展到多台服务器上。常见的图形数据库有Graph和Neo4j。</p>
+<h2 id="3、什么是redis"><a href="#3、什么是redis" class="headerlink" title="3、什么是redis"></a>3、什么是redis</h2><p>Redis 是完全开源的，遵守 BSD 协议，是一个高性能的 key-value 数据库。</p>
+<p>Redis 与其他 key - value 缓存产品有以下三个特点：<br>• Redis支持数据的持久化，可以将内存中的数据保存在磁盘中，重启的时候可以再次加载进行使用。<br>• Redis不仅仅支持简单的key-value类型的数据，同时还提供list，set，zset，hash等数据结构的存储。<br>• Redis支持数据的备份，即master-slave模式的数据备份。</p>
+<h2 id="4、Redis-优势"><a href="#4、Redis-优势" class="headerlink" title="4、Redis 优势"></a>4、Redis 优势</h2><p>• 性能极高 – Redis能读的速度是<font color='red'>110000</font>次&#x2F;s,写的速度是<font color='red'>81000</font>次&#x2F;s 。<br>• 丰富的数据类型 – Redis支持二进制案例的 Strings, Lists, Hashes, Sets 及 Ordered Sets 数据类型操作。<br>• 原子 – Redis的所有操作都是原子性的，意思就是要么成功执行要么失败完全不执行。单个操作是原子性的。多个操作也支持事务，即原子性，通过MULTI和EXEC指令包起来。<br>• 丰富的特性 – Redis还支持 publish&#x2F;subscribe, 通知, key 过期等等特性</p>
+<h2 id="5、常用的分布式缓存的对比"><a href="#5、常用的分布式缓存的对比" class="headerlink" title="5、常用的分布式缓存的对比"></a>5、常用的分布式缓存的对比</h2><p>常用的分布式缓存包括Redis、Memcached和阿里巴巴的Tair（见下表），<br>因为Redis提供的数据结构比较丰富且简单易用，所以Redis的使用广泛。</p>
+<p>​           <img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401161521916.png"></p>
+<p><strong>Memcached:</strong><br>优点：高性能读写、单一数据类型、支持客户端式分布式集群、一致性hash，多核结构、多线程读写性能高。<br>缺点：无持久化、节点故障可能出现缓存穿透、分布式需要客户端实现、跨机房数据同步困难、架构扩容复杂度高</p>
+<p><strong>Redis:</strong><br>优点：高性能读写、多数据类型支持、数据持久化、高可用架构、支持自定义虚拟内存、支持分布式分片集群、单线程读写性能极高（redis6.0以前版本没有多线程）<br>缺点：线程读写较Memcached慢<br>以上两种广泛应用于网页类、游戏类产品、金融交易类</p>
+<p><strong>memcache与redis在读写性能的对比</strong><br>memcached 适合多用户访问,每个用户少量的rw<br>redis     适合少用户访问,每个用户大量rw （所有的对比，针对redis6.0以前版本。）</p>
+<p><strong>Tair：</strong>(Tair是由淘宝网自主开发的Key&#x2F;Value结构数据存储系统，在淘宝网有着大规模的应用。)<br>优点：高性能、高扩展、高可用，也就是传说中的三高产品，支持分布式集群部署、支撑了几乎所有淘宝业务的缓存。<br>缺点：单机情况下，读写性能较其他两种产品较慢</p>
+<h2 id="6、redis单机安装"><a href="#6、redis单机安装" class="headerlink" title="6、redis单机安装"></a>6、redis单机安装</h2><h3 id="6-1-解压redis并编译安装"><a href="#6-1-解压redis并编译安装" class="headerlink" title="6.1.解压redis并编译安装"></a>6.1.解压redis并编译安装</h3><p>软件包下载地址:<a target="_blank" rel="noopener" href="https://download.redis.io/releases/">https://download.redis.io/releases/</a></p>
+<p>更换centos7的yum源(本地环境使用如下方法):</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#清除原有的yum源</span></span><br><span class="line"><span class="built_in">rm</span> -rf /etc/yum.repos.d/*</span><br><span class="line"></span><br><span class="line"><span class="comment">#拉取阿里源</span></span><br><span class="line">wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo</span><br><span class="line">wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo</span><br><span class="line"></span><br><span class="line"><span class="comment">#刷新缓存</span></span><br><span class="line">yum repolist</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>开始解压编译安装</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/redis-6.2.6.tar.gz -C /opt/module/</span><br><span class="line">[root@master ~]# <span class="built_in">cd</span> /opt/module/redis-6.2.6/</span><br><span class="line"></span><br><span class="line">[root@master redis-6.2.6]# yum install gcc gcc-c++ make -y</span><br><span class="line">[root@master redis-6.2.6]# make</span><br><span class="line">[root@master redis-6.2.6]# make install PREFIX=/opt/module/redis-6.2.6/</span><br></pre></td></tr></table></figure>
+
+<p>编译安装完成:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401162220620.png" alt="image-20240116222038554"></p>
+<h3 id="6-2-设置系统环境变量："><a href="#6-2-设置系统环境变量：" class="headerlink" title="6.2 设置系统环境变量："></a>6.2 设置系统环境变量：</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#redis</span></span><br><span class="line"><span class="built_in">export</span> REDIS_HOME=/opt/module/redis-6.2.6</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$REDIS_HOME</span>/bin</span><br></pre></td></tr></table></figure>
+
+<p>刷新环境变量:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-3-启动redis"><a href="#6-3-启动redis" class="headerlink" title="6.3.启动redis:"></a>6.3.启动redis:</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-server</span><br></pre></td></tr></table></figure>
+
+<p>默认前台启动,启动成功页面如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401162226343.png" alt="image-20240116222602272"></p>
+<p>以配置文件启动redis:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# redis-server <span class="variable">$REDIS_HOME</span>/redis.conf</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="6-4-解决warning问题"><a href="#6-4-解决warning问题" class="headerlink" title="6.4.解决warning问题"></a>6.4.解决warning问题</h3><blockquote>
+<p>重启机器，该文件内容会还原，所以把此命令添加到开机启动</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&quot;echo 511 &gt;/proc/sys/net/core/somaxconn&quot;</span> &gt;&gt;/etc/rc.d/rc.local	</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>远程连接语法：<code>redis-cli -h 主机地址 -p 端口号 -a 用户密码</code></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -h host -p port -a password	--raw(可以显示中文)		</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关闭redis语法:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli -h host -p port -a password shutdown</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="6-5-检查是否启动成功："><a href="#6-5-检查是否启动成功：" class="headerlink" title="6.5 检查是否启动成功："></a>6.5 检查是否启动成功：</h3><blockquote>
+<p>后不接-p参数，默认以6379端口启动</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# redis-cli</span><br><span class="line">127.0.0.1:6379&gt; ping</span><br><span class="line">PONG</span><br><span class="line">127.0.0.1:6379&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-6-redis-conf配置文件："><a href="#6-6-redis-conf配置文件：" class="headerlink" title="6.6 redis.conf配置文件："></a>6.6 redis.conf配置文件：</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim <span class="variable">$REDIS_HOME</span>/redis.conf</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>主要关注以下配置信息:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">75   <span class="built_in">bind</span> ip              <span class="comment">#绑定指定ip </span></span><br><span class="line">111   protected-mode <span class="built_in">yes</span>/no <span class="comment">#保护模式，是否只允许本地访问</span></span><br><span class="line">138   port 6379         <span class="comment">#端口号</span></span><br><span class="line">309 daemonize <span class="built_in">yes</span>  <span class="comment">#开启后台运行模式</span></span><br><span class="line">354  logfile /xxxx/redis.log <span class="comment">#指定日志生成路径和文件名字 </span></span><br><span class="line">481  dbfilename dump.rdb <span class="comment">#默认的持久化文件名字</span></span><br><span class="line">504  <span class="built_in">dir</span> /usr/local/redis/data          <span class="comment">#指定应用持久化路径</span></span><br><span class="line">1036  requirepass 123456(需新增加)    <span class="comment">#开启密码验证，生产建议复杂密码。</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>只修改下面两个参数,如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">75 <span class="built_in">bind</span> 0.0.0.0</span><br><span class="line">257 daemonize <span class="built_in">yes</span></span><br></pre></td></tr></table></figure>
+
+<p>:wq</p>
+<blockquote>
+<p>以配置文件启动服务</p>
+</blockquote>
+<p>相对路径启动:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-server redis.conf</span><br></pre></td></tr></table></figure>
+
+<p>绝对路径启动:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-server <span class="variable">$REDIS_HOME</span>/redis.conf</span><br></pre></td></tr></table></figure>
+
+<p>查看是否启动成功:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 redis-6.2.6]# ss -tunlp | grep 6379</span><br><span class="line">tcp    LISTEN     0      511       *:6379                  *:*                   <span class="built_in">users</span>:((&quot;redis-server&quot;,pid=<span class="number">7717</span>,fd=<span class="number">6</span>))</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>进入客户端测试</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 ~]# redis-cli </span><br><span class="line">127.0.0.1:6379&gt; ping</span><br><span class="line">PONG</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="6-7-在线查看和临时性修改配置"><a href="#6-7-在线查看和临时性修改配置" class="headerlink" title="6.7.在线查看和临时性修改配置"></a>6.7.在线查看和<code>临时性修改</code>配置</h3><blockquote>
+<p>注：永久修改需要修改配置文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; config get *</span><br><span class="line">127.0.0.1:6379&gt; config get  requirepass</span><br><span class="line">127.0.0.1:6379&gt; config get  r*</span><br><span class="line">127.0.0.1:6379&gt; config <span class="built_in">set</span>  requirepass 123456</span><br><span class="line">127.0.0.1:6379&gt; auth 123456         <span class="comment">#输入密码</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="7、redis-持久化、备份与恢复"><a href="#7、redis-持久化、备份与恢复" class="headerlink" title="7、redis 持久化、备份与恢复"></a>7、redis 持久化、备份与恢复</h2><p>redis 持久化（内存数据保存到磁盘）有两种方式：<code>RDB</code>和<code>AOF</code></p>
+<h3 id="7-1-RDB-持久化"><a href="#7-1-RDB-持久化" class="headerlink" title="7.1.RDB 持久化"></a>7.1.RDB 持久化</h3><p>存储在内存的数据以快照 的方式写入二进制文件中，如默认的<code>dump.rdb</code>。</p>
+<ul>
+<li>优点：速度快，适合于用做备份。</li>
+<li>缺点：会有数据丢失</li>
+</ul>
+<blockquote>
+<p>rdb持久化核心配置参数：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim <span class="variable">$REDIS_HOME</span>/redis.conf</span><br></pre></td></tr></table></figure>
+
+<p>旧版写法：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">save 900 1                  <span class="comment">#900秒（15分钟）内有1个键更改，则启动快照保存</span></span><br><span class="line">save 300 10                 <span class="comment">#300秒（5分钟）内有10个键更改，则启动快照保存</span></span><br><span class="line">save 60 10000               <span class="comment">#60秒内有10000个键更改，则启动快照保存</span></span><br></pre></td></tr></table></figure>
+
+<p>新版写法：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">433 save 3600 1 300 100 60 10000</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="7-2-AOF-持久化"><a href="#7-2-AOF-持久化" class="headerlink" title="7.2.AOF 持久化"></a>7.2.AOF 持久化</h3><p>记录服务器执行的所有写操作命令到appendonly.aof，并在服务器启动时，通过重新执行这些命令来还原数据集。 </p>
+<p>AOF 文件中的命令全部以 Redis 协议的格式来保存，新命令会被追加到文件的末尾。</p>
+<ul>
+<li>优点：可以最大程度保证数据不丢</li>
+<li>缺点：日志记录量级比较大</li>
+</ul>
+<blockquote>
+<p>AOF持久化配置:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1381  appendonly <span class="built_in">yes</span>                  <span class="comment">#开启AOF持久化存储方式</span></span><br><span class="line">1439  appendfsync always              <span class="comment">#收到写命令后立即写入磁盘，效果最好</span></span><br><span class="line">1440  appendfsync everysec            <span class="comment">#每秒写入磁盘一次，可能会造成数据丢失</span></span><br><span class="line">1441  appendfsync no                  <span class="comment">#完全依赖操作系统，由操作系统判断内存缓冲区大小，效果无法保证</span></span><br></pre></td></tr></table></figure>
+
+<p>注：对于AOF与RDB备份，服务读取文件的优先顺序不同，会按照以下优先级进行启动</p>
+<ul>
+<li>:one: .如果只配置了AOF，启动时将加载AOF文件恢复数据</li>
+<li>:two: .<font color='red'>如果同时配置了AOF与RDB，启动时只加载AOF文件恢复数据</font></li>
+<li>:three: .如果只配置了RDB，启动时将加载dump文件恢复数据</li>
+</ul>
+<h3 id="7-3-面试问题："><a href="#7-3-面试问题：" class="headerlink" title="7.3.面试问题："></a>7.3.面试问题：</h3><blockquote>
+<p>问: redis 持久化方式有哪些？有什么区别？</p>
+</blockquote>
+<p>答:	rdb：基于快照的持久化，速度更快，一般用作备份，redis主从复制也是依赖于rdb持久化功能,压缩比高，体积小比较省空间。<br>         aof：以追加的方式记录redis写操作日志的文件。可以最大程度的保证redis数据安全，类似于mysql的binlog</p>
+<h3 id="7-4-redis-备份和恢复"><a href="#7-4-redis-备份和恢复" class="headerlink" title="7.4.redis 备份和恢复"></a>7.4.redis 备份和恢复</h3><blockquote>
+<p>（1）dump.db备份</p>
+</blockquote>
+<p>redis服务默认的自动备份方式（在AOF没有开启的情况下），在服务启动时，就会自动从dump.db文件中去加载数据</p>
+<blockquote>
+<p>（2）手动备份</p>
+</blockquote>
+<p>命令：<br>SAVE  保存是<font color='red'>阻塞主进程，客户端无法连接redis</font>，等SAVE完成后，主进程才开始工作，客户端可以连接 #key值多，不推荐使用<br>BGSAVE  是<font color='red'>开启一个save的子进程，在执行save过程中，不影响主进程，客户端可以正常连接redis</font>，等子进程执行save完成后，通知主进程，子进程关闭。</p>
+<p>举例：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> name lin</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; save</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> name lin1</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; bgsave</span><br><span class="line">Background saving started</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="7-5-模拟恢复数据-不要同时开启rdb和aof进行操作"><a href="#7-5-模拟恢复数据-不要同时开启rdb和aof进行操作" class="headerlink" title="7.5.模拟恢复数据:							#不要同时开启rdb和aof进行操作"></a>7.5.模拟恢复数据:							#不要同时开启rdb和aof进行操作</h3><p>创建键值：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; config get <span class="built_in">dir</span></span><br><span class="line"><span class="string">&quot;dir&quot;</span></span><br><span class="line"><span class="string">&quot;/data/redis&quot;</span></span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> key 001</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> key1 002</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; <span class="built_in">set</span> key2 003</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:6379&gt; save</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
+
+<p>[root@redis1 ~]# ll &#x2F;data&#x2F;redis&#x2F;dump.rdb<br>-rw-r–r– 1 root root 145 9月  16 03:27 &#x2F;data&#x2F;redis&#x2F;dump.rdb<br>[root@redis1 ~]# cp &#x2F;data&#x2F;redis&#x2F;dump.rdb &#x2F;opt                       #删除数据前将备份文件复制到其他目录</p>
+<p>删除键值：<br>127.0.0.1:6379&gt; del key1<br>(integer) 0<br>127.0.0.1:6379&gt; get key1<br>(nil)</p>
+<p>关闭服务，将原备份文件复制回save备份目录<br>127.0.0.1:6379&gt; shutdown<br>not connected&gt; exit<br>[root@redis1 ~]# cp &#x2F;optdump.rdb  &#x2F;data&#x2F;redis<br>cp：是否覆盖”&#x2F;data&#x2F;redis&#x2F;dump.rdb”？ y</p>
+<p>验证：<br>127.0.0.1:6379&gt; mget key key1 key2<br>1)”001”<br>2)”002”<br>3)”003”</p>
+<h2 id="8、redis事务"><a href="#8、redis事务" class="headerlink" title="8、redis事务"></a>8、redis事务</h2><p>redis 事务可以一次执行多条命令，并且具备以下3个特征：</p>
+<p>1.单独的隔离操作：事务中的所有命令都会序列化、按顺序地执行。事务在执行的过程中，不会被其他客户端发送来的命令请求所打断。</p>
+<p>2.没有隔离级别的概念：队列中的命令没有提交之前都不会实际的被执行，因为事务提交前任何指令都不会被实际执行，也就不存在”事务内的查询要看到事务里的更新，在事务外查询不能看到”这个让人万分头痛的问题</p>
+<p>3.不保证原子性：redis同一个事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚（存在疑问）</p>
+<p>一个事务都会经历以下3个阶段：<br>(1)事务开始阶段（命令：multi）<br>(2)命令执行阶段<br>(3)事务结束阶段（命令：exec）</p>
+<p>举例：<br>127.0.0.1:6379&gt; multi<br>OK<br>127.0.0.1:6379&gt; set a 123<br>QUEUED<br>127.0.0.1:6379&gt; get a<br>QUEUED<br>127.0.0.1:6379&gt; rename a abc<br>QUEUED<br>127.0.0.1:6379&gt; exec<br>1）OK<br>2）”123”<br>3）OK</p>
+<h2 id="9、redis管理命令"><a href="#9、redis管理命令" class="headerlink" title="9、redis管理命令"></a>9、redis管理命令</h2><p>1.键值管理命令</p>
+<p>dbsize：显示当前库key的数量</p>
+<p>keys *:查看当前库所有key值      #属于高危操作，尤其对于数据量大的库来说<br>keys n*:匹配查询key值<br>exists  key值:确认key是否存在<br>del  key值:删除key<br>expire key 秒数:设置key过期时间     （过期后从key中移出）<br>pexpire  key 毫秒：设置key过期时间<br>ttl key值 :返回过期时间 （-1代表永久，-2代表过期了）<br>persist  key值:移除key过期时间的配置<br>rename 旧key值 新key值:重命名key<br>type key值:返回值的类型</p>
+<p>2.服务管理命令<br>select  编号数: 选择数据库（数据库编号0~15）<br>quit  :退出连接     或ctrl+d<br>info:获得服务的信息与统计<br><font color='red'>monitor:实时监控</font><br>config get *:获得所有服务配置</p>
+<h2 id="10、redis的数据类型："><a href="#10、redis的数据类型：" class="headerlink" title="10、redis的数据类型："></a>10、redis的数据类型：</h2><h3 id="1-string-字符串"><a href="#1-string-字符串" class="headerlink" title="1.string(字符串)"></a>1.string(字符串)</h3><p>string是redis最基本的数据类型。它的一个键对应一个值 ，一个值最大存储是512MB</p>
+<p>基础操作：<br>127.0.0.1:6379&gt; set a1 123                 #设置键值，可以覆盖原有值<br>OK</p>
+<p>127.0.0.1:6379&gt; getset a2 456            #获取a2原有值，并设置新值456<br>(nil)                                                #这里显示的是a2原有值<br>127.0.0.1:6379&gt; get a2<br>“456”</p>
+<p>127.0.0.1:6379&gt; setex a3 10 789         #建立新值时设置值的过期时间<br>OK<br>127.0.0.1:6379&gt; get a3<br>“789”<br>127.0.0.1:6379&gt; ttl a3<br>(integer) 2<br>127.0.0.1:6379&gt; get a3<br>(nil)</p>
+<p>127.0.0.1:6379&gt; setnx a2 11             #若该键不存在，则设置新值<br>(integer) 0                                         若该键存在，则不设置新值<br>127.0.0.1:6379&gt; get a2<br>“456”<br>127.0.0.1:6379&gt; setnx a4 11<br>(integer) 1<br>127.0.0.1:6379&gt; get a4<br>“11”</p>
+<p>127.0.0.1:6379&gt; mset a5 22 a6 33        #批量设置键值<br>OK<br>127.0.0.1:6379&gt; mget a5 a6                 #批量查询键值<br>1.”22”<br>2.”33”</p>
+<p>127.0.0.1:6379&gt; msetnx  a6 33  a8 18 a9  19	#批量设置键值，检测该键存不存在，若存在的，所有键值都不设置<br>(integer) 0</p>
+<p>127.0.0.1:6379&gt; append a1 123456        #追加键值长度<br>(integer) 9                                            #若该键并不存在,创建该键值，并返回当前 Value 的长度<br>127.0.0.1:6379&gt; get a1                             该键已经存在，返回追加后 Value的长度<br>“123123456”</p>
+<p>127.0.0.1:6379&gt; incr a7                         #增加键值，初始值设为0,增加后结果为1<br>(integer) 1<br>127.0.0.1:6379&gt; get a7<br>“1”<br>127.0.0.1:6379&gt; incr a7<br>(integer) 2<br>127.0.0.1:6379&gt; incr a7<br>(integer) 3</p>
+<p>127.0.0.1:6379&gt; decr a7<br>127.0.0.1:6379&gt; decrby a7  2                 #减少键值<br>(integer) 1<br>127.0.0.1:6379&gt; get a7<br>“1”</p>
+<p>127.0.0.1:6379&gt; setrange a1 4 abc       #从第5个键值，按新键值的长度替换，本质是从0开始算起<br>(integer) 9<br>127.0.0.1:6379&gt; get a1<br>“1231abc56”</p>
+<p>127.0.0.1:6379&gt; strlen a1                   #获取指定键值长度<br>(integer) 9</p>
+<p>127.0.0.1:6379&gt; getrange a1 2 7         #获取第2到第7个字节,若7超过value长度,<br>“31abc5”                                                            则截取第2个和后面所有的</p>
+<p>应用场景：微博平台发微博，关注微博数，直播平台刷礼物，订阅，关注粉丝数</p>
+<h3 id="2-hash类型（字典类型）"><a href="#2-hash类型（字典类型）" class="headerlink" title="2.hash类型（字典类型）"></a>2.hash类型（字典类型）</h3><p>hash是一个键值对的集合，最接近mysql表结构的一种类型，主要是可以做数据库缓存</p>
+<p>127.0.0.1:6379&gt; hset class id 1                             #若字段id不存在,创建该字段及与其关联的Hashes集合,<br>(integer) 1                                                                        Hashes中,字段为id ,并设value为1 ，若存在会覆盖原value</p>
+<p>127.0.0.1:6379&gt; hsetnx class name zhangsan          若字段name不存在,创建该字段及与其关联的Hashes集合,<br>(integer) 1                                                                        Hashes中,字段为name ,并设value为zhangsan， 若字段field1存在,则无效</p>
+<p>127.0.0.1:6379&gt; hget class id                               #获取hash集合,字段为id的值<br>“1”<br>127.0.0.1:6379&gt; hget class name<br>“zhangsan”</p>
+<p>127.0.0.1:6379&gt; hmset class age 18 address foshan         #批量创建多个字段<br>OK<br>127.0.0.1:6379&gt; hmget class id name age address            #批量查询多个字段<br>\1) “1”<br>\2) “zhangsan”<br>\3) “18”<br>\4) “foshan”</p>
+<p>127.0.0.1:6379&gt; hlen class                              #查询hash集合的字段数量<br>(integer) 4</p>
+<p>127.0.0.1:6379&gt; hexists class name              #查询hash集合是否有name字段<br>(integer) 1</p>
+<p>127.0.0.1:6379&gt; hkeys class                             #列出hash集合所有字段名<br>\1) “id”<br>\2) “name”<br>\3) “age”<br>\4) “address”<br>127.0.0.1:6379&gt; hvals class                         #列出hash集合所有值<br>\1) “3”<br>\2) “zhangsan”<br>\3) “18”<br>\4) “foshan”<br>127.0.0.1:6379&gt; hgetall class                       #列出hash集合所有字段名与其值<br>\1) “id”<br>\2) “1”<br>\3) “name”<br>\4) “zhangsan”<br>\5) “age”<br>\6) “18”<br>\7) “address”<br>\8) “foshan”</p>
+<p>127.0.0.1:6379&gt; hdel class address              #删除 hash 集合中字段名为 address 的字段<br>(integer) 1<br>127.0.0.1:6379&gt; hkeys class<br>\1) “id”<br>\2) “name”<br>\3) “age”</p>
+<p>127.0.0.1:6379&gt; del class                         #删除 hash 集合<br>(integer) 1</p>
+<p>应用场景：存储部分变更的数据，如用户信息，游戏账号，装备信息等。</p>
+<h3 id="3-list（列表）"><a href="#3-list（列表）" class="headerlink" title="3.list（列表）"></a>3.list（列表）</h3><p>应用场景<br>消息队列系统<br>比如sina微博<br><strong>微博TimeLine</strong>: 有人发布微博，用lpush加入时间轴，展示新的列表信息。</p>
+<p>127.0.0.1:6379&gt; lpush word hi                        若键值world不存在,创建该键及与其关联的List元素， 若List类型的key存在,则插入元素中<br>(integer) 1<br>127.0.0.1:6379&gt; lpush word hello world           #在链表首部先插入hello ,在插入world<br>(integer) 2<br>127.0.0.1:6379&gt; lrange word 0 2                     #取链表中的全部元素，从头开始,取索引为0,1,2的元素<br>\1) “world”<br>\2) “hello”<br>\3) “hi”<br>127.0.0.1:6379&gt; lrange word 0 -1                    #取链表中的全部元素，其中0表示第一个元素,-1表示最后一个元素。<br>\1) “world”<br>\2) “hello”<br>\3) “hi”</p>
+<p>127.0.0.1:6379&gt; llen word                               #返回列表key值的长度<br>(integer) 3</p>
+<p>27.0.0.1:6379&gt; rpush word ni hao                        #在链表尾部先插入hao,在插入ni<br>(integer) 5<br>127.0.0.1:6379&gt; lrange word 0 5<br>\1) “world”<br>\2) “hello”<br>\3) “hi”<br>\4) “ni”<br>\5) “hao”</p>
+<p>127.0.0.1:6379&gt; rpushx word  hello                      #若键值word存在，则插入hello，若不存在，则无效（需验证）<br>(integer) 5</p>
+<p>127.0.0.1:6379&gt; linsert word before hi 123            #在 hi 的前面插入新元素 123<br>(integer) 6<br>127.0.0.1:6379&gt; lrange word 0 100<br>\1) “world”<br>\2) “hello”<br>\3) “123”<br>\4) “hi”<br>\5) “ni”<br>\6) “hao”</p>
+<p>127.0.0.1:6379&gt; linsert word after hi 456           #在 hi 的之后插入新元素 456<br>(integer) 7<br>127.0.0.1:6379&gt; lrange word 0 100<br>\1) “world”<br>\2) “hello”<br>\3) “1”<br>\4) “hi”<br>\5) “456”<br>\6) “ni”<br>\7) “hao”</p>
+<p>127.0.0.1:6379&gt; lset word 1 e                   #从头开始, 将索引为1的元素值,设置为新值 e,若没有索引,则返回错误信息<br>OK<br>127.0.0.1:6379&gt; lrange word 0 100<br>\1) “world”<br>\2) “e”<br>\3) “1”</p>
+<p>（trim）<br>127.0.0.1:6379&gt; ltrim word 0 6                              #从头开始,保留索引为0-6的7个元素,其余全部删除<br>OK<br>127.0.0.1:6379&gt; lrange word 0 100<br>\1) “world”<br>\2) “e”<br>\3) “123”<br>\4) “hi”<br>\5) “456”<br>\6) “ni”<br>\7) “hao”</p>
+<p>127.0.0.1:6379&gt; lpush word 123<br>(integer) 8<br>127.0.0.1:6379&gt; lpush word 123<br>(integer) 9<br>127.0.0.1:6379&gt; LRANGE word 0 100<br>\1) “123”<br>\2) “123”<br>\3) “world”<br>\4) “e”<br>\5) “123”<br>\6) “hi”<br>\7) “456”<br>\8) “ni”<br>\9) “hao”<br>127.0.0.1:6379&gt; lrem word 2 123                      #从头部开始找,按先后顺序,寻找值为123的元素,删除2个,若存在第3个,则不删除<br>127.0.0.1:6379&gt; LRANGE word 0 100<br>\1) “world”<br>\2) “e”<br>\3) “123”<br>\4) “hi”<br>\5) “456”<br>\6) “ni”<br>\7) “hao”</p>
+<p>127.0.0.1:6379&gt; del word                    #删除list类型key<br>(integer) 1</p>
+<h3 id="4-set（集合）"><a href="#4-set（集合）" class="headerlink" title="4.set（集合）"></a>4.set（集合）</h3><p>set是string类型的无序集合，不可以重复</p>
+<p>案例：在微博应用中，可以将一个用户所有的关注人存在一个集合中，将其所有粉丝存在一个集合。<br>Redis还为集合提供了求交集、并集、差集等操作，可以非常方便的实现如共同关注、共同喜好、二度好友等功能，<br>对上面的所有集合操作，你还可以使用不同的命令选择将结果返回给客户端还是存集到一个新的集合中。</p>
+<p>127.0.0.1:6379&gt; sadd man d1 d2 d3 d4 d5           #添加元素d1 d2 d3 d4 d5到集合man里<br>(integer) 5<br>127.0.0.1:6379&gt; sadd woman d1 d6 d7 d8 d9<br>(integer) 5</p>
+<p>127.0.0.1:6379&gt; scard man                              #获取man 集合中元素的数量<br>(integer) 5</p>
+<p>127.0.0.1:6379&gt; smembers man                        #查看man集合中的内容<br>\1) “d2”<br>\2) “d4”<br>\3) “d3”<br>\4) “d1”<br>\5) “d5”</p>
+<p>127.0.0.1:6379&gt; sismember man d1                    #判断 d1 是否已经存在，返回值为 1 表示存在。<br>(integer) 1</p>
+<p>127.0.0.1:6379&gt; srandmember man                     #随机的返回集合里某一元素<br>“d2”<br>127.0.0.1:6379&gt; srandmember man<br>“d4”<br>127.0.0.1:6379&gt; srandmember man<br>“d1”</p>
+<p>127.0.0.1:6379&gt; sunion man  woman                     #获取2个集合中的成员的并集<br>\1) “d4”<br>\2) “d7”<br>\3) “d8”<br>\4) “d5”<br>\5) “d3”<br>\6) “d6”<br>\7) “d1”<br>\8) “d9”<br>\9) “d2”</p>
+<p>127.0.0.1:6379&gt; sinter man woman                #获取2个集合中的成员的交集<br>\1) “d1”</p>
+<p>127.0.0.1:6379&gt; sdiff man woman                 #1和2比较,获得1独有的值（以左算，第一个为主）<br>\1) “d2”<br>\2) “d3”<br>\3) “d4”<br>\4) “d5”</p>
+<p>127.0.0.1:6379&gt; srem man d5                 #从集合man里删除元素d5<br>(integer) 1<br>127.0.0.1:6379&gt;  smembers man<br>\1) “d2”<br>\2) “d4”<br>\3) “d3”<br>\4) “d1”</p>
+<p>127.0.0.1:6379&gt; smove man woman d4              #将d4从 man 移到 woman<br>(integer) 1<br>127.0.0.1:6379&gt; smembers woman<br>\1) “d9”<br>\2) “d4”<br>\3) “d7”<br>\4) “d8”<br>\5) “d6”<br>\6) “d1”</p>
+<p>127.0.0.1:6379&gt; sadd person d10<br>(integer) 1<br>127.0.0.1:6379&gt; sdiffstore person  man woman           #2个集man 和woman比较,获取独有的元素,并存入person集合中，覆盖原有值<br>(integer) 3</p>
+<p>127.0.0.1:6379&gt; sinterstore person man woman            #把交集存入person集合中<br>(integer) 1<br>127.0.0.1:6379&gt; smembers person<br>\1) “d1”</p>
+<p>127.0.0.1:6379&gt; sunionstore person man woman            #把并集存入person集合中<br>(integer) 8<br>127.0.0.1:6379&gt; smembers person<br>\1) “d2”<br>\2) “d9”<br>\3) “d4”<br>\4) “d8”<br>\5) “d7”<br>\6) “d6”<br>\7) “d3”<br>\8) “d1”</p>
+<h3 id="5-zset-（SortedSet，有序集合"><a href="#5-zset-（SortedSet，有序集合" class="headerlink" title="5.zset （SortedSet，有序集合)"></a>5.zset （SortedSet，有序集合)</h3><p>应用场景：<br>排行榜应用，取TOP N操作<br>这个需求与上面需求的不同之处在于，前面操作以时间为权重，这个是以某个条件为权重，比如按顶的次数排序，<br>每次只需要执行一条ZADD命令即可。</p>
+<p>127.0.0.1:6379&gt; zadd top 0 e1 0 e2 0 e3 0 e4            添加值为0，成员分别e1，e2，e3，e4的有序集合top<br>(integer) 4</p>
+<p>127.0.0.1:6379&gt; zcard top                                   #获取top键中成员的数量<br>(integer) 4</p>
+<p>127.0.0.1:6379&gt; zrange top  0 -1 withscores             #返回所有成员和值,不加WITHSCORES,只返回成员<br>\1) “e1”<br>\2) “0”<br>\3) “e2”<br>\4) “0”<br>\5) “e3”<br>\6) “0”<br>\7) “e4”<br>\8) “0”</p>
+<p>127.0.0.1:6379&gt; zrank top e1                               #获取成员e1在集合中的位置索引值。0表示第一个位置<br>(integer) 0<br>127.0.0.1:6379&gt; zrank top e3<br>(integer) 2</p>
+<p>127.0.0.1:6379&gt; zincrby top 2 e3                        #将成员 e3 的值增加2，并返回该成员更新后的分数<br>“2”<br>127.0.0.1:6379&gt; zrange top  0 -1 withscores<br>\1) “e1”<br>\2) “0”<br>\3) “e2”<br>\4) “0”<br>\5) “e4”<br>\6) “0”<br>\7) “e3”<br>\8) “2”</p>
+<p>127.0.0.1:6379&gt; zscore top e3                       #获取成员e3的值<br>“3”</p>
+<p>127.0.0.1:6379&gt; zcount top  1 3                     #获取值满足表达式 1 &lt;&#x3D; score &lt;&#x3D; 3 的成员的数量<br>(integer) 1</p>
+<p>127.0.0.1:6379&gt; zrangebyscore top  1 3          ##获取值满足表达式 1 &lt;&#x3D; score &lt;&#x3D; 2 的成员<br>\1) “e3”</p>
+<p>127.0.0.1:6379&gt;zrem top e1  e2                 删除多个成员变量,返回删除的数量<br>(integer) 2</p>
+<p>127.0.0.1:6379&gt; zremrangebyrank top 0 1         #删除位置索引满足表达式 0 &lt;&#x3D; rank &lt;&#x3D; 1 的成员<br>(integer) 2</p>
+<p>#-inf 表示第一个成员，+inf最后一个成员<br>#limit限制关键字<br>#2  3  是索引号<br>127.0.0.1:6379&gt; zrangebyscore top -inf +inf limit 1 3       #返回索引是1、2、3的成员<br>\1) “e3”</p>
+<p>127.0.0.1:6379&gt; zremrangebyscore top 1 2        #删除分数 1&lt;&#x3D; score &lt;&#x3D; 2 的成员，并返回实际删除的数量<br>(integer) 0</p>
+<p>#原始成员:位置索引从小到大 zrang的为原始索引<br>      one  0<br>      two  1<br>#执行顺序:把索引反转 zrevrange 为修订版<br>      位置索引:从大到小<br>      one 1<br>      two 0<br>#输出结果: two<br>       one<br>127.0.0.1:6379&gt; zrevrange top 1 3                   #获取位置索引,为1,2,3的成员<br>\1) “e4”                </p>
+<p>#相反的顺序:从高到低的顺序<br>127.0.0.1:6379&gt; zrevrangebyscore top 3 0        #获取分数 3&gt;&#x3D;score&gt;&#x3D;0的成员并以相反的顺序输出<br>\1) “e3”<br>\2) “e4”            </p>
+<p>127.0.0.1:6379&gt; zrevrangebyscore top 4 0 limit 1 2              #获取索引是1和2的成员,并反转位置索引<br>\1) “e4”</p>
+<p>127.0.0.1:6379&gt; zrevrange top 0 -1 WITHSCORES           #按位置索引从高到低,获取所有成员和分数<br>\1) “e3”<br>\2) “3”<br>\3) “e4”<br>\4) “0”</p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/11-redis%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E5%BA%93-md/" target="_blank">11.redis分布式缓存数据库.md</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E5%88%97/">数据库系列</a>
+                        
+                            <a href="/tags/nosql/">nosql</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/12-sqoop%E9%85%8D%E7%BD%AE-1-4-2-m/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/12-sqoop%E9%85%8D%E7%BD%AE-1-4-2-m/" title="发布于 2024-11-08 03:32">12.sqoop配置(1.4.2).m</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/10-Flume%E9%85%8D%E7%BD%AE-1-9-0-md/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/10-Flume%E9%85%8D%E7%BD%AE-1-9-0-md/" title="发布于 2024-11-08 03:28">10.Flume配置(1.9.0).md</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>

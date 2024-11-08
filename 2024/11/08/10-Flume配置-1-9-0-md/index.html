@@ -1,0 +1,1289 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            10.Flume配置(1.9.0).md
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">10.Flume配置(1.9.0).md</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/10-Flume配置-1-9-0-md/" class="leancloud_visitors" data-flag-title="10.Flume配置(1.9.0).md">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/10-Flume配置-1-9-0-md/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="Flume安装配置"><a href="#Flume安装配置" class="headerlink" title="Flume安装配置"></a>Flume安装配置</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><h3 id="1-1-flume定义"><a href="#1-1-flume定义" class="headerlink" title="1.1 flume定义"></a>1.1 flume定义</h3><p>Flume是Cloudera提供的一个高可用的，高可靠的，<code>分布式的海量日志采集、聚合和传输的系统</code>。Flume基于流式架构，灵活简单。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141446932.png" alt="image-20240114144609871"></p>
+<h3 id="1-2-Flume组成架构"><a href="#1-2-Flume组成架构" class="headerlink" title="1.2 Flume组成架构"></a>1.2 Flume组成架构</h3><blockquote>
+<p>架构图:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141446973.png" alt="image-20240114144657928"></p>
+<blockquote>
+<p>架构详解:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141447104.png" alt="image-20240114144734040"></p>
+<blockquote>
+<p>组件介绍:</p>
+</blockquote>
+<p>:one:Agent</p>
+<p>​	Agent是一个JVM进程，它以事件的形式将数据从源头送至目的，<code>是Flume数据传输的基本单元</code>。</p>
+<p>​	Agent主要有3个部分组成，Source、Channel、Sink。</p>
+<p>:two:Source</p>
+<p>​	<code>Source是负责接收数据到Flume Agent的组件</code>。Source组件可以处理各种类型、各种格式的日志数据，包括avro、thrift、<code>exec</code>、jms、<code>spooling directory</code>、netcat、sequence generator、syslog、http、legacy。</p>
+<p>:three:Channel</p>
+<p>​	<code>Channel是位于Source和Sink之间的缓冲区</code>。因此，Channel允许Source和Sink运作在不同的速率上。Channel是线程安全的，可以同时处理几个Source的写入操作和几个Sink的读取操作。</p>
+<p>​	Flume自带两种Channel：Memory Channel和File Channel。</p>
+<p>​	<code>Memory Channel是内存中的队列。Memory Channel在不需要关心数据丢失的情景下适用</code>。如果需要关心数据丢失，那么Memory Channel就不应该使用，因为程序死亡、机器宕机或者重启都会导致数据丢失。</p>
+<p>File Channel将所有事件写到磁盘。因此在程序关闭或机器宕机的情况下不会丢失数据。</p>
+<p>:four:Sink</p>
+<p>​	<code>Sink不断地轮询Channel中的事件且批量地移除它们，并将这些事件批量写入到存储或索引系统、或者被发送到另一个Flume Agent。</code></p>
+<p>​	<code>Sink是完全事务性的</code>。在从Channel批量删除数据之前，每个Sink用Channel启动一个事务。批量事件一旦成功写出到存储系统或下一个Flume Agent，Sink就利用Channel提交事务。事务一旦被提交，该Channel从自己的内部缓冲区删除事件。</p>
+<p>​	Sink组件目的地包括hdfs、logger、avro、thrift、ipc、file、null、HBase、solr、自定义。</p>
+<p>:five:Event</p>
+<p>​	传输单元，Flume数据传输的基本单元，以事件的形式将数据从源头送至目的地。</p>
+<h3 id="1-3-Flume拓扑结构"><a href="#1-3-Flume拓扑结构" class="headerlink" title="1.3 Flume拓扑结构"></a>1.3 Flume拓扑结构</h3><p>Flume的拓扑结构如图1-3、1-4、1-5和1-6所示：</p>
+<blockquote>
+<p>图1-3 Flume Agent连接:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141454646.png" alt="image-20240114145418597"></p>
+<blockquote>
+<p>图1-4 单source，多channel、sink:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141454051.png" alt="image-20240114145425994"></p>
+<blockquote>
+<p>图1-5 Flume负载均衡:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141455307.png" alt="image-20240114145522248"></p>
+<blockquote>
+<p>图1-6 Flume Agent聚合</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141457787.png" alt="image-20240114145705707"></p>
+<h3 id="1-4-Flume-Agent内部原理"><a href="#1-4-Flume-Agent内部原理" class="headerlink" title="1.4 Flume Agent内部原理"></a>1.4 Flume Agent内部原理</h3><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141458659.png" alt="image-20240114145814594"></p>
+<h2 id="2-快速入门"><a href="#2-快速入门" class="headerlink" title="2. 快速入门"></a>2. 快速入门</h2><h3 id="2-1-Flume安装地址"><a href="#2-1-Flume安装地址" class="headerlink" title="2.1 Flume安装地址"></a>2.1 Flume安装地址</h3><p>Flume官网地址:	<a target="_blank" rel="noopener" href="http://flume.apache.org/">http://flume.apache.org/</a></p>
+<p>文档查看地址:	<a target="_blank" rel="noopener" href="http://flume.apache.org/FlumeUserGuide.html">http://flume.apache.org/FlumeUserGuide.html</a></p>
+<p>下载地址:	<a target="_blank" rel="noopener" href="http://archive.apache.org/dist/flume/">http://archive.apache.org/dist/flume/</a></p>
+<h3 id="2-2-安装部署"><a href="#2-2-安装部署" class="headerlink" title="2.2 安装部署"></a>2.2 安装部署</h3><h4 id="2-2-1-将所需包解压重命名"><a href="#2-2-1-将所需包解压重命名" class="headerlink" title="2.2.1 将所需包解压重命名"></a>2.2.1 将所需包解压重命名</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/apache-flume-1.9.0-bin.tar.gz -C /opt/module/</span><br><span class="line">[root@master ~]# <span class="built_in">mv</span> /opt/module/apache-flume-1.9.0-bin/ /opt/module/apache-flume-1.9.0</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-2-添加环境变量"><a href="#2-2-2-添加环境变量" class="headerlink" title="2.2.2 添加环境变量"></a>2.2.2 添加环境变量</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vi /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#FLUME_HOME</span></span><br><span class="line"><span class="built_in">export</span> FLUME_HOME=/opt/module/apache-flume-1.9.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$FLUME_HOME</span>/bin</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-3-修改配置"><a href="#2-2-3-修改配置" class="headerlink" title="2.2.3 修改配置"></a>2.2.3 修改配置</h4><blockquote>
+<p>修改flume-env.sh  指定JDK</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">cp</span> <span class="variable">$FLUME_HOME</span>/conf/flume-env.sh.template <span class="variable">$FLUME_HOME</span>/conf/flume-env.sh</span><br><span class="line">[root@master ~]# vi <span class="variable">$FLUME_HOME</span>/conf/flume-env.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改如下:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141506629.png" alt="image-20240114150616554"></p>
+<h4 id="2-2-4-解决guava冲突问题"><a href="#2-2-4-解决guava冲突问题" class="headerlink" title="2.2.4 解决guava冲突问题"></a>2.2.4 解决<strong>guava</strong>冲突问题</h4><p>将hadoop的guava包替换掉flume的guava包</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">rm</span> -rf <span class="variable">$FLUME_HOME</span>/lib/guava-11.0.2.jar</span><br><span class="line">[root@master ~]# <span class="built_in">cp</span> <span class="variable">$HADOOP_HOME</span>/share/hadoop/common/lib/guava-27.0-jre.jar <span class="variable">$FLUME_HOME</span>/lib/</span><br><span class="line"></span><br><span class="line">查看结果:</span><br><span class="line">[root@master ~]# ll /opt/module/apache-flume-1.9.0/lib/ |grep guava</span><br><span class="line">-rw-r--r-- 1 root root 2747878 Jan 14 07:09 guava-27.0-jre.jar</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<blockquote>
+<p>运行命令(配置文件需自己进行编写)：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/jobs/namenode-hdfs.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>命令解析：</p>
+<ul>
+<li><p>-n&#x2F;–name 指定Agent的名称。（必填）</p>
+</li>
+<li><p>-c&#x2F;–conf 指定配置文件放在什么目录</p>
+</li>
+<li><p>-f&#x2F;–conf-file指定配置文件，必须在–c参数定义的目录下。（必填）</p>
+</li>
+<li><p>-Dflume.root.logger&#x3D;INFO,console 仅为 debug使用，请勿生产环境生搬硬套，否则大量的日志会返回到终端，将日志输入到控制台上</p>
+</li>
+</ul>
+<p>#端口测试 netcat_flume_console.comf</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br><span class="line"></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = localhost</span><br><span class="line">a1.sources.r1.port = <span class="number">9999</span></span><br><span class="line"></span><br><span class="line">a1.sinks.k1.type =logger</span><br><span class="line"></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = <span class="number">1000</span></span><br><span class="line">a1.channels.c1.transactionCapacity = <span class="number">100</span></span><br><span class="line"></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+
+
+<p>#使用flume将数据导入到hdfs中</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = s1</span><br><span class="line">a1.channels = c1</span><br><span class="line">a1.sinks = k1</span><br><span class="line"></span><br><span class="line">a1.sources.s1.type = spooldir</span><br><span class="line"></span><br><span class="line">a1.sources.s1.spoolDir  该目录下的文件会传输到HDFS</span><br><span class="line"></span><br><span class="line">a1.sources.s1.spoolDir = /opt/module/flume/tmpdata</span><br><span class="line"></span><br><span class="line">a1.sinks.k1.type = hdfs</span><br><span class="line">a1.sinks.k1.hdfs.path = hdfs://master:9000/tmp/flume/logs</span><br><span class="line"></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line"></span><br><span class="line">a1.sources.s1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>传输Hadoop日志(namenode)到hdfs:star:</p>
+</blockquote>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br><span class="line"></span><br><span class="line">#读取位置</span><br><span class="line">#定义sourece类型为exec可执行命令的</span><br><span class="line">a1.sources.r1.type = exec</span><br><span class="line">a1.sources.r1.command = tail -f /opt/module/hadoop/logs/hadoop-root-datanode-master.log</span><br><span class="line"></span><br><span class="line">#存储位置</span><br><span class="line">a1.sinks.k1.type = hdfs</span><br><span class="line">a1.sinks.k1.hdfs.path = hdfs://master:9000/tmp/flume</span><br><span class="line"></span><br><span class="line">#使用在内存中缓冲事件的通道</span><br><span class="line"></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 1000</span><br><span class="line">a1.channels.c1.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line">#将source和sink绑定到channel</span><br><span class="line"></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>查看HDFS中&#x2F;tmp&#x2F;flume目录下生成的内容，将查看命令及结果（<code>至少5条结果</code>）</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -<span class="built_in">ls</span> /tmp/flume</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:/Users/Administrator/AppData/Roaming/Typora/typora-user-images/image-20240722170111746.png" alt="image-20240722170111746"></p>
+<blockquote>
+<p>报错解决：</p>
+</blockquote>
+<p><img src="https://gitee.com/master_hj/pic/raw/master/img/image-20230322121147277.png" alt="image-20230322121147277"></p>
+<p>原因：<strong>guava</strong>冲突</p>
+<p>解决：将&#x2F;opt&#x2F;module&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;lib&#x2F;guava-27.0-jre.jar 拷贝到 flume&#x2F;lib 中，并删除或把自带的 guava-11.0.2.jar 改名</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> <span class="variable">$HADOOP_HOME</span>/share/hadoop/common/lib/guava-27.0-jre.jar <span class="variable">$FLUME_HOME</span>/lib</span><br></pre></td></tr></table></figure>
+
+<h2 id="3-企业开发案例"><a href="#3-企业开发案例" class="headerlink" title="3. 企业开发案例"></a>3. 企业开发案例</h2><h3 id="3-1-监控端口数据官方案例"><a href="#3-1-监控端口数据官方案例" class="headerlink" title="3.1 监控端口数据官方案例"></a>3.1 监控端口数据官方案例</h3><h4 id="3-1-1-案例需求："><a href="#3-1-1-案例需求：" class="headerlink" title="3.1.1 案例需求："></a>3.1.1 <strong>案例需求：</strong></h4><p>​	首先，Flume监控本机44444端口，然后通过telnet工具向本机44444端口发送消息，最后Flume将监听的数据实时显示在控制台</p>
+<h4 id="3-1-2-需求分析"><a href="#3-1-2-需求分析" class="headerlink" title="3.1.2 需求分析"></a>3.1.2 <strong>需求分析</strong></h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141516353.png" alt="image-20240114151624267"></p>
+<h4 id="3-1-3-实现步骤"><a href="#3-1-3-实现步骤" class="headerlink" title="3.1.3 实现步骤:"></a>3.1.3 <strong>实现步骤:</strong></h4><blockquote>
+<p>1.安装telnet工具</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# yum install telnet -y</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>2.判断44444端口是否被占用</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# ss -tunlp |grep 44444</span><br></pre></td></tr></table></figure>
+
+<p>返回空值则表示没有被占用:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141527659.png" alt="image-20240114152740603"></p>
+<p>功能描述：ss命令是一个监控TCP&#x2F;IP网络的非常有用的工具，它可以显示路由表、实际的网络连接以及每一个网络接口设备的状态信息。</p>
+<blockquote>
+<p>3.创建Flume Agent配置文件flume-telnet-logger.conf</p>
+</blockquote>
+<p>(1) 在flume目录下创建job文件夹并进入job文件夹</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">mkdir</span> <span class="variable">$FLUME_HOME</span>/job</span><br><span class="line">[root@master ~]# <span class="built_in">cd</span> <span class="variable">$FLUME_HOME</span>/job</span><br></pre></td></tr></table></figure>
+
+<p>(2) 在job文件夹下创建Flume Agent配置文件flume-telnet-logger.conf</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# vim flume-telnet-logger.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = localhost</span><br><span class="line">a1.sources.r1.port = 44444</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a1.sinks.k1.type = logger</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use a channel which buffers events in memory</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 1000</span><br><span class="line">a1.channels.c1.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+<p>注：配置文件来源于官方手册<a target="_blank" rel="noopener" href="http://flume.apache.org/FlumeUserGuide.html">http://flume.apache.org/FlumeUserGuide.html</a></p>
+<p>本地官方文档：<code>/opt/module/apache-flume-1.9.0/docs/FlumeUserGuide.html</code></p>
+<p>参数解释:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141535771.png" alt="image-20240114153507695"></p>
+<p>:star:注意：一个<code>sources</code>可以对多个<code>channels</code>，一个<code>sinks</code>只能对接一个<code>channel</code></p>
+<blockquote>
+<p>4.开启flume监听端口</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/job/flume-telnet-logger.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>这是用于启动Flume代理（agent）的命令，以下是每个参数的解释：</p>
+<ul>
+<li><code>flume-ng</code>：Flume的命令行工具。</li>
+<li><code>agent</code>：指定要运行的Flume代理。</li>
+<li><code>-n a1</code>：指定代理的名称为<code>a1</code>。这是代理的唯一标识符。</li>
+<li><code>-c $FLUME_HOME/conf</code>：指定Flume配置文件的目录。这里使用了环境变量 <code>$FLUME_HOME</code>，它应该设置为 Flume 的主目录。</li>
+<li><code>-f $FLUME_HOME/jobs/namenode-hdfs.conf</code>：指定Flume代理使用的配置文件的路径。这个配置文件描述了数据流的配置，例如来源、通道和目的地。</li>
+<li><code>-Dflume.root.logger=INFO,console</code>：设置Flume代理的日志级别和日志输出方式。在这个例子中，日志级别设置为<code>INFO</code>，并将日志输出到控制台（console）。</li>
+</ul>
+<p>运行结果如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141548905.png" alt="image-20240114154810826"></p>
+<blockquote>
+<p>5.使用telnet工具向本机的44444端口发送内容</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# telnet localhost 44444</span><br><span class="line">Trying 127.0.0.1...</span><br><span class="line">Connected to localhost.</span><br><span class="line">Escape character is <span class="string">&#x27;^]&#x27;</span>.</span><br><span class="line">hello</span><br><span class="line">OK</span><br><span class="line">this is bigdata</span><br><span class="line">OK</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>6．在Flume监听页面观察接收数据情况</p>
+</blockquote>
+<p>结果如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2024-01-14 07:49:43,343 (SinkRunner-PollingRunner-DefaultSinkProcessor) [INFO - org.apache.flume.sink.LoggerSink.process(LoggerSink.java:95)] Event: &#123; headers:&#123;&#125; body: 68 65 6C 6C 6F 0D                               hello. &#125;</span><br><span class="line">2024-01-14 07:49:59,039 (SinkRunner-PollingRunner-DefaultSinkProcessor) [INFO - org.apache.flume.sink.LoggerSink.process(LoggerSink.java:95)] Event: &#123; headers:&#123;&#125; body: 74 68 69 73 20 69 73 20 62 69 67 64 61 74 61 0D this is bigdata. &#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141551652.png" alt="image-20240114155118565"></p>
+<h3 id="3-2-实时读取本地文件到HDFS案例-缺少jar包待测试"><a href="#3-2-实时读取本地文件到HDFS案例-缺少jar包待测试" class="headerlink" title="3.2 实时读取本地文件到HDFS案例(缺少jar包待测试)"></a>3.2 实时读取本地文件到HDFS案例(<code>缺少jar包待测试</code>)</h3><h4 id="3-2-1-案例需求："><a href="#3-2-1-案例需求：" class="headerlink" title="3.2.1 案例需求："></a>3.2.1 案例需求：</h4><p>​	实时监控Hive日志，并上传到HDFS中</p>
+<h4 id="3-2-2-需求分析："><a href="#3-2-2-需求分析：" class="headerlink" title="3.2.2 需求分析："></a>3.2.2 需求分析：</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141553681.png" alt="image-20240114155345612"></p>
+<h4 id="3-2-3-实现步骤："><a href="#3-2-3-实现步骤：" class="headerlink" title="3.2.3 实现步骤："></a>3.2.3 实现步骤：</h4><blockquote>
+<p>1.Flume要想将数据输出到HDFS，必须持有Hadoop相关jar包</p>
+</blockquote>
+<p>将commons-configuration-1.6.jar、</p>
+<p>hadoop-auth-2.7.2.jar、</p>
+<p>hadoop-common-2.7.2.jar、</p>
+<p>hadoop-hdfs-2.7.2.jar、</p>
+<p>commons-io-2.4.jar、</p>
+<p>htrace-core-3.1.0-incubating.jar</p>
+<p>拷贝到&#x2F;opt&#x2F;module&#x2F;flume&#x2F;lib文件夹下</p>
+<blockquote>
+<p>2.创建flume-file-hdfs.conf文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# vim flume-file-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line">a2.sources = r2</span><br><span class="line">a2.sinks = k2</span><br><span class="line">a2.channels = c2</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a2.sources.r2.type = <span class="built_in">exec</span></span><br><span class="line">a2.sources.r2.command = <span class="built_in">tail</span> -F /opt/module/hive/logs/hive.log</span><br><span class="line">a2.sources.r2.shell = /bin/bash -c</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a2.sinks.k2.type = hdfs</span><br><span class="line">a2.sinks.k2.hdfs.path = hdfs://master:9000/flume/%Y%m%d/%H</span><br><span class="line"><span class="comment">#上传文件的前缀</span></span><br><span class="line">a2.sinks.k2.hdfs.filePrefix = logs-</span><br><span class="line"><span class="comment">#是否按照时间滚动文件夹</span></span><br><span class="line">a2.sinks.k2.hdfs.round = <span class="literal">true</span></span><br><span class="line"><span class="comment">#多少时间单位创建一个新的文件夹</span></span><br><span class="line">a2.sinks.k2.hdfs.roundValue = 1</span><br><span class="line"><span class="comment">#重新定义时间单位</span></span><br><span class="line">a2.sinks.k2.hdfs.roundUnit = hour</span><br><span class="line"><span class="comment">#是否使用本地时间戳</span></span><br><span class="line">a2.sinks.k2.hdfs.useLocalTimeStamp = <span class="literal">true</span></span><br><span class="line"><span class="comment">#积攒多少个Event才flush到HDFS一次</span></span><br><span class="line">a2.sinks.k2.hdfs.batchSize = 1000</span><br><span class="line"><span class="comment">#设置文件类型，可支持压缩</span></span><br><span class="line">a2.sinks.k2.hdfs.fileType = DataStream</span><br><span class="line"><span class="comment">#多久生成一个新的文件</span></span><br><span class="line">a2.sinks.k2.hdfs.rollInterval = 600</span><br><span class="line"><span class="comment">#设置每个文件的滚动大小</span></span><br><span class="line">a2.sinks.k2.hdfs.rollSize = 134217700</span><br><span class="line"><span class="comment">#文件的滚动与Event数量无关</span></span><br><span class="line">a2.sinks.k2.hdfs.rollCount = 0</span><br><span class="line"><span class="comment">#最小冗余数</span></span><br><span class="line">a2.sinks.k2.hdfs.minBlockReplicas = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use a channel which buffers events in memory</span></span><br><span class="line">a2.channels.c2.type = memory</span><br><span class="line">a2.channels.c2.capacity = 1000</span><br><span class="line">a2.channels.c2.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a2.sources.r2.channels = c2</span><br><span class="line">a2.sinks.k2.channel = c2</span><br></pre></td></tr></table></figure>
+
+<p>参数解释:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141608410.png" alt="image-20240114160805326"></p>
+<blockquote>
+<p>3.执行监控配置</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-flume-1.9.0]# flume-ng agent --conf conf/ --name a2 --conf-file job/flume-file-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>4.开启Hadoop和Hive并操作Hive产生日志</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]$ sbin/start-dfs.sh</span><br><span class="line">[root@master hadoop]$ sbin/start-yarn.sh</span><br><span class="line"></span><br><span class="line">[root@master hive]$ bin/hive</span><br><span class="line">hive (default)&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>5.在HDFS上查看文件。</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141611859.png" alt="image-20240114161137794"></p>
+<h3 id="3-3-实时读取目录文件到HDFS案例"><a href="#3-3-实时读取目录文件到HDFS案例" class="headerlink" title="3.3 实时读取目录文件到HDFS案例"></a>3.3 实时读取目录文件到HDFS案例</h3><h4 id="3-3-1-案例需求："><a href="#3-3-1-案例需求：" class="headerlink" title="3.3.1 案例需求："></a>3.3.1 案例需求：</h4><p>​	使用Flume监听整个目录的文件</p>
+<h4 id="3-3-2-需求分析"><a href="#3-3-2-需求分析" class="headerlink" title="3.3.2 需求分析"></a>3.3.2 需求分析</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141613033.png" alt="image-20240114161315952"></p>
+<h4 id="3-3-3-实现步骤"><a href="#3-3-3-实现步骤" class="headerlink" title="3.3.3 实现步骤"></a>3.3.3 实现步骤</h4><blockquote>
+<p>1.创建配置文件flume-dir-hdfs.conf</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# <span class="built_in">mkdir</span> /opt/module/apache-flume-1.9.0/upload</span><br><span class="line">[root@master job]# vim flume-dir-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">a3.sources = r3</span><br><span class="line">a3.sinks = k3</span><br><span class="line">a3.channels = c3</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a3.sources.r3.type = spooldir</span><br><span class="line">a3.sources.r3.spoolDir = /opt/module/apache-flume-1.9.0/upload</span><br><span class="line">a3.sources.r3.fileSuffix = .COMPLETED</span><br><span class="line">a3.sources.r3.fileHeader = <span class="literal">true</span></span><br><span class="line"><span class="comment">#忽略所有以.tmp结尾的文件，不上传</span></span><br><span class="line">a3.sources.r3.ignorePattern = ([^ ]*\.tmp)</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a3.sinks.k3.type = hdfs</span><br><span class="line">a3.sinks.k3.hdfs.path = hdfs://master:9000/apache-flume-1.9.0/upload/%Y%m%d/%H</span><br><span class="line"><span class="comment">#上传文件的前缀</span></span><br><span class="line">a3.sinks.k3.hdfs.filePrefix = upload-</span><br><span class="line"><span class="comment">#是否按照时间滚动文件夹</span></span><br><span class="line">a3.sinks.k3.hdfs.round = <span class="literal">true</span></span><br><span class="line"><span class="comment">#多少时间单位创建一个新的文件夹</span></span><br><span class="line">a3.sinks.k3.hdfs.roundValue = 1</span><br><span class="line"><span class="comment">#重新定义时间单位</span></span><br><span class="line">a3.sinks.k3.hdfs.roundUnit = hour</span><br><span class="line"><span class="comment">#是否使用本地时间戳</span></span><br><span class="line">a3.sinks.k3.hdfs.useLocalTimeStamp = <span class="literal">true</span></span><br><span class="line"><span class="comment">#积攒多少个Event才flush到HDFS一次</span></span><br><span class="line">a3.sinks.k3.hdfs.batchSize = 100</span><br><span class="line"><span class="comment">#设置文件类型，可支持压缩</span></span><br><span class="line">a3.sinks.k3.hdfs.fileType = DataStream</span><br><span class="line"><span class="comment">#多久生成一个新的文件</span></span><br><span class="line">a3.sinks.k3.hdfs.rollInterval = 600</span><br><span class="line"><span class="comment">#设置每个文件的滚动大小大概是128M</span></span><br><span class="line">a3.sinks.k3.hdfs.rollSize = 134217700</span><br><span class="line"><span class="comment">#文件的滚动与Event数量无关</span></span><br><span class="line">a3.sinks.k3.hdfs.rollCount = 0</span><br><span class="line"><span class="comment">#最小冗余数</span></span><br><span class="line">a3.sinks.k3.hdfs.minBlockReplicas = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use a channel which buffers events in memory</span></span><br><span class="line">a3.channels.c3.type = memory</span><br><span class="line">a3.channels.c3.capacity = 1000</span><br><span class="line">a3.channels.c3.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a3.sources.r3.channels = c3</span><br><span class="line">a3.sinks.k3.channel = c3</span><br></pre></td></tr></table></figure>
+
+<p>参数详解:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141616579.png" alt="image-20240114161617490"></p>
+<blockquote>
+<p>2.启动监控文件夹命令</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# flume-ng agent -n a3 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/job/flume-dir-hdfs.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p><code>说明</code>： 在使用Spooling Directory Source时</p>
+<ul>
+<li>不要在监控目录中创建并持续修改文件</li>
+<li>上传完成的文件会以.COMPLETED结尾</li>
+<li>被监控文件夹每500毫秒扫描一次文件变动</li>
+</ul>
+<blockquote>
+<p>3.向upload文件夹中添加文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master upload]# <span class="built_in">touch</span> hj.txt</span><br><span class="line">[root@master upload]# <span class="built_in">touch</span> app.txt</span><br><span class="line">[root@master upload]# <span class="built_in">touch</span> hyp.txt</span><br></pre></td></tr></table></figure>
+
+<p>查看flume日志输出:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141630390.png" alt="image-20240114163056295"></p>
+<blockquote>
+<p>4.查看HDFS上的数据</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141631755.png" alt="image-20240114163156670"></p>
+<blockquote>
+<p>5.等待1s，再次查询upload文件夹</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master upload]# ll</span><br><span class="line">total 0</span><br><span class="line">-rw-r--r-- 1 root root 0 Jan 14 08:28 app.txt.COMPLETED</span><br><span class="line">-rw-r--r-- 1 root root 0 Jan 14 08:28 hj.txt.COMPLETED</span><br><span class="line">-rw-r--r-- 1 root root 0 Jan 14 08:28 hyp.txt.COMPLETED</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-单数据源多出口案例-选择器"><a href="#3-4-单数据源多出口案例-选择器" class="headerlink" title="3.4 单数据源多出口案例(选择器)"></a>3.4 单数据源多出口案例(选择器)</h3><p>单Source多Channel、Sink如下图所示:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141635879.png" alt="image-20240114163500795"></p>
+<h4 id="3-4-1-案例需求："><a href="#3-4-1-案例需求：" class="headerlink" title="3.4.1 案例需求："></a>3.4.1 案例需求：</h4><p>​	使用Flume-1监控文件变动，Flume-1将变动内容传递给Flume-2，Flume-2负责存储到HDFS。同时Flume-1将变动内容传递给Flume-3，Flume-3负责输出到Local FileSystem。</p>
+<h4 id="3-4-2-需求分析"><a href="#3-4-2-需求分析" class="headerlink" title="3.4.2 需求分析"></a>3.4.2 需求分析</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141636677.png" alt="image-20240114163605599"></p>
+<h4 id="3-4-3-实现步骤："><a href="#3-4-3-实现步骤：" class="headerlink" title="3.4.3 实现步骤："></a>3.4.3 实现步骤：</h4><blockquote>
+<p>1.准备工作</p>
+</blockquote>
+<p>在&#x2F;opt&#x2F;module&#x2F;flume&#x2F;job目录下创建group1文件夹</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# <span class="built_in">mkdir</span> <span class="variable">$FLUME_HOME</span>/job/group1</span><br></pre></td></tr></table></figure>
+
+<p>在&#x2F;opt&#x2F;module&#x2F;datas&#x2F;目录下创建flume3文件夹</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p /opt/module/datas/flume3</span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>2.创建flume-file-flume.conf</p>
+</blockquote>
+<p>​	配置1个接收日志文件的source和两个channel、两个sink，分别输送给flume-flume-hdfs和flume-flume-dir。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# <span class="built_in">cd</span> group1/</span><br><span class="line">[root@master group1]# vim flume-file-flume.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1 k2</span><br><span class="line">a1.channels = c1 c2</span><br><span class="line"><span class="comment"># 将数据流复制给所有channel</span></span><br><span class="line">a1.sources.r1.selector.type = replicating</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a1.sources.r1.type = <span class="built_in">exec</span></span><br><span class="line">a1.sources.r1.command = <span class="built_in">tail</span> -F /opt/module/apache-hive-3.1.2/logs/hiveServer2.<span class="built_in">log</span></span><br><span class="line">a1.sources.r1.shell = /bin/bash -c</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a1.sinks.k1.type = avro</span><br><span class="line">a1.sinks.k1.hostname = master </span><br><span class="line">a1.sinks.k1.port = 4141</span><br><span class="line"></span><br><span class="line">a1.sinks.k2.type = avro</span><br><span class="line">a1.sinks.k2.hostname = master</span><br><span class="line">a1.sinks.k2.port = 4142</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the channel</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 1000</span><br><span class="line">a1.channels.c1.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line">a1.channels.c2.type = memory</span><br><span class="line">a1.channels.c2.capacity = 1000</span><br><span class="line">a1.channels.c2.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a1.sources.r1.channels = c1 c2</span><br><span class="line">a1.sinks.k1.channel = c1</span><br><span class="line">a1.sinks.k2.channel = c2</span><br></pre></td></tr></table></figure>
+
+<p><code>注</code>：Avro是由Hadoop创始人Doug Cutting创建的一种语言无关的数据序列化和RPC框架。</p>
+<p><code>注</code>：RPC（Remote Procedure Call）—远程过程调用，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。</p>
+<blockquote>
+<p>3.创建flume-flume-hdfs.conf</p>
+</blockquote>
+<p>配置上级Flume输出的Source，输出是到HDFS的Sink。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master group1]# vim flume-flume-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line">a2.sources = r1</span><br><span class="line">a2.sinks = k1</span><br><span class="line">a2.channels = c1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a2.sources.r1.type = avro</span><br><span class="line">a2.sources.r1.bind = master</span><br><span class="line">a2.sources.r1.port = 4141</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a2.sinks.k1.type = hdfs</span><br><span class="line">a2.sinks.k1.hdfs.path = hdfs://master:9000/flume2/%Y%m%d/%H</span><br><span class="line"><span class="comment">#上传文件的前缀</span></span><br><span class="line">a2.sinks.k1.hdfs.filePrefix = flume2-</span><br><span class="line"><span class="comment">#是否按照时间滚动文件夹</span></span><br><span class="line">a2.sinks.k1.hdfs.round = <span class="literal">true</span></span><br><span class="line"><span class="comment">#多少时间单位创建一个新的文件夹</span></span><br><span class="line">a2.sinks.k1.hdfs.roundValue = 1</span><br><span class="line"><span class="comment">#重新定义时间单位</span></span><br><span class="line">a2.sinks.k1.hdfs.roundUnit = hour</span><br><span class="line"><span class="comment">#是否使用本地时间戳</span></span><br><span class="line">a2.sinks.k1.hdfs.useLocalTimeStamp = <span class="literal">true</span></span><br><span class="line"><span class="comment">#积攒多少个Event才flush到HDFS一次</span></span><br><span class="line">a2.sinks.k1.hdfs.batchSize = 100</span><br><span class="line"><span class="comment">#设置文件类型，可支持压缩</span></span><br><span class="line">a2.sinks.k1.hdfs.fileType = DataStream</span><br><span class="line"><span class="comment">#多久生成一个新的文件</span></span><br><span class="line">a2.sinks.k1.hdfs.rollInterval = 600</span><br><span class="line"><span class="comment">#设置每个文件的滚动大小大概是128M</span></span><br><span class="line">a2.sinks.k1.hdfs.rollSize = 134217700</span><br><span class="line"><span class="comment">#文件的滚动与Event数量无关</span></span><br><span class="line">a2.sinks.k1.hdfs.rollCount = 0</span><br><span class="line"><span class="comment">#最小冗余数</span></span><br><span class="line">a2.sinks.k1.hdfs.minBlockReplicas = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the channel</span></span><br><span class="line">a2.channels.c1.type = memory</span><br><span class="line">a2.channels.c1.capacity = 1000</span><br><span class="line">a2.channels.c1.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a2.sources.r1.channels = c1</span><br><span class="line">a2.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>4.创建flume-flume-dir.conf</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master group1]# vim flume-flume-dir.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># Name the components on this agent</span></span><br><span class="line">a3.sources = r1</span><br><span class="line">a3.sinks = k1</span><br><span class="line">a3.channels = c2</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a3.sources.r1.type = avro</span><br><span class="line">a3.sources.r1.bind = master</span><br><span class="line">a3.sources.r1.port = 4142</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a3.sinks.k1.type = file_roll</span><br><span class="line">a3.sinks.k1.sink.directory = /opt/module/datas/flume3</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the channel</span></span><br><span class="line">a3.channels.c2.type = memory</span><br><span class="line">a3.channels.c2.capacity = 1000</span><br><span class="line">a3.channels.c2.transactionCapacity = 100</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a3.sources.r1.channels = c2</span><br><span class="line">a3.sinks.k1.channel = c2</span><br></pre></td></tr></table></figure>
+
+<p>提示：输出的本地目录<code>必须是已经存在的目录</code>，如果该目录不存在，并不会创建新的目录。</p>
+<blockquote>
+<p>5.执行配置文件</p>
+</blockquote>
+<p>别开启对应配置文件：<code>flume-flume-dir</code>，<code>flume-flume-hdfs</code>，<code>flume-file-flume</code>。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">1.</span><br><span class="line">flume-ng agent -c <span class="variable">$FLUME_HOME</span>/conf -n a3 -f <span class="variable">$FLUME_HOME</span>/job/group1/flume-flume-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141741088.png" alt="image-20240114174121978"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">2.</span><br><span class="line">flume-ng agent -c <span class="variable">$FLUME_HOME</span>/conf -n a2 -f <span class="variable">$FLUME_HOME</span>/job/group1/flume-flume-hdfs.conf</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141742761.png" alt="image-20240114174151299"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">3.</span><br><span class="line">flume-ng agent -c <span class="variable">$FLUME_HOME</span>/conf -n a1 -f <span class="variable">$FLUME_HOME</span>/job/group1/flume-file-flume.conf</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141742034.png" alt="image-20240114174226938"></p>
+<blockquote>
+<p>6.启动hive</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root<span class="variable">@master</span> <span class="operator">~</span>]# hive</span><br><span class="line">hive<span class="operator">&gt;</span> <span class="keyword">show</span> databases;</span><br><span class="line">OK</span><br><span class="line"><span class="keyword">default</span></span><br><span class="line"><span class="type">Time</span> taken: <span class="number">0.469</span> seconds, Fetched: <span class="number">1</span> <span class="type">row</span>(s)</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>7.检查HDFS上的数据</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141747104.png" alt="image-20240114174659992"></p>
+<blockquote>
+<p>8.检查&#x2F;opt&#x2F;module&#x2F;datas&#x2F;flume3目录中数据</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master flume3]$ ll</span><br><span class="line">总用量 8</span><br><span class="line">-rw-rw-r--. 1 root root 5942 5月  22 00:09 1526918887550-3</span><br></pre></td></tr></table></figure>
+
+<h4 id="3-4-4-大数据赛项数据采集"><a href="#3-4-4-大数据赛项数据采集" class="headerlink" title="3.4.4 大数据赛项数据采集"></a>3.4.4 大数据赛项数据采集</h4><h5 id="3-4-1-电商数据："><a href="#3-4-1-电商数据：" class="headerlink" title="3.4.1 电商数据："></a>3.4.1 电商数据：</h5><h6 id="3-4-4-1-1-任务一："><a href="#3-4-4-1-1-任务一：" class="headerlink" title="3.4.4.1.1 任务一："></a>3.4.4.1.1 任务一：</h6><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">在主节点使用Flume采集实时数据生成器<span class="number">10050</span>端口的socket数据，将数据存入到Kafka的Topic中（Topic名称为order，分区数为<span class="number">4</span>），使用Kafka自带的消费者消费order（Topic）中的数据，将前<span class="number">2</span>条数据的结果截图粘贴至客户端桌面【Release\任务D提交结果.docx】中对应的任务序号下；</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>1.创建bigdata.conf</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# vim bigdata.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下配置:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义这个agent中各组件的名字</span></span><br><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1</span><br><span class="line">a1.channels = c1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source组件：r1</span></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = 192.168.1.10</span><br><span class="line">a1.sources.r1.port = 10050</span><br><span class="line"><span class="comment"># 这条可忽略</span></span><br><span class="line">a1.sources.r1.max-line-length = 102400</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置kafka sink组件：k1</span></span><br><span class="line">a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k1.kafka.topic = bigdata</span><br><span class="line">a1.sinks.k1.kafka.bootstrap.servers = master:9092,slave1:9092,slave2:9092</span><br><span class="line">a1.sinks.kafka.flumeBatchSize = 200</span><br><span class="line">a1.sinks.k1.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.linger.ms = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.compression.type = snappy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置channel组件，此处使用是内存缓存的方式</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 10000</span><br><span class="line">a1.channels.c1.transactionCapacity = 1000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source  channel   sink之间的连接关系</span></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+<p>:star::star: 配置参考<code>/opt/module/apache-flume-1.9.0/docs/FlumeUserGuide.html</code>：</p>
+<p><strong>定义agent sources channel参考：</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191455205.png" alt="image-20240219145524126"></p>
+<p>定义kafka sinks：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191457461.png" alt="image-20240219145733401"></p>
+<blockquote>
+<p>启动zookeeper 和 kafka服务,并创建名为<code>bigdata</code>的topic</p>
+</blockquote>
+<p><strong>启动方式1（脚本启动）：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1.启动zookeeper服务</span><br><span class="line">[root@master ~]# zk.sh start</span><br><span class="line"></span><br><span class="line">2.启动kafka服务</span><br><span class="line">[root@master job]# kafka.sh start</span><br></pre></td></tr></table></figure>
+
+<p><strong>启动方式2（命令行启动）：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">所有节点执行:</span><br><span class="line">1.启动zookeeper服务</span><br><span class="line">	zkServer.sh start</span><br><span class="line"></span><br><span class="line">2.启动kafka服务</span><br><span class="line">	kafka-server-start.sh -daemon <span class="variable">$KAFKA_HOME</span>/config/server.properties</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401142234874.png" alt="image-20240114223439773"></p>
+<p>创建topic:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --create --zookeeper master:2181,slave1:2181,slave2:2181 --partitions 3 --replication-factor 3 --topic bigdata</span><br></pre></td></tr></table></figure>
+
+<p>查看topic:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --list --zookeeper master:2181,slave1:2181,slave2:2181</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401142252373.png" alt="image-20240114225212291"></p>
+<blockquote>
+<p>执行配置文件:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/job/bigdata.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>执行结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191519701.png" alt="image-20240219151912630"></p>
+<p>消费者消费消息:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server master:9092,slave1:9092,slave2:9092 --topic bigdata --from-beginning</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191522197.png" alt="image-20240219152257146"></p>
+<blockquote>
+<p>运行模拟数据脚本Python脚本：</p>
+</blockquote>
+<p>目录如下：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191524225.png" alt="image-20240219152423173"></p>
+<p>编辑Python脚本，修改ip</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191525258.png" alt="image-20240219152522206"></p>
+<p>修改后运行Python脚本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面/数据采集$ <span class="built_in">sudo</span> python3 test2.py</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191526367.png" alt="image-20240219152630307"></p>
+<p>观察kafka消费者：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191527504.png" alt="image-20240219152704419"></p>
+<p>完成</p>
+<blockquote>
+<p>使用Kafka自带的消费者消费order（Topic）中的数据，将前2条数据的结果截图:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server bigdata1:9092 --from-beginning --topic order --max-messages 2</span><br></pre></td></tr></table></figure>
+
+<p><img src="C:/Users/Administrator/AppData/Roaming/Typora/typora-user-images/image-20240722173635683.png" alt="image-20240722173635683"></p>
+<h6 id="3-4-4-1-2-任务二"><a href="#3-4-4-1-2-任务二" class="headerlink" title="3.4.4.1.2 任务二:"></a>3.4.4.1.2 任务二:</h6><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">采用多路复用模式，Flume接收数据注入kafka 的同时，将数据备份到HDFS目录/user/test/flumebackup下，将查看备份目录下的第一个文件的前<span class="number">2</span>条数据的命令与结果截图粘贴至客户端桌面【Release\任务D提交结果.docx】中对应的任务序号下。</span><br></pre></td></tr></table></figure>
+
+<p><strong>多路复用架构图：</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191644625.png" alt="image-20240219164419540"></p>
+<blockquote>
+<p>1.创建<code>bigdata_Multiplexing.conf</code>多路复用</p>
+</blockquote>
+<p>拷贝前面编写的配置文件，新加一个hdfs的sinks：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master job]# <span class="built_in">cp</span> bigdata.conf bigdata_Multiplexing.conf</span><br></pre></td></tr></table></figure>
+
+<p>修改后内容如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义这个agent中各组件的名字</span></span><br><span class="line">a1.sources = r1</span><br><span class="line">a1.sinks = k1 k2</span><br><span class="line">a1.channels = c1 c2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source组件：r1</span></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = 192.168.1.10</span><br><span class="line">a1.sources.r1.port = 10050</span><br><span class="line">a1.sources.r1.max-line-length = 102400</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置sink组件：k1</span></span><br><span class="line">a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k1.kafka.topic = bigdata</span><br><span class="line">a1.sinks.k1.kafka.bootstrap.servers = master:9092,slave1:9092,slave2:9092</span><br><span class="line">a1.sinks.kafka.flumeBatchSize = 200</span><br><span class="line">a1.sinks.k1.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.linger.ms = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.compression.type = snappy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置sink组件：k2</span></span><br><span class="line"><span class="comment">## 指定了数据接收组件类型为 HDFS</span></span><br><span class="line">a1.sinks.k2.type = hdfs</span><br><span class="line"><span class="comment">## 指定了写入 HDFS 的路径</span></span><br><span class="line">a1.sinks.k2.hdfs.path = hdfs://master:9000/user/test/flumebackup</span><br><span class="line"><span class="comment">## 指定了每批次写入 HDFS 的记录数为 100</span></span><br><span class="line">a1.sinks.k2.hdfs.batchSize = 100</span><br><span class="line"><span class="comment">##指定了在滚动写入 HDFS 之前等待的最大文件大小为 10000 字节</span></span><br><span class="line">a1.sinks.k2.hdfs.rollSize = 10000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置channel组件，此处使用是内存缓存的方式 c1</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 10000</span><br><span class="line">a1.channels.c1.transactionCapacity = 1000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置channel组件，此处使用是内存缓存的方式 c2</span></span><br><span class="line">a1.channels.c2.type = memory</span><br><span class="line">a1.channels.c2.capacity = 10000</span><br><span class="line">a1.channels.c2.transactionCapacity = 1000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source  channel   sink之间的连接关系</span></span><br><span class="line">a1.sources.r1.channels = c1 c2</span><br><span class="line">a1.sinks.k1.channel = c1</span><br><span class="line">a1.sinks.k2.channel = c2</span><br></pre></td></tr></table></figure>
+
+<p>主要添加配置如下：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191929098.png" alt="image-20240219192902016"></p>
+<p>参考：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402291639204.png" alt="image-20240229163920112"></p>
+<p>启动flume服务：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/job/bigdata_Multiplexing.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191927725.png" alt="image-20240219192723639"></p>
+<blockquote>
+<p>查看备份目录下的第一个文件的前2条数据的命令与结果截图:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191924085.png" alt="image-20240219192431005"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -<span class="built_in">cat</span> /usr/test/flumebackup/FlumeData.1708341766181 | <span class="built_in">head</span> -n 2</span><br></pre></td></tr></table></figure>
+
+
+
+<p>消费者消费消息:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server master:9092,slave1:9092,slave2:9092 --topic bigdata --from-beginning</span><br></pre></td></tr></table></figure>
+
+<p>运行结果：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402191930921.png" alt="image-20240219193028843"></p>
+<p>数据采集完成，接下来使用fink进行实时数据处理</p>
+<h5 id="3-4-2-工业数据："><a href="#3-4-2-工业数据：" class="headerlink" title="3.4.2 工业数据："></a>3.4.2 工业数据：</h5><h6 id="3-4-2-1-任务一："><a href="#3-4-2-1-任务一：" class="headerlink" title="3.4.2.1 任务一："></a>3.4.2.1 任务一：</h6><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>、在主节点使用Flume采集/data_log目录下实时日志文件中的数据，将数据存入到Kafka的Topic中（Topic名称分别为ChangeRecord、ProduceRecord和EnvironmentData，分区数为<span class="number">4</span>），将Flume采集ChangeRecord主题的配置截图粘贴至客户端桌面【Release\任务D提交结果.docx】中对应的任务序号下；</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>创建topic：</p>
+</blockquote>
+<p>partitions:	分区</p>
+<p>replication-factor：	副本</p>
+<p><strong>ChangeRecord：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --create --zookeeper master:2181,slave1:2181,slave2:2181 --partitions 4 --replication-factor 1 --topic ChangeRecord</span><br></pre></td></tr></table></figure>
+
+<p><strong>ProduceRecord：</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --create --zookeeper master:2181,slave1:2181,slave2:2181 --partitions 4 --replication-factor 1 --topic ProduceRecord</span><br></pre></td></tr></table></figure>
+
+<p><strong>EnvironmentData:</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-topics.sh --create --zookeeper master:2181,slave1:2181,slave2:2181 --partitions 4 --replication-factor 1 --topic EnvironmentData</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>创建后的topic如下：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 data_log]# kafka-topics.sh --zookeeper localhost:2181 --list</span><br><span class="line">ChangeRecord</span><br><span class="line">EnvironmentData</span><br><span class="line">ProduceRecord</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402281035190.png" alt="image-20240228103535104"></p>
+<blockquote>
+<p>　创建industry.conf：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 job]# vim industry.conf</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义这个agent中各组件的名字</span></span><br><span class="line">a1.sources = r1 r2 r3</span><br><span class="line">a1.sinks = k1 k2 k3</span><br><span class="line">a1.channels = c1 c2 c3</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义sources r1</span></span><br><span class="line">a1.sources.r1.type = TAILDIR</span><br><span class="line">a1.sources.r1.positionFile =/opt/module/flume-1.9.0/changerecord/taildir_position.json</span><br><span class="line">a1.sources.r1.filegroups = f1</span><br><span class="line">a1.sources.r1.filegroups.f1 = /data_log/.*changerecord.csv</span><br><span class="line"><span class="comment"># r2</span></span><br><span class="line">a1.sources.r2.type = TAILDIR</span><br><span class="line">a1.sources.r2.positionFile = /opt/module/flume-1.9.0/producerecord/taildir_position.json</span><br><span class="line">a1.sources.r2.filegroups = f1</span><br><span class="line">a1.sources.r2.filegroups.f1 = /data_log/.*producerecord.csv</span><br><span class="line"><span class="comment"># r3</span></span><br><span class="line">a1.sources.r3.type = TAILDIR</span><br><span class="line">a1.sources.r3.positionFile =/opt/module/flume-1.9.0/environmentdata/taildir_position.json</span><br><span class="line">a1.sources.r3.filegroups = f1</span><br><span class="line">a1.sources.r3.filegroups.f1 = /data_log/.*environmentdata.csv</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义sinks k1</span></span><br><span class="line">a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k1.kafka.topic = ChangeRecord</span><br><span class="line">a1.sinks.k1.kafka.bootstrap.servers = bigdata1:9092,bigdata2:9092,bigdata3:9092</span><br><span class="line">a1.sinks.k1.kafka.flumeBatchSize = 20</span><br><span class="line">a1.sinks.k1.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.linger.ms = 1</span><br><span class="line"><span class="comment"># k2</span></span><br><span class="line">a1.sinks.k2.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k2.kafka.topic = ProduceRecord</span><br><span class="line">a1.sinks.k2.kafka.bootstrap.servers = bigdata1:9092,bigdata2:9092,bigdata3:9092</span><br><span class="line">a1.sinks.k2.kafka.flumeBatchSize = 20</span><br><span class="line">a1.sinks.k2.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k2.kafka.producer.linger.ms = 1</span><br><span class="line"><span class="comment"># k3</span></span><br><span class="line">a1.sinks.k3.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k3.kafka.topic = EnvironmentData</span><br><span class="line">a1.sinks.k3.kafka.bootstrap.servers = bigdata1:9092,bigdata2:9092,bigdata3:9092</span><br><span class="line">a1.sinks.k3.kafka.flumeBatchSize = 20</span><br><span class="line">a1.sinks.k3.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k3.kafka.producer.linger.ms = 1</span><br><span class="line"></span><br><span class="line"><span class="comment"># 定义channel c1</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 10000</span><br><span class="line">a1.channels.c1.transactionCapacity = 10000</span><br><span class="line"><span class="comment"># c2</span></span><br><span class="line">a1.channels.c2.type = memory</span><br><span class="line">a1.channels.c2.capacity = 10000</span><br><span class="line">a1.channels.c2.transactionCapacity = 10000</span><br><span class="line"><span class="comment"># c3</span></span><br><span class="line">a1.channels.c3.type = memory</span><br><span class="line">a1.channels.c3.capacity = 10000</span><br><span class="line">a1.channels.c3.transactionCapacity = 10000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source  channel   sink之间的连接关系</span></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br><span class="line"></span><br><span class="line">a1.sources.r2.channels = c2</span><br><span class="line">a1.sinks.k2.channel = c2</span><br><span class="line"></span><br><span class="line">a1.sources.r3.channels = c3</span><br><span class="line">a1.sinks.k3.channel = c3</span><br></pre></td></tr></table></figure>
+
+<p>新增参数：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402281021504.png" alt="image-20240228102128393"></p>
+<p>运行flume脚本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/job/industry.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>运行结果如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402292028076.png" alt="image-20240229202836977"></p>
+<h6 id="3-4-2-2-任务二："><a href="#3-4-2-2-任务二：" class="headerlink" title="3.4.2.2 任务二："></a>3.4.2.2 任务二：</h6><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">2</span>、编写新的Flume配置文件，将数据备份到HDFS目录/user/test/flumebackup下，要求所有主题的数据使用同一个Flume配置文件完成，将Flume的配置截图粘贴至客户端桌面【Release\任务D提交结果.docx】中对应的任务序号下。</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>flume配置内容</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义这个agent中各组件的名字</span></span><br><span class="line">a2.sources = r1</span><br><span class="line">a2.sinks = k1</span><br><span class="line">a2.channels = c1</span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe/configure the source</span></span><br><span class="line">a2.sources.r1.type = TAILDIR</span><br><span class="line">a2.sources.r1.positionFile = /opt/module/flume-1.9.0/tail_dir.json</span><br><span class="line">a2.sources.r1.filegroups = f1 f2 f3</span><br><span class="line"><span class="comment">#f1</span></span><br><span class="line">a2.sources.r1.filegroups.f1 = /data_log/.*producerecord.csv</span><br><span class="line">a2.sources.r1.headers.f1.headerKey1 = producerecord</span><br><span class="line"><span class="comment">#f2</span></span><br><span class="line">a2.sources.r1.filegroups.f2 = /data_log/.*changerecord.csv</span><br><span class="line">a2.sources.r1.headers.f2.headerKey1 = changerecord</span><br><span class="line"><span class="comment">#f3</span></span><br><span class="line">a2.sources.r1.filegroups.f3 = /data_log/.*environmentdata.csv</span><br><span class="line">a2.sources.r1.headers.f3.headerKey1 = environmentdata</span><br><span class="line">a2.sources.r1.fileHeader = <span class="literal">true</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Describe the sink</span></span><br><span class="line">a2.sinks.k1.type = hdfs</span><br><span class="line">a2.sinks.k1.hdfs.path = hdfs:///user/test/flumebackup/%Y%m%d/%H/%&#123;headerKey1&#125;</span><br><span class="line"><span class="comment">#上传文件的前缀</span></span><br><span class="line">a2.sinks.k1.hdfs.filePrefix = upload-</span><br><span class="line"><span class="comment">#是否按照时间滚动文件夹</span></span><br><span class="line">a2.sinks.k1.hdfs.round = <span class="literal">true</span></span><br><span class="line"><span class="comment">#多少时间单位创建一个新的文件夹</span></span><br><span class="line">a2.sinks.k1.hdfs.roundValue = 1</span><br><span class="line"><span class="comment">#重新定义时间单位</span></span><br><span class="line">a2.sinks.k1.hdfs.roundUnit = hour</span><br><span class="line"><span class="comment">#是否使用本地时间戳</span></span><br><span class="line">a2.sinks.k1.hdfs.useLocalTimeStamp = <span class="literal">true</span></span><br><span class="line"><span class="comment">#积攒多少个Event才flush到HDFS一次</span></span><br><span class="line">a2.sinks.k1.hdfs.batchSize = 100</span><br><span class="line"><span class="comment">#设置文件类型，可支持压缩</span></span><br><span class="line">a2.sinks.k1.hdfs.fileType = DataStream</span><br><span class="line"><span class="comment">#多久生成一个新的文件</span></span><br><span class="line">a2.sinks.k1.hdfs.rollInterval = 60</span><br><span class="line"><span class="comment">#设置每个文件的滚动大小大概是128M</span></span><br><span class="line">a2.sinks.k1.hdfs.rollSize = 134217700</span><br><span class="line"><span class="comment">#文件的滚动与Event数量无关</span></span><br><span class="line">a2.sinks.k1.hdfs.rollCount = 0</span><br><span class="line"></span><br><span class="line"><span class="comment"># Use a channel which buffers events in memory</span></span><br><span class="line">a2.channels.c1.type = memory</span><br><span class="line">a2.channels.c1.capacity = 10000</span><br><span class="line">a2.channels.c1.transactionCapacity = 10000</span><br><span class="line"></span><br><span class="line"><span class="comment"># Bind the source and sink to the channel</span></span><br><span class="line">a2.sources.r1.channels = c1</span><br><span class="line">a2.sinks.k1.channel = c1</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>运行</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a2 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/jobs/hdfs.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402292106764.png" alt="image-20240229210617647"></p>
+<blockquote>
+<p>发现数据已经在备份，到hdfs查看如下：</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402292107085.png" alt="image-20240229210721984"></p>
+<blockquote>
+<p>查看数据详情：</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202402292108479.png" alt="image-20240229210800386"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -<span class="built_in">cat</span> /user/test/flumebackup/20240723/15/changerecord/upload-.1721718299144 | <span class="built_in">head</span> -n2</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>完成</p>
+<h5 id="3-4-3-河南2023年省赛电商数据采集（maxwell）"><a href="#3-4-3-河南2023年省赛电商数据采集（maxwell）" class="headerlink" title="3.4.3  河南2023年省赛电商数据采集（maxwell）"></a>3.4.3  河南2023年省赛电商数据采集（maxwell）</h5><h6 id="3-4-3-1-使用多路复用同时完成（建议）"><a href="#3-4-3-1-使用多路复用同时完成（建议）" class="headerlink" title="3.4.3.1 使用多路复用同时完成（建议）"></a>3.4.3.1 使用多路复用同时完成（建议）</h6><figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">1</span>.在主节点使用flume采集实时数据生成器<span class="number">25001</span>端口数据的socket数据，将数据存入kafka的topic中（ods_mall_log，分区为<span class="number">2</span>），使用kafka的自带的消费者消费ods_mall_log中的数据，并查看topic中的前<span class="number">1</span>条数据结果，将查看命令与结果完整截图到答题卡</span><br><span class="line"></span><br><span class="line"><span class="number">2</span>.实时脚本启动后，在主节点进入到mwell<span class="literal">-1</span>.<span class="number">29.0</span>的解压后目承下《在/opt/module下)，配置相关文件并启动，读取主节点MlySQlL数据的binlog日志(MySQL. 的binlog相关配置已完毕，只需要关注ds_realtime_db 数据库的表)到Kafka的Topie中(Topie 名称为 ods_mall_data. 分区数为<span class="number">2</span> )。使用kafka 自带的消费者消费ods_mall_data (Topie)中的数据，查看Topie 中的前<span class="number">1</span>条数据的结果，将查看命令与结果完整的截图站贴至客户端桌面</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>1.创建topic</p>
+<blockquote>
+<p>截图要点，指令单独截图，查看创建的结果单独截图</p>
+</blockquote>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1.任务一</span><br><span class="line">kafka-topics.sh --create --zookeeper bigdata1:2181,bigdata2:2181,bigdata3:2181 --partitions 2 --replication-factor 1 --topic ods_mall_log</span><br><span class="line">2.任务二</span><br><span class="line">kafka-topics.sh --create --zookeeper bigdata1:2181,bigdata2:2181,bigdata3:2181 --partitions 2 --replication-factor 1 --topic ods_mall_data</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>2.编写flume多路复用</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 定义这个agent中各组件的名字</span></span><br><span class="line">a1.sources = r1 r2</span><br><span class="line">a1.sinks = k1 k2</span><br><span class="line">a1.channels = c1 c2</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source组件：r1</span></span><br><span class="line">a1.sources.r1.type = netcat</span><br><span class="line">a1.sources.r1.bind = 127.0.0.1</span><br><span class="line">a1.sources.r1.port = 25001</span><br><span class="line"></span><br><span class="line"><span class="comment"># r2</span></span><br><span class="line">a1.sources.r2.type = <span class="built_in">exec</span></span><br><span class="line">a1.sources.r2.command = /opt/module/maxwell-1.29.0/bin/maxwell --user=root --password=123456 --host=192.168.45.13 --port=3306 </span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置kafka sink组件：k1</span></span><br><span class="line">a1.sinks.k1.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k1.kafka.topic = ods_mall_log</span><br><span class="line">a1.sinks.k1.kafka.bootstrap.servers = bigdata1:9092,bigdata2:9092,bigdata3:9092</span><br><span class="line">a1.sinks.k1.kafka.flumeBatchSize = 200</span><br><span class="line">a1.sinks.k1.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.linger.ms = 1</span><br><span class="line">a1.sinks.k1.kafka.producer.compression.type = snappy</span><br><span class="line"></span><br><span class="line"><span class="comment">#k2</span></span><br><span class="line">a1.sinks.k2.type = org.apache.flume.sink.kafka.KafkaSink</span><br><span class="line">a1.sinks.k2.kafka.topic = ods_mall_data</span><br><span class="line">a1.sinks.k2.kafka.bootstrap.servers = bigdata1:9092,bigdata2:9092,bigdata3:9092</span><br><span class="line">a1.sinks.k2.kafka.flumeBatchSize = 200</span><br><span class="line">a1.sinks.k2.kafka.producer.acks = 1</span><br><span class="line">a1.sinks.k2.kafka.producer.linger.ms = 1</span><br><span class="line">a1.sinks.k2.kafka.producer.compression.type = snappy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置channel组件，此处使用是内存缓存的方式</span></span><br><span class="line"><span class="comment"># c1</span></span><br><span class="line">a1.channels.c1.type = memory</span><br><span class="line">a1.channels.c1.capacity = 10000</span><br><span class="line">a1.channels.c1.transactionCapacity = 1000</span><br><span class="line"></span><br><span class="line"><span class="comment"># c2</span></span><br><span class="line">a1.channels.c2.type = memory</span><br><span class="line">a1.channels.c2.capacity = 10000</span><br><span class="line">a1.channels.c2.transactionCapacity = 1000</span><br><span class="line"></span><br><span class="line"><span class="comment"># 描述和配置source  channel   sink之间的连接关系</span></span><br><span class="line">a1.sources.r1.channels = c1</span><br><span class="line">a1.sinks.k1.channel = c1</span><br><span class="line"></span><br><span class="line">a1.sources.r2.channels = c2</span><br><span class="line">a1.sinks.k2.channel = c2</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>运行flume脚本</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">flume-ng agent -n a1 -c <span class="variable">$FLUME_HOME</span>/conf -f <span class="variable">$FLUME_HOME</span>/jobs/test.conf -Dflume.root.logger=INFO,console</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403131157978.png" alt="image-20240313115746824"></p>
+<blockquote>
+<p>运行socket脚本</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 data_log]# ./gen_ds_data_to_socket </span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403131659738.png" alt="image-20240313165932601"></p>
+<blockquote>
+<p>查看topic ods_mall_log前一条数据：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server bigdata1:9092 --from-beginning --topic ods_mall_log --max-messages 1</span><br></pre></td></tr></table></figure>
+
+<p>结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403131704588.png" alt="image-20240313170419522"></p>
+<blockquote>
+<p>查看topic ods_mall_data 前一条数据</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kafka-console-consumer.sh --bootstrap-server bigdata1:9092 --from-beginning --topic ods_mall_data  --max-messages 1</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403131706866.png" alt="image-20240313170616804"></p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/10-Flume%E9%85%8D%E7%BD%AE-1-9-0-md/" target="_blank">10.Flume配置(1.9.0).md</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/11-redis%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E5%BA%93-md/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/11-redis%E5%88%86%E5%B8%83%E5%BC%8F%E7%BC%93%E5%AD%98%E6%95%B0%E6%8D%AE%E5%BA%93-md/" title="发布于 2024-11-08 03:29">11.redis分布式缓存数据库.md</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/09-Maxwell%E9%85%8D%E7%BD%AE-1-29-0-md/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/09-Maxwell%E9%85%8D%E7%BD%AE-1-29-0-md/" title="发布于 2024-11-08 03:27">09.Maxwell配置(1.29.0).md</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>

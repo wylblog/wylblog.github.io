@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            02.2(补充)-Hadoop伪分布式部署
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">02.2(补充)-Hadoop伪分布式部署</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/02-2-补充-Hadoop伪分布式部署/" class="leancloud_visitors" data-flag-title="02.2(补充)-Hadoop伪分布式部署">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/02-2-补充-Hadoop伪分布式部署/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="Hadoop伪分布式部署"><a href="#Hadoop伪分布式部署" class="headerlink" title="Hadoop伪分布式部署"></a>Hadoop伪分布式部署</h1><h2 id="2-Hadoop-为分布式运行环境搭建"><a href="#2-Hadoop-为分布式运行环境搭建" class="headerlink" title="2. Hadoop 为分布式运行环境搭建"></a>2. Hadoop 为分布式运行环境搭建</h2><p>环境说明:</p>
+<table>
+<thead>
+<tr>
+<th>容器</th>
+<th>容器ip</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master</td>
+<td>192.168.1.210</td>
+</tr>
+</tbody></table>
+<h3 id="2-1-基础环境配置"><a href="#2-1-基础环境配置" class="headerlink" title="2.1 基础环境配置"></a>2.1 基础环境配置</h3><h4 id="2-1-1-配置主机名"><a href="#2-1-1-配置主机名" class="headerlink" title="2.1.1 配置主机名"></a>2.1.1 配置主机名</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hostnamectl set-hostname master &amp;&amp; bash</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-1-2-修改hosts，添加映射，关闭防火墙"><a href="#2-1-2-修改hosts，添加映射，关闭防火墙" class="headerlink" title="2.1.2 修改hosts，添加映射，关闭防火墙"></a>2.1.2 修改hosts，添加映射，关闭防火墙</h4><blockquote>
+<p>修改hosts</p>
+</blockquote>
+<p>添加如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101815666.png" alt="image-20240410181512612"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">cat</span> /etc/hosts</span><br><span class="line">127.0.0.1   localhost localhost.localdomain localhost4 localhost4.localdomain4</span><br><span class="line">::1         localhost localhost.localdomain localhost6 localhost6.localdomain6</span><br><span class="line">192.168.10.210	master</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>关闭防火墙</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br><span class="line">systemctl <span class="built_in">disable</span> firewalld</span><br></pre></td></tr></table></figure>
+
+<p>查看防火墙状态如下：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# systemctl status firewalld</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101743740.png" alt="image-20240410174338699"></p>
+<h4 id="2-1-3-生成免密公钥"><a href="#2-1-3-生成免密公钥" class="headerlink" title="2.1.3 生成免密公钥"></a>2.1.3 生成免密公钥</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# ssh-keygen -t rsa		<span class="comment">#然后一直回车</span></span><br><span class="line">或者</span><br><span class="line">[root@master ~]# ssh-keygen -f ~/.ssh/id_rsa -P <span class="string">&#x27;&#x27;</span> <span class="comment">#免回车</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101745799.png" alt="image-20240410174517748"></p>
+<h4 id="2-1-4-复制公钥到服务器"><a href="#2-1-4-复制公钥到服务器" class="headerlink" title="2.1.4 复制公钥到服务器"></a>2.1.4 复制公钥到服务器</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ssh-copy-id master</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101748295.png" alt="image-20240410174804241"></p>
+<h4 id="2-1-5-JDK配置"><a href="#2-1-5-JDK配置" class="headerlink" title="2.1.5 JDK配置"></a>2.1.5 JDK配置</h4><p>解压文件到相应的位置：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/jdk-8u162-linux-x64.tar.gz -C /opt/module/</span><br><span class="line"></span><br><span class="line">[root@master ~]# <span class="built_in">cd</span> /opt/module/	<span class="comment">#进入解压目录，可以给解压后的文件改个名字，方便记忆</span></span><br><span class="line">[root@master module]# <span class="built_in">mv</span> jdk1.8.0_162/ jdk</span><br></pre></td></tr></table></figure>
+
+<p>设置jdk环境变量：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# vi /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>在末尾添加如下配置：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#JAVA_HOME</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/opt/module/jdk</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/jre/bin</span><br></pre></td></tr></table></figure>
+
+<p>刷新环境变量：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>配置完后即可查看jdk版本号：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# java -version</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101750979.png" alt="image-20240410175020934"></p>
+<p>基础环境搭建完成！！</p>
+<h3 id="2-2-Hadoop伪分布数环境搭建"><a href="#2-2-Hadoop伪分布数环境搭建" class="headerlink" title="2.2 Hadoop伪分布数环境搭建"></a>2.2 Hadoop伪分布数环境搭建</h3><blockquote>
+<p>前提：已完成免密登录，jdk配置</p>
+</blockquote>
+<h4 id="2-2-1-解压包到相应位置："><a href="#2-2-1-解压包到相应位置：" class="headerlink" title="2.2.1 解压包到相应位置："></a>2.2.1 解压包到相应位置：</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# tar -zxvf /opt/software/hadoop-3.1.3.tar.gz -C /opt/module/</span><br><span class="line">[root@master module]# <span class="built_in">mv</span> hadoop-3.1.3/ hadoop	<span class="comment">#改一下名字，方便记忆</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-2-2-添加hadoop环境变量"><a href="#2-2-2-添加hadoop环境变量" class="headerlink" title="2.2.2 添加hadoop环境变量"></a>2.2.2 添加hadoop环境变量</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# vi /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>在末尾添加以下内容：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#HADOOP</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/module/hadoop</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$HADOOP_HOME</span>/bin:<span class="variable">$HADOOP_HOME</span>/sbin</span><br><span class="line"><span class="built_in">export</span> HADOOP_CLASSPATH=`<span class="variable">$HADOOP_HOME</span>/bin/hadoop classpath`</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101756795.png" alt="image-20240410175647740"></p>
+<p>：wq 保存退出后，刷新环境变量：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>配置好后，即可直接查看hadoop 版本号</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# hadoop version</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101754673.png" alt="image-20240410175448624"></p>
+<h3 id="2-3-修改6个主配置文件"><a href="#2-3-修改6个主配置文件" class="headerlink" title="2.3 修改6个主配置文件"></a>2.3 修改6个主配置文件</h3><ul>
+<li>:one: core.site.xml </li>
+<li>:two: hdfs-site.xml </li>
+<li>:three: mapred-site.xml </li>
+<li>:four:yarn-site.xml </li>
+<li>:five: hadoop-env.sh </li>
+<li>:six: workers</li>
+</ul>
+<h4 id="2-3-1先进入配置目录"><a href="#2-3-1先进入配置目录" class="headerlink" title="2.3.1先进入配置目录"></a>2.3.1先进入配置目录</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">cd</span> hadoop/etc/hadoop/</span><br><span class="line">[root@master hadoop]# ll</span><br></pre></td></tr></table></figure>
+
+<p>可以看到如下文件：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101741891.png" alt="image-20230321124310396"></p>
+<p>我们只用修改其中的6条</p>
+<h4 id="2-3-2-hadoop-env-sh配置："><a href="#2-3-2-hadoop-env-sh配置：" class="headerlink" title="2.3.2 hadoop-env.sh配置："></a>2.3.2 hadoop-env.sh配置：</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vim hadoop-env.sh <span class="comment">#告诉hadoop jdk在哪里</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=/opt/module/jdk</span><br><span class="line"><span class="built_in">export</span> HDFS_NAMENODE_USER=root</span><br><span class="line"><span class="built_in">export</span> HDFS_DATANODE_USER=root</span><br><span class="line"><span class="built_in">export</span> HDFS_SECONDARYNAMENODE_USER=root</span><br><span class="line"><span class="built_in">export</span> YARN_RESOURCEMANAGER_USER=root</span><br><span class="line"><span class="built_in">export</span> YARN_NODEMANAGER_USER=root</span><br><span class="line"></span><br><span class="line"><span class="comment">#备注：3.0后的版本需要指定服务用户</span></span><br></pre></td></tr></table></figure>
+
+<p>如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101812948.png" alt="image-20240410181216890"></p>
+<h4 id="2-3-3-workers配置"><a href="#2-3-3-workers配置" class="headerlink" title="2.3.3 workers配置"></a>2.3.3 workers配置</h4><p>（根据自己的集群来进行配置）：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vi workers</span><br><span class="line">master</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101741107.png" alt="image-20230321124806539"></p>
+<h4 id="2-3-4-core-site-xml配置："><a href="#2-3-4-core-site-xml配置：" class="headerlink" title="2.3.4 core.site.xml配置："></a>2.3.4 core.site.xml配置：</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101741709.png" alt="image-20240104222915427"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vi core-site.xml</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- hdfs的地址名称：schame,ip,port--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>fs.defaultFS<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>hdfs://master:9000<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- hdfs的基础路径，被其他属性所依赖的一个基础路径 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>hadoop.tmp.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>/root/hadoopdir/tmp<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-5-hdfs-site-xml"><a href="#2-3-5-hdfs-site-xml" class="headerlink" title="2.3.5 hdfs.site.xml:"></a>2.3.5 hdfs.site.xml:</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vi hdfs-site.xml </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- namenode守护进程管理的元数据文件fsimage存储的位置--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.name.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>/root/hadoopdir/dfs/name<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 确定DFS数据节点应该将其块存储在本地文件系统的何处--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.datanode.data.dir<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>/root/hadoopdir/dfs/data<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 块的副本数--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.replication<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>1<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 块的大小(128M),下面的单位是字节--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.blocksize<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>134217728<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- secondarynamenode守护进程的http地址：主机名和端口号。参考守护进程布局--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.secondary.http-address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>master:9868<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- namenode守护进程的http地址：主机名和端口号。参考守护进程布局--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.namenode.http-address<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>master:9870<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--是否开通HDFS的Web接口，3.0版本后默认端口是9870--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">name</span>&gt;</span>dfs.webhdfs.enabled<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">value</span>&gt;</span>true<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-6-mapred-site-xml"><a href="#2-3-6-mapred-site-xml" class="headerlink" title="2.3.6 mapred-site.xml:"></a>2.3.6 mapred-site.xml:</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vi mapred-site.xml </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 指定mapreduce 编程模型运行在yarn上 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>mapreduce.framework.name<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">value</span>&gt;</span>yarn<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-7-yarn-site-xml"><a href="#2-3-7-yarn-site-xml" class="headerlink" title="2.3.7 yarn-site.xml:"></a>2.3.7 yarn-site.xml:</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hadoop]# vi yarn-site.xml</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- 指定mapreduce 编程模型运行在yarn上 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>yarn.nodemanager.aux-services<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">value</span>&gt;</span>mapreduce_shuffle<span class="tag">&lt;/<span class="name">value</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">property</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>以前hadoop 2.X 版本，访问web界面，hdfs端口号是50070，现在3.X版本，端口号是9870（最好自己指定端口号）</p>
+<h4 id="2-3-8-配置好后分发到副节点（别忘了环境变量也要再次分发）："><a href="#2-3-8-配置好后分发到副节点（别忘了环境变量也要再次分发）：" class="headerlink" title="2.3.8 配置好后分发到副节点（别忘了环境变量也要再次分发）："></a>2.3.8 配置好后分发到副节点（别忘了环境变量也要再次分发）：</h4><p>伪分布式忽略</p>
+<p>分发完后去副节点刷新环境变量</p>
+<h4 id="2-3-9-初始化namenode："><a href="#2-3-9-初始化namenode：" class="headerlink" title="2.3.9 初始化namenode："></a>2.3.9 初始化namenode：</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# hdfs namenode -format</span><br></pre></td></tr></table></figure>
+
+<p>结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101741586.png" alt="image-20230320183413920"></p>
+<h4 id="2-3-10-开启集群："><a href="#2-3-10-开启集群：" class="headerlink" title="2.3.10 开启集群："></a>2.3.10 开启集群：</h4><p>简易启动：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# start-all.sh </span><br></pre></td></tr></table></figure>
+
+<p>查看结果:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# jps</span><br><span class="line">3680 SecondaryNameNode</span><br><span class="line">3236 NameNode</span><br><span class="line">3435 DataNode</span><br><span class="line">4571 Jps</span><br><span class="line">3981 ResourceManager</span><br><span class="line">4157 NodeManager</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101808730.png" alt="image-20240410180852682"></p>
+<h3 id="2-4-web端口访问测试"><a href="#2-4-web端口访问测试" class="headerlink" title="2.4 web端口访问测试"></a>2.4 web端口访问测试</h3><p><a target="_blank" rel="noopener" href="http://ip:9870/">http://ip:9870</a></p>
+<p><a target="_blank" rel="noopener" href="http://ip:8088/">http://ip:8088</a></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101810387.png" alt="image-20240410181035310"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404101810468.png" alt="image-20240410181056397"></p>
+<p>完成</p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/02-2-%E8%A1%A5%E5%85%85-Hadoop%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2/" target="_blank">02.2(补充)-Hadoop伪分布式部署</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/03-Hive%E4%B9%8BHiveserver2-metastore%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/03-Hive%E4%B9%8BHiveserver2-metastore%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2/" title="发布于 2024-11-08 03:19">03.Hive之Hiveserver2 metastore环境部署</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/02-1-Hadoop-3-1-3%E9%83%A8%E7%BD%B2%E6%B1%87%E6%80%BB/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/02-1-Hadoop-3-1-3%E9%83%A8%E7%BD%B2%E6%B1%87%E6%80%BB/" title="发布于 2024-11-08 03:06">02.1 Hadoop-3.1.3部署汇总</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>

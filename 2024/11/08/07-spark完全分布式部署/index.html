@@ -9,7 +9,7 @@
     <meta http-equiv="Cache-Control" content="no-siteapp">
     <title>
         
-            标签
+            07.spark完全分布式部署
         
     </title>
     <link rel="shortcut icon" href="#"/>
@@ -32,15 +32,36 @@
 <meta name="generator" content="Hexo 7.3.0"></head>
 <body>
     <a id="cover"></a>
-    <link type="text/css" rel="stylesheet" href="/css/page.css">
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
 <div id="header" class="header">
     <div class="vertical">
         <div class="inner">
             
-                <h1 class="header-subtitle">标签</h1>
+                <h1 class="header-subtitle">07.spark完全分布式部署</h1>
                 <div class="header-subinfo">
-                    <p class="article-info-text Chinese"></p>
-                    <p class="article-info-text English"></p>                  
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/07-spark完全分布式部署/" class="leancloud_visitors" data-flag-title="07.spark完全分布式部署">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/07-spark完全分布式部署/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                    
                 </div>
             
         </div>
@@ -49,22 +70,227 @@
 </div>
 <div id="container">
     
-        <!-- 独立页面 -->
-        
-            <div class="tags">
-                <div class="tags-title">
-                    目前共计 3 个标签
-                </div>
-                <div class="tags-content">
-                    <div class="tags-light">
-                        <a href="/tags/nosql/" style="font-size: 12px; color: #ccc">nosql</a> <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/" style="font-size: 25px; color: #111">大数据运维</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E5%88%97/" style="font-size: 18.5px; color: #6f6f6f">数据库系列</a>
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="spark完全分布式部署"><a href="#spark完全分布式部署" class="headerlink" title="spark完全分布式部署"></a>spark完全分布式部署</h1><p><strong>实验环境</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>容器系统</th>
+<th>主机名</th>
+<th>ip</th>
+<th>容器用户名</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>centos7</td>
+<td>master</td>
+<td>192.168.1.10</td>
+<td>root</td>
+</tr>
+<tr>
+<td>centos7</td>
+<td>slave1</td>
+<td>192.168.1.20</td>
+<td>root</td>
+</tr>
+<tr>
+<td>centos7</td>
+<td>slave2</td>
+<td>192.168.1.30</td>
+<td>root</td>
+</tr>
+</tbody></table>
+<p><strong>组件版本:</strong></p>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>java</td>
+<td>1.8</td>
+</tr>
+<tr>
+<td>Hadoop</td>
+<td>3.1.3</td>
+</tr>
+<tr>
+<td>Hive</td>
+<td>3.1.2</td>
+</tr>
+<tr>
+<td>Mysql</td>
+<td>5.7</td>
+</tr>
+<tr>
+<td>zookeeper</td>
+<td>3.4.6</td>
+</tr>
+<tr>
+<td>HBase</td>
+<td>2.2.3</td>
+</tr>
+<tr>
+<td>ClickHouse</td>
+<td>21.1.9</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>3.1.1</td>
+</tr>
+</tbody></table>
+<p><strong>数据库信息:</strong></p>
+<table>
+<thead>
+<tr>
+<th>数据库名</th>
+<th>用户名</th>
+<th>密码</th>
+<th>端口</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL</td>
+<td>root</td>
+<td>123456</td>
+<td>3306</td>
+</tr>
+<tr>
+<td>ClickHouse</td>
+<td>default</td>
+<td>123456</td>
+<td>9001</td>
+</tr>
+</tbody></table>
+<h2 id="1-sparkstandalone安装"><a href="#1-sparkstandalone安装" class="headerlink" title="1. sparkstandalone安装"></a>1. sparkstandalone安装</h2><h3 id="1-1-解压所需压缩包到指定位置并改名"><a href="#1-1-解压所需压缩包到指定位置并改名" class="headerlink" title="1.1 解压所需压缩包到指定位置并改名"></a>1.1 解压所需压缩包到指定位置并改名</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# tar -zxvf /opt/software/scala-2.12.0.tgz -C /opt/module/</span><br><span class="line">[root@master module]# tar -zxvf /opt/software/spark-3.1.1-bin-hadoop3.2.tgz -C /opt/module/</span><br><span class="line">[root@master ~]# <span class="built_in">mv</span> /opt/module/scala-2.12.0/ /opt/module/scala</span><br><span class="line">[root@master ~]# <span class="built_in">mv</span> /opt/module/spark-3.1.1-bin-hadoop3.2/ /opt/module/spark</span><br></pre></td></tr></table></figure>
+
+<p>设置环境变量：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# vi /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>在末尾添加如下配置：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#SCALA_HOME</span></span><br><span class="line"><span class="built_in">export</span> SCALA_HOME=/opt/module/scala</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$SCALA_HOME</span>/bin</span><br><span class="line"></span><br><span class="line"><span class="comment">#SPARK_HOME</span></span><br><span class="line"><span class="built_in">export</span> SPARK_HOME=/opt/module/spark</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$SPARK_HOME</span>/bin:<span class="variable">$SPARK_HOME</span>/sbin</span><br></pre></td></tr></table></figure>
+
+<p>刷新环境变量：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>查看scala版本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# scala -version</span><br><span class="line">Scala code runner version 2.12.0 -- Copyright 2002-2016, LAMP/EPFL and Lightbend, Inc.</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401211630481.png" alt="image-20230321135829742"></p>
+<p>查看spark-submit 版本：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# spark-submit --version</span><br><span class="line">Welcome to</span><br><span class="line">      ____              __</span><br><span class="line">     / __/__  ___ _____/ /__</span><br><span class="line">    _\ \/ _ \/ _ `/ __/  <span class="string">&#x27;_/</span></span><br><span class="line"><span class="string">   /___/ .__/\_,_/_/ /_/\_\   version 3.1.1</span></span><br><span class="line"><span class="string">      /_/</span></span><br><span class="line"><span class="string">                        </span></span><br><span class="line"><span class="string">Using Scala version 2.12.10, Java HotSpot(TM) 64-Bit Server VM, 1.8.0_162</span></span><br><span class="line"><span class="string">Branch HEAD</span></span><br><span class="line"><span class="string">Compiled by user ubuntu on 2021-02-22T01:33:19Z</span></span><br><span class="line"><span class="string">Revision 1d550c4e90275ab418b9161925049239227f3dc9</span></span><br><span class="line"><span class="string">Url https://github.com/apache/spark</span></span><br><span class="line"><span class="string">Type --help for more information.</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141249208.png" alt="image-20230321140038250"></p>
+<h3 id="1-2-修改spark-env-sh文件"><a href="#1-2-修改spark-env-sh文件" class="headerlink" title="1.2 修改spark-env.sh文件"></a>1.2 修改spark-env.sh文件</h3><blockquote>
+<p>进入spark的配置目录conf下：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">进入spark安装目录：</span><br><span class="line">[root@master ~]# <span class="built_in">cd</span> <span class="variable">$SPARK_HOME</span>/conf</span><br><span class="line">[root@master conf]# ll</span><br><span class="line">total 36</span><br><span class="line">-rw-r--r-- 1 1000 1000 1105 Feb 22  2021 fairscheduler.xml.template</span><br><span class="line">-rw-r--r-- 1 1000 1000 2023 Feb 22  2021 log4j.properties.template</span><br><span class="line">-rw-r--r-- 1 1000 1000 9141 Feb 22  2021 metrics.properties.template</span><br><span class="line">-rw-r--r-- 1 1000 1000 1292 Feb 22  2021 spark-defaults.conf.template</span><br><span class="line">-rwxr-xr-x 1 1000 1000 4428 Feb 22  2021 spark-env.sh.template</span><br><span class="line">-rw-r--r-- 1 1000 1000  865 Feb 22  2021 workers.template</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>ll后可以看如下文件：</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141249343.png" alt="image-20230321140317299"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">复制一份spark-env.sh 出来进行修改：</span><br><span class="line">[root@master conf]# <span class="built_in">cp</span> spark-env.sh.template spark-env.sh</span><br><span class="line">[root@master conf]# vi spark-env.sh</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>添加以下配置：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> SCALA_HOME=/opt/module/scala</span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=/opt/module/jdk</span><br><span class="line"><span class="comment">#主节点位置</span></span><br><span class="line"><span class="built_in">export</span> SPARK_MASTER_IP=master</span><br><span class="line"><span class="comment">#如果同时希望yarn中运行spark可以增加这一项配置</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=/opt/module/hadoop</span><br><span class="line"></span><br><span class="line"><span class="comment">#如果同时希望yarn中运行spark可以增加这一项配置</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=<span class="variable">$HADOOP_HOME</span>/etc/hadoop</span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> SPARK_MASTER_PORT=7077</span><br><span class="line"><span class="built_in">export</span> SPARK_WORKER_CORES=1</span><br><span class="line"><span class="built_in">export</span> SPARK_WORKER_INSTANCES=1</span><br><span class="line"><span class="built_in">export</span> SPARK_WORKER_MEMORY=2g</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141249803.png" alt="image-20240107202842267"></p>
+<h3 id="1-3-修改workers配置"><a href="#1-3-修改workers配置" class="headerlink" title="1.3 修改workers配置"></a>1.3 修改workers配置</h3><p>在workers配置spark节点信息：</p>
+<blockquote>
+<p>复制一份workers 出来进行修改：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master conf]# <span class="built_in">cp</span> workers.template workers</span><br><span class="line">[root@master conf]# vi workers</span><br><span class="line">[root@master conf]# grep -Ev <span class="string">&quot;^$|^#&quot;</span> workers</span><br><span class="line">master</span><br><span class="line">slave1</span><br><span class="line">slave2</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401141249740.png" alt="image-20230321141230601"></p>
+<blockquote>
+<p>改完后将spark，scala分发到副节点（环境变量也要分发）：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# scp /etc/profile root@slave1:/etc/profile</span><br><span class="line">[root@master module]# scp /etc/profile root@slave2:/etc/profile</span><br><span class="line"></span><br><span class="line">[root@master module]# scp -r /opt/module/scala/ root@slave1:/opt/module/</span><br><span class="line">[root@master module]# scp -r /opt/module/scala/ root@slave2:/opt/module/</span><br><span class="line"></span><br><span class="line">[root@master module]# scp -r /opt/module/spark/ root@slave1:/opt/module/</span><br><span class="line">[root@master module]# scp -r /opt/module/spark/ root@slave2:/opt/module/</span><br></pre></td></tr></table></figure>
+
+<p>分发完后到副节点刷新环境变量</p>
+<h3 id="1-4-sparkstandalone启动和验证"><a href="#1-4-sparkstandalone启动和验证" class="headerlink" title="1.4 sparkstandalone启动和验证"></a>1.4 sparkstandalone启动和验证</h3><p>使用<code>步骤3</code>开启spark集群</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">步骤1：在master上启动sparkMaster</span><br><span class="line">/opt/module/spark/sbin/start-master.sh</span><br><span class="line"></span><br><span class="line">步骤2：在所有机器上启动sparkWorker</span><br><span class="line">/opt/module/spark/sbin/start-slave.sh spark://master:7077</span><br><span class="line"></span><br><span class="line">步骤3：在master上执行 /opt/module/spark/sbin/start-all.sh    <span class="comment">#开启spark集群</span></span><br><span class="line"></span><br><span class="line">master 节点出现 Master 和 Worker 进程</span><br><span class="line">slave1和slave2只出现 Worker 进程</span><br></pre></td></tr></table></figure>
+
+<p>master节点进程：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401302044153.png" alt="image-20230321142342986"></p>
+<p>slave1节点进程：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401302045634.png" alt="image-20230321142429289"></p>
+<p>slave2节点进程：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401302044787.png" alt="image-20230321142504414"></p>
+<p>总览:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401072038251.png" alt="image-20240107203825185"></p>
+<p>可以打开浏览器，查看地址：<a target="_blank" rel="noopener" href="http://master:8080/">http://master:8080</a></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401302044269.png" alt="image-20230321142708981"></p>
+<p>验证：</p>
+<p>使用spark-shell开启一个Application，输入以下命令：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark-shell --master spark://master:7077 --executor-memory 1g</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scala&gt; <span class="keyword">var</span> rdd = sc.parallelize(<span class="number">1</span> to <span class="number">10</span>) <span class="comment">//创建一个1到10的rdd</span></span><br><span class="line">scala&gt; rdd.map(_+<span class="number">1</span>).collect <span class="comment">//每一项我们进行+1操作</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401072040454.png" alt="image-20240107204022388"></p>
+<p>打开<a target="_blank" rel="noopener" href="http://master:4040/">http://master:4040</a>  查看任务详细说明</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401302044949.png" alt="image-20230321143025953"></p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/07-spark%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2/" target="_blank">07.spark完全分布式部署</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
                     </div>
-                    <div class="tags-dark">
-                        <a href="/tags/nosql/" style="font-size: 12px; color: #666">nosql</a> <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/" style="font-size: 25px; color: #eee">大数据运维</a> <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E5%88%97/" style="font-size: 18.5px; color: #aaa">数据库系列</a>
-                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/08-Spark-on-Yarn%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/08-Spark-on-Yarn%E5%AE%89%E8%A3%85%E9%83%A8%E7%BD%B2/" title="发布于 2024-11-08 03:25">08.Spark on Yarn安装部署</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/06-ClickHouse%E5%8D%95%E6%9C%BA%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8-21-9-4-35/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/06-ClickHouse%E5%8D%95%E6%9C%BA%E9%83%A8%E7%BD%B2%E9%85%8D%E7%BD%AE%E4%BD%BF%E7%94%A8-21-9-4-35/" title="发布于 2024-11-08 03:23">06.ClickHouse单机部署配置使用(21.9.4.35)</a>
+                    
                 </div>
             </div>
+            
+    <div class="article-comments">
         
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
     
 </div>
     <div id="footer">
@@ -100,7 +326,7 @@
                     
                         <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
                     
-                        <li class=" active "><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
                     
                         <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
                     

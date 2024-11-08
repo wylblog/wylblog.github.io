@@ -1,0 +1,1378 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            13.Azkaban调度器
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">13.Azkaban调度器</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/13-Azkaban调度器/" class="leancloud_visitors" data-flag-title="13.Azkaban调度器">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/13-Azkaban调度器/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="Azkaban调度器"><a href="#Azkaban调度器" class="headerlink" title="Azkaban调度器"></a>Azkaban调度器</h1><h2 id="1-概述"><a href="#1-概述" class="headerlink" title="1. 概述"></a>1. 概述</h2><h3 id="1-1-什么是-Azkaban"><a href="#1-1-什么是-Azkaban" class="headerlink" title="1.1 什么是 Azkaban"></a>1.1 什么是 Azkaban</h3><p>​	Azkaban 是由 Linkedin 公司推出的一个批量工作流任务调度器，主要用于在一个工作流 内以一个特定的顺序运行一组工作和流程，它的配置是通过简单的 key:value 对的方式，通 过配置中的 Dependencies 来设置依赖关系。Azkaban 使用 job 配置文件建立任务之间的依赖 关系，并提供一个易于使用的 web 用户界面维护和跟踪你的工作流。</p>
+<h3 id="1-2-为什么需要工作流调度系统"><a href="#1-2-为什么需要工作流调度系统" class="headerlink" title="1.2 为什么需要工作流调度系统"></a>1.2 为什么需要工作流调度系统</h3><p>(1）一个完整的数据分析系统通常都是由大量任务单元组成： Shell 脚本程序，Java 程序，MapReduce 程序、Hive 脚本等 </p>
+<p>(2）各任务单元之间存在时间先后及前后依赖关系 </p>
+<p>(3）为了很好地组织起这样的复杂执行计划，需要一个工作流调度系统来调度执行；</p>
+<p>例如，我们可能有这样一个需求，某个业务系统每天产生 20G 原始数据，我们每天都 要对其进行处理，处理步骤如下所示：</p>
+<p>:one:通过 Hadoop 先将原始数据上传到 HDFS 上（HDFS 的操作）；</p>
+<p>:two:使用 MapReduce 对原始数据进行清洗（MapReduce 的操作）；</p>
+<p>:three:将清洗后的数据导入到 hive 表中（hive 的导入操作）；</p>
+<p>:four:对 Hive 中多个表的数据进行 JOIN 处理，得到一张 hive 的明细表（创建中间表）；</p>
+<p>:five:通过对明细表的统计和分析，得到结果报表信息（hive 的查询操作）;</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231241009.png" alt="image-20240123124139937"></p>
+<h3 id="1-3-Azkaban-特点"><a href="#1-3-Azkaban-特点" class="headerlink" title="1.3 Azkaban 特点"></a>1.3 Azkaban 特点</h3><p>:one:兼容任何版本的 hadoop</p>
+<p>:two:易于使用的 Web 用户界面</p>
+<p>:three:简单的工作流的上传</p>
+<p>:four:方便设置任务之间的关系</p>
+<p>:five:调度工作流</p>
+<p>:six:模块化和可插拔的插件机制</p>
+<p>:seven:认证&#x2F;授权(权限的工作)</p>
+<p>:eight:能够杀死并重新启动工作流</p>
+<p>:nine:有关失败和成功的电子邮件提醒</p>
+<h3 id="1-4常见工作流调度系统"><a href="#1-4常见工作流调度系统" class="headerlink" title="1.4常见工作流调度系统"></a>1.4常见工作流调度系统</h3><p>:one:简单的任务调度：直接使用 crontab(计时任务) 实现；</p>
+<p>:two:复杂的任务调度：开发调度平台或使用现成的开源调度系统，比如 Ooize、Azkaban、 Airflow、DolphinScheduler 等</p>
+<h3 id="1-5-Azkaban-的架构"><a href="#1-5-Azkaban-的架构" class="headerlink" title="1.5 Azkaban 的架构"></a>1.5 Azkaban 的架构</h3><p>Azkaban 由三个关键组件构成：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231246456.png" alt="image-20240123124601385"></p>
+<p>:one:AzkabanWebServer：AzkabanWebServer 是整个 Azkaban 工作流系统的主要管理者， 它用户登录认证、负责 project 管理、定时执行工作流、跟踪工作流执行进度等一 系列任务。</p>
+<p>:two:AzkabanExecutorServer：负责具体的工作流的提交、执行，它们通过 mysql 数据库 来协调任务的执行。</p>
+<p>:three:关系型数据库（MySQL）：存储大部分执行流状态，AzkabanWebServer 和 AzkabanExecutorServer 都需要访问数据库。</p>
+<h3 id="1-6-Azkaban-与-Oozie-对比"><a href="#1-6-Azkaban-与-Oozie-对比" class="headerlink" title="1.6 Azkaban 与 Oozie 对比"></a>1.6 Azkaban 与 Oozie 对比</h3><p>​	总体来说，<code>Ooize 相比 Azkaban 是一个重量级的任务调度系统，功能全面，但配置使用 也更复杂</code>。如果可以不在意某些功能的缺失，轻量级调度器 Azkaban 是很不错的候选对象</p>
+<h3 id="1-7-Azkaban-下载地址"><a href="#1-7-Azkaban-下载地址" class="headerlink" title="1.7 Azkaban 下载地址"></a>1.7 Azkaban 下载地址</h3><p>下载地址:<a target="_blank" rel="noopener" href="http://azkaban.github.io/downloads.html">http://azkaban.github.io/downloads.html</a></p>
+<p>该笔记版本:<a target="_blank" rel="noopener" href="https://github.com/azkaban/azkaban/archive/refs/tags/3.84.4.tar.gz">https://github.com/azkaban/azkaban/archive/refs/tags/3.84.4.tar.gz</a></p>
+<h2 id="2-Azkaban-安装部署"><a href="#2-Azkaban-安装部署" class="headerlink" title="2. Azkaban 安装部署"></a>2. Azkaban 安装部署</h2><h3 id="2-1-安装前准备"><a href="#2-1-安装前准备" class="headerlink" title="2.1 安装前准备"></a>2.1 安装前准备</h3><blockquote>
+<p>将所需包上传到服务器</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>所需组件</th>
+<th>版本</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL</td>
+<td>5.7</td>
+<td>&#x2F;</td>
+</tr>
+<tr>
+<td>azkaban-web-server</td>
+<td>3.84.4</td>
+<td>azkaban的server端</td>
+</tr>
+<tr>
+<td>azkaban-exec-server</td>
+<td>3.84.4</td>
+<td>azkaban的exec端</td>
+</tr>
+<tr>
+<td>azkaban-db</td>
+<td>3.84.4</td>
+<td>azkaban需要依赖mysql，db里就是有关的建表语句</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-Azkaban集群模式安装"><a href="#2-2-Azkaban集群模式安装" class="headerlink" title="2.2 Azkaban集群模式安装"></a>2.2 Azkaban集群模式安装</h3><h4 id="2-2-1-上传-tar-包"><a href="#2-2-1-上传-tar-包" class="headerlink" title="2.2.1 上传 tar 包"></a>2.2.1 上传 tar 包</h4><p>:one: 在&#x2F;opt&#x2F;module&#x2F;目录下创建 azkaban 目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">mkdir</span> /opt/module/azkaban-3.84.4</span><br></pre></td></tr></table></figure>
+
+<p>:two:解压三个tar包到&#x2F;opt&#x2F;module&#x2F;azkaban-3.84.4目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">1.azkaban的server端</span><br><span class="line">[root@master ~]# tar -zxvf /opt/software/azkaban-web-server-3.84.4.tar.gz -C /opt/module/azkaban-3.84.4/</span><br><span class="line">2.azkaban的<span class="built_in">exec</span>端</span><br><span class="line">[root@master ~]# tar -zxvf /opt/software/azkaban-exec-server-3.84.4.tar.gz -C /opt/module/azkaban-3.84.4/</span><br><span class="line">3.azkaban所需依赖</span><br><span class="line">[root@master ~]# tar -zxvf /opt/software/azkaban-db-3.84.4.tar.gz -C /opt/module/azkaban-3.84.4/</span><br></pre></td></tr></table></figure>
+
+<p>:three: 进入到&#x2F;opt&#x2F;module&#x2F;azkaban-3.84.4 目录，依次修改名称</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master azkaban-3.84.4]# <span class="built_in">mv</span> azkaban-db-3.84.4/ azkaban-db</span><br><span class="line">[root@master azkaban-3.84.4]# <span class="built_in">mv</span> azkaban-exec-server-3.84.4/ azkaban-exec-server</span><br><span class="line">[root@master azkaban-3.84.4]# <span class="built_in">mv</span> azkaban-web-server-3.84.4/ azkaban-web-server</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="2-2-2-配置-MySQL"><a href="#2-2-2-配置-MySQL" class="headerlink" title="2.2.2 配置 MySQL"></a>2.2.2 配置 MySQL</h4><p>:one: 配置MySQL</p>
+<p>(前提是已经安装好MySQL服务)</p>
+<blockquote>
+<p>1.更改 MySQL 包大小；防止 Azkaban 连接 MySQL 阻塞</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /etc/my.cnf</span><br><span class="line"><span class="comment">#添加下面这条配置</span></span><br><span class="line">max_allowed_packet=1024M</span><br></pre></td></tr></table></figure>
+
+<p>修改后如图:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231341234.png" alt="image-20240123134113113"></p>
+<p>修改后重启MySQL服务:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# systemctl restart mysqld</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>2.创建azkaban数据库</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# mysql -uroot -p123456 -e <span class="string">&quot;create database azkaban;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>查看是否创建成功:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# mysql -uroot -p123456 -e <span class="string">&quot;show databases;&quot;</span></span><br><span class="line">mysql: [Warning] Using a password on the <span class="built_in">command</span> line interface can be insecure.</span><br><span class="line">+--------------------+</span><br><span class="line">| Database           |</span><br><span class="line">+--------------------+</span><br><span class="line">| information_schema |</span><br><span class="line">| azkaban            |</span><br><span class="line">| company            |</span><br><span class="line">| maxwell            |</span><br><span class="line">| metastore          |</span><br><span class="line">| mysql              |</span><br><span class="line">| performance_schema |</span><br><span class="line">| sys                |</span><br><span class="line">| test_maxwell       |</span><br><span class="line">+--------------------+</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>3.创建azkaban用户并一次性授予azkaban用户对该数据库的所有权限</p>
+<p>&#x3D;&#x3D;这里也可以直接使用root用户,省略这个操作&#x3D;&#x3D;</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -p123456 -e <span class="string">&quot;CREATE USER &#x27;azkaban&#x27;@&#x27;%&#x27; IDENTIFIED BY &#x27;123456&#x27;;&quot;</span></span><br><span class="line">mysql -uroot -p123456 -e <span class="string">&quot;GRANT ALL PRIVILEGES ON azkaban.* TO &#x27;azkaban&#x27;@&#x27;%&#x27;;&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>查看创建的用户:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# mysql -uroot -p123456 -e <span class="string">&quot;select user,host from mysql.user;&quot;</span></span><br><span class="line">mysql: [Warning] Using a password on the <span class="built_in">command</span> line interface can be insecure.</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| user          | host      |</span><br><span class="line">+---------------+-----------+</span><br><span class="line">| azkaban       | %         |</span><br><span class="line">| maxwell       | %         |</span><br><span class="line">| root          | %         |</span><br><span class="line">| mysql.session | localhost |</span><br><span class="line">| mysql.sys     | localhost |</span><br><span class="line">+---------------+-----------+</span><br></pre></td></tr></table></figure>
+
+<p>已创建成功:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231344089.png" alt="image-20240123134423024"></p>
+<blockquote>
+<p>4.导入<code>azkaban-db</code>创建azkaban表</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -p123456 azkaban &lt; /opt/module/azkaban-3.84.4/azkaban-db/create-all-sql-3.84.4.sql</span><br></pre></td></tr></table></figure>
+
+<p>查看数据是否导入成功:</p>
+<p>(这里我使用第三方工具查看)</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231438959.png" alt="image-20240123143829864"></p>
+<h3 id="2-3-配置-Executor-Server"><a href="#2-3-配置-Executor-Server" class="headerlink" title="2.3 配置 Executor Server"></a>2.3 配置 Executor Server</h3><p>Azkaban Executor Server 处理工作流和作业的实际执行</p>
+<blockquote>
+<p>编辑 azkaban.properties</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /opt/module/azkaban-3.84.4/azkaban-exec-server/conf/azkaban.properties</span><br></pre></td></tr></table></figure>
+
+<p>修改如下的属性:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#...</span></span><br><span class="line">default.timezone.id=Asia/Shanghai	<span class="comment">#修改默认时区</span></span><br><span class="line"><span class="comment">#...</span></span><br><span class="line">azkaban.webserver.url=http://master:8081	<span class="comment">#修改web url地址</span></span><br><span class="line">executor.port=12321			<span class="comment">#配置 Azkaban 执行器（executor）的端口</span></span><br><span class="line"><span class="comment">#...</span></span><br><span class="line">database.type=mysql			<span class="comment">#指定 Azkaban 使用 MySQL 作为后端数据库。</span></span><br><span class="line">mysql.port=3306				<span class="comment">#数据库端口</span></span><br><span class="line">mysql.host=192.168.1.10		<span class="comment">#数据库地址</span></span><br><span class="line">mysql.database=azkaban		<span class="comment">#要连接的库</span></span><br><span class="line">mysql.user=azkaban			<span class="comment">#连接使用的用户,这里也可以使用root用户进行登录</span></span><br><span class="line">mysql.password=123456		<span class="comment">#用户密码</span></span><br><span class="line">mysql.numconnections=100	<span class="comment">#指定 Azkaban 连接到 MySQL 数据库时使用的连接池中的最大连接数。</span></span><br></pre></td></tr></table></figure>
+
+<p>主要注意修改位置如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232132993.png" alt="image-20240123213239919"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232133834.png" alt="image-20240123213304771"></p>
+<blockquote>
+<p>同步 azkaban-exec 到所有节点:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# scp -r /opt/module/azkaban-3.84.4/ root@slave1:/opt/module/</span><br><span class="line">[root@master ~]# scp -r /opt/module/azkaban-3.84.4/ root@slave2:/opt/module/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>启动<code>必须进入到/opt/module/azkaban-3.84.4/azkaban-exec 路径</code>，分别在<code>三台机器</code>上，<code>启动 </code>executor  server</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master azkaban-exec-server]# bin/start-exec.sh</span><br><span class="line">[root@slave1 azkaban-exec-server]# bin/start-exec.sh</span><br><span class="line">[root@slave2 azkaban-exec-server]# bin/start-exec.sh</span><br></pre></td></tr></table></figure>
+
+<p>:warning: 注意：如果在&#x2F;opt&#x2F;module&#x2F;azkaban&#x2F;azkaban-exec 目录下出现 executor.port 文件，说明 启动成功</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232149495.png" alt="image-20240123214916422"></p>
+<blockquote>
+<p>下面激活 executor</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master azkaban-exec-server]# curl -G <span class="string">&quot;master:12321/executor?action=activate&quot;</span> &amp;&amp; <span class="built_in">echo</span></span><br><span class="line">[root@slave1 azkaban-exec-server]# curl -G <span class="string">&quot;slave1:12321/executor?action=activate&quot;</span> &amp;&amp; <span class="built_in">echo</span></span><br><span class="line">[root@slave2 azkaban-exec-server]# curl -G <span class="string">&quot;slave2:12321/executor?action=activate&quot;</span> &amp;&amp; <span class="built_in">echo</span></span><br></pre></td></tr></table></figure>
+
+<p>如果三台机器都出现如下提示，则表示激活成功:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="string">&quot;status&quot;</span>:<span class="string">&quot;success&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232152176.png" alt="image-20240123215234106"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232152127.png"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401232153567.png" alt="image-20240123215356504"></p>
+<h3 id="2-4-配置-Web-Server"><a href="#2-4-配置-Web-Server" class="headerlink" title="2.4 配置 Web Server"></a>2.4 配置 Web Server</h3><p>Azkaban Web Server 处理项目管理，身份验证，计划和执行触发。</p>
+<blockquote>
+<p>(1) 编辑 azkaban.properties</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /opt/module/azkaban-3.84.4/azkaban-web-server/conf/azkaban.properties</span><br></pre></td></tr></table></figure>
+
+<p>修改如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">default.timezone.id=Asia/Shanghai</span><br><span class="line">...</span><br><span class="line">database.type=mysql</span><br><span class="line">mysql.port=3306</span><br><span class="line">mysql.host=master</span><br><span class="line">mysql.database=azkaban</span><br><span class="line">mysql.user=azkaban</span><br><span class="line">mysql.password=123456</span><br><span class="line">mysql.numconnections=100</span><br><span class="line">...</span><br><span class="line">azkaban.executorselector.filters=StaticRemainingFlowSize,CpuStatu</span><br><span class="line">s</span><br></pre></td></tr></table></figure>
+
+<p>主要注意修改位置如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241009663.png" alt="image-20240124100919556"></p>
+<p><strong>说明:</strong></p>
+<ul>
+<li><code>StaticRemainingFlowSize</code>：正在排队的任务数；</li>
+<li><code>CpuStatus</code>：CPU 占用情况</li>
+<li><code>MinimumFreeMemory</code>：内存占用情况。<code>测试环境，必须将 MinimumFreeMemory 删除掉</code>，否则 它会认为集群资源不够，不执行。</li>
+</ul>
+<blockquote>
+<p>(2) 修改 azkaban-users.xml 文件，添加 root 用户</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /opt/module/azkaban-3.84.4/azkaban-web-server/conf/azkaban-users.xml</span><br></pre></td></tr></table></figure>
+
+<p>添加自己的用户信息:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&lt;azkaban-users&gt;</span><br><span class="line">  &lt;user <span class="built_in">groups</span>=<span class="string">&quot;azkaban&quot;</span> password=<span class="string">&quot;azkaban&quot;</span> roles=<span class="string">&quot;admin&quot;</span> username=<span class="string">&quot;azkaban&quot;</span>/&gt;</span><br><span class="line">  &lt;user password=<span class="string">&quot;metrics&quot;</span> roles=<span class="string">&quot;metrics&quot;</span> username=<span class="string">&quot;metrics&quot;</span>/&gt;</span><br><span class="line">  &lt;user password=<span class="string">&quot;123456&quot;</span> roles=<span class="string">&quot;admin&quot;</span> username=<span class="string">&quot;root&quot;</span>/&gt;</span><br><span class="line"></span><br><span class="line">  &lt;role name=<span class="string">&quot;admin&quot;</span> permissions=<span class="string">&quot;ADMIN&quot;</span>/&gt;</span><br><span class="line">  &lt;role name=<span class="string">&quot;metrics&quot;</span> permissions=<span class="string">&quot;METRICS&quot;</span>/&gt;</span><br><span class="line">&lt;/azkaban-users&gt;</span><br></pre></td></tr></table></figure>
+
+<p>如下图:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241015943.png" alt="image-20240124101554864"></p>
+<blockquote>
+<p>(3) <code>必须进入到 </code>master 的&#x2F;opt&#x2F;module&#x2F;azkaban&#x2F;azkaban-web 路径，启动 web server</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">cd</span> /opt/module/azkaban-3.84.4/azkaban-web-server/</span><br><span class="line">[root@master azkaban-web-server]# bin/start-web.sh</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(4) 查看是否运行成功</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master azkaban-web-server]# jps</span><br><span class="line">673 AzkabanWebServer</span><br><span class="line">537 AzkabanExecutorServer</span><br><span class="line">700 Jps</span><br><span class="line">[root@master azkaban-web-server]# ss -tunlp |grep 8081</span><br><span class="line">tcp    LISTEN     0      50        *:8081                  *:*                   <span class="built_in">users</span>:((&quot;java&quot;,pid=<span class="number">673</span>,fd=<span class="number">307</span>))</span><br></pre></td></tr></table></figure>
+
+<p>结果如图:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241020601.png" alt="image-20240124102049540"></p>
+<blockquote>
+<p>(5) 访问 <a href="http://master:8081,并用">http://master:8081,并用</a> root 用户登陆</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241021484.png" alt="image-20240124102146392"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241022255.png" alt="image-20240124102202174"></p>
+<h3 id="2-5-启动命令汇总"><a href="#2-5-启动命令汇总" class="headerlink" title="2.5 启动命令汇总"></a>2.5 启动命令汇总</h3><blockquote>
+<p>启动exec(<code>所有节点启动</code>)</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#1.启动</span></span><br><span class="line">/opt/module/azkaban-3.84.4/azkaban-exec-server/bin/start-exec.sh</span><br><span class="line"><span class="comment">#2.查看是否启动成功</span></span><br><span class="line">[root@bigdata1 azkaban-3.84.4]# ss -tunlp | grep 12321</span><br><span class="line">tcp    LISTEN     0      50        *:12321                 *:*                   <span class="built_in">users</span>:((&quot;java&quot;,pid=<span class="number">6283</span>,fd=<span class="number">284</span>))</span><br><span class="line">[root@bigdata1 azkaban-3.84.4]#  curl -G <span class="string">&quot;bigdata1:12321/executor?action=activate&quot;</span> &amp;&amp; <span class="built_in">echo</span></span><br><span class="line">&#123;<span class="string">&quot;status&quot;</span>:<span class="string">&quot;success&quot;</span>&#125;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>启动web</p>
+<p><code>必须进入到 </code>master 的&#x2F;opt&#x2F;module&#x2F;azkaban&#x2F;azkaban-web 路径，启动 web server</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#1.启动</span></span><br><span class="line">/opt/module/azkaban-3.84.4/azkaban-web-server/bin/start-web.sh</span><br><span class="line"></span><br><span class="line"><span class="comment">#2.查看启动是否成功</span></span><br><span class="line">[root@bigdata1 azkaban-web-server]# bin/start-web.sh </span><br><span class="line">[root@bigdata1 azkaban-web-server]# ss -tunlp |grep 8081</span><br><span class="line">tcp    LISTEN     0      50        *:8081                  *:*                   <span class="built_in">users</span>:((&quot;java&quot;,pid=<span class="number">6434</span>,fd=<span class="number">307</span>))</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="3-Work-Flow-案例实操"><a href="#3-Work-Flow-案例实操" class="headerlink" title="3. Work Flow 案例实操"></a>3. Work Flow 案例实操</h2><h3 id="3-1-HelloWorld-案例"><a href="#3-1-HelloWorld-案例" class="headerlink" title="3.1 HelloWorld 案例"></a>3.1 HelloWorld 案例</h3><blockquote>
+<p>(1) 在 ubuntu&#x2F;windows 环境，新建 azkaban.project 文件，编辑内容如下:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ vim azkaban.project</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容(标识flow的版本,固定写法):</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">azkaban-flow-version: 2.0</span><br></pre></td></tr></table></figure>
+
+
+
+<p>:warning: 注意：该文件作用，是采用新的 Flow-API 方式解析 flow 文件。</p>
+<blockquote>
+<p>(2) 新建 basic.flow 文件，内容如下(<code>注意yaml格式语法</code>)</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim basic.flow</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">nodes:</span><br><span class="line">  - name: jobA</span><br><span class="line">    <span class="built_in">type</span>: <span class="built_in">command</span></span><br><span class="line">    config:</span><br><span class="line">      <span class="built_in">command</span>: <span class="built_in">echo</span> <span class="string">&quot;Hello World&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>参数解释：</strong></p>
+<p>（1）Name：job 名称 </p>
+<p>（2）Type：job 类型。command 表示你要执行作业的方式为命令 </p>
+<p>（3）Config：job 配置</p>
+<blockquote>
+<p>(3) 将 <code>azkaban.project</code>、<code>basic.flow</code> 文件压缩到一个 zip 文件，<code>只能是zip包</code>,<code>文件名称必须是英文</code>。</p>
+</blockquote>
+<p><code>zip语法:</code>	zip [选项] 压缩包名称 文件或目录</p>
+<p>选项:</p>
+<ul>
+<li><code>-r</code>：递归地压缩目录及其内容。</li>
+<li><code>-q</code>：安静模式，不显示压缩过程信息。</li>
+</ul>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip -r first.zip azkaban.project basic.flow </span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br><span class="line">  adding: basic.flow (deflated 10%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241050756.png" alt="image-20240124105036676"></p>
+<blockquote>
+<p>(4) 在 WebServer 新建项目</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241051217.png" alt="image-20240124105151123"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241059957.png" alt="image-20240124105910852"></p>
+<blockquote>
+<p>(5) 上传文件</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241100607.png" alt="image-20240124110038512"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241119645.png" alt="image-20240124111918536"></p>
+<p><strong>添加成功如下:</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241127610.png" alt="image-20240124112737492"></p>
+<blockquote>
+<p>(6) 执行任务流</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241128891.png" alt="image-20240124112844801"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241129128.png" alt="image-20240124112957020"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241130704.png" alt="image-20240124113018619"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241131296.png" alt="image-20240124113128202"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241132053.png" alt="image-20240124113209944"></p>
+<h3 id="3-2-作业依赖案例"><a href="#3-2-作业依赖案例" class="headerlink" title="3.2 作业依赖案例"></a>3.2 作业依赖案例</h3><p>需求：JobA 和 JobB 执行完了，才能执行 JobC</p>
+<p><strong>具体步骤:</strong></p>
+<blockquote>
+<p>(1) 修改 basic.flow 为如下内容</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ vim basic.flow</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;AAA&quot;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobB</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;BBB&quot;</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobC</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="comment"># jobC 依赖 JobA 和 JobB</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobA</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobB</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;hello bigdata&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>dependsOn</code> : 依赖于哪个参数,哪个任务</p>
+<blockquote>
+<p>(2) 将修改后的 basic.flow 和 azkaban.project 压缩成 second.zip 文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip second.zip basic.flow azkaban.project </span><br><span class="line">  adding: basic.flow (deflated 55%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241608690.png" alt="image-20240124160859617"></p>
+<blockquote>
+<p>(3) 重复 3.1 节 HelloWorld 后续步骤。</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241559140.gif" alt="NVIDIA_Share_yStXhCoMH3"></p>
+<p>结果:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241601987.png" alt="image-20240124160132881"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241602480.png" alt="image-20240124160219379"></p>
+<h3 id="3-3-自动失败重试案例"><a href="#3-3-自动失败重试案例" class="headerlink" title="3.3  自动失败重试案例"></a>3.3  自动失败重试案例</h3><p>需求：如果执行任务失败，需要重试 3 次，重试的时间间隔 5000ms</p>
+<p>(一般用于<code>暂时性的故障导致</code>的任务失败,如网络波动,资源不足)</p>
+<p><strong>具体步骤:</strong></p>
+<blockquote>
+<p>(1) 编辑配置流</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ vim basic.flow </span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<p>(not_exists.sh不存在)</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">/not_exists.sh</span></span><br><span class="line">      <span class="attr">retries:</span> <span class="number">3</span></span><br><span class="line">      <span class="attr">retry.backoff:</span> <span class="number">5000</span></span><br></pre></td></tr></table></figure>
+
+<p>参数说明:</p>
+<ul>
+<li>retries：重试次数</li>
+<li>retry.backoff：重试的时间间隔</li>
+</ul>
+<blockquote>
+<p>(2) 将修改后的 basic.flow 和 azkaban.project 压缩成 three.zip 文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip three.zip  basic.flow azkaban.project </span><br><span class="line">  adding: basic.flow (deflated 23%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241620054.png" alt="image-20240124162012957"></p>
+<blockquote>
+<p>(3) 重复3.1节上传步骤:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241621277.png" alt="image-20240124162136182"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241621162.png" alt="image-20240124162156063"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241622663.png" alt="image-20240124162213569"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241623467.png" alt="image-20240124162303356"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241623701.png" alt="image-20240124162318615"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241623102.png" alt="image-20240124162333016"></p>
+<blockquote>
+<p>(4) 执行并观察到一次失败+三次重试</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241625987.png" alt="image-20240124162507894"></p>
+<blockquote>
+<p>(5) 也可以点击上图中的 Log，在任务日志中看到，总共执行了 4 次。</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241627364.png" alt="image-20240124162702243"></p>
+<blockquote>
+<p>(6) 也可以在 Flow <code>全局配置</code>中添加任务失败重试配置，此时重试配置会应用到所有 Job。</p>
+</blockquote>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">config:</span></span><br><span class="line">  <span class="attr">retries:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">retry.backoff:</span> <span class="number">5000</span></span><br><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">/not_exists.sh</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-手动失败重试案例"><a href="#3-4-手动失败重试案例" class="headerlink" title="3.4 手动失败重试案例"></a>3.4 手动失败重试案例</h3><p>需求：JobA&#x3D;》JobB（依赖于 A）&#x3D;》JobC&#x3D;》JobD&#x3D;》JobE&#x3D;》JobF。生产环境，任何 Job 都 有可能挂掉，可以根据需求执行想要执行的 Job。</p>
+<p><strong>具体步骤:</strong></p>
+<blockquote>
+<p>(1) 编译配置流</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim basic.flow </span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is jobA.&quot;</span></span><br><span class="line">      </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobB</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobA</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is jobB&quot;</span></span><br><span class="line">     </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobC</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobB</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is jobC&quot;</span></span><br><span class="line">       </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobD</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobC</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is jobD&quot;</span></span><br><span class="line">      </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobE</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobD</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is jobE&quot;</span></span><br><span class="line">      </span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">jobF</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">jobE</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;this is bigdata jobF&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(2) 将修改后的 basic.flow 和 azkaban.project 压缩成 four.zip 文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip four.zip  basic.flow azkaban.project </span><br><span class="line">  adding: basic.flow (deflated 78%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241651592.png" alt="image-20240124165139510"></p>
+<blockquote>
+<p>(3) 重复3.1节上传步骤:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241656752.png" alt="image-20240124165640656"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241658426.png" alt="image-20240124165851310"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241659913.png" alt="image-20240124165921800"></p>
+<p>以上全部成功</p>
+<blockquote>
+<p>(4) 当中途遇到错误重新运行时,跳过已经执行完的任务:</p>
+</blockquote>
+<p>模拟故障:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241702215.png" alt="image-20240124170256127"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241703797.png" alt="image-20240124170312707"></p>
+<p>运行一个不存在的脚本,模拟错误:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241704681.png" alt="image-20240124170422565"></p>
+<p>重新运行:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241705202.png" alt="image-20240124170521081"></p>
+<blockquote>
+<p>(5) 对jobC 进行修复,并重新执行时跳过任务jobA和jobB:</p>
+</blockquote>
+<p>对jobC进行修复:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241713253.png" alt="image-20240124171324159"></p>
+<p>跳过任务jobA和jobB:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241707864.png" alt="image-20240124170752763"></p>
+<p>Enable 和 Disable 下面都分别有如下参数：</p>
+<ul>
+<li>Parents：该作业的上一个任务 </li>
+<li>Ancestors：该作业前的所有任务 </li>
+<li>Children：该作业后的一个任务 </li>
+<li>Descendents：该作业后的所有任务 </li>
+<li>Enable All：所有的任务</li>
+</ul>
+<p>执行后:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242110664.png" alt="image-20240124211005543"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242110239.png" alt="image-20240124211034147"></p>
+<blockquote>
+<p>(6) 可以根据需求选择性执行对应的任务。</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242112251.png" alt="image-20240124211240148"></p>
+<h2 id="4-Azkaban-进阶"><a href="#4-Azkaban-进阶" class="headerlink" title="4. Azkaban 进阶"></a>4. Azkaban 进阶</h2><h3 id="4-1-JavaProcess-作业类型案例"><a href="#4-1-JavaProcess-作业类型案例" class="headerlink" title="4.1 JavaProcess 作业类型案例"></a>4.1 JavaProcess 作业类型案例</h3><p><code>JavaProcess 类型</code>可以运行一个<code>自定义主类方法</code>，<code>type 类型为 javaprocess</code>，可用的配置为：</p>
+<ul>
+<li>Xms：最小堆</li>
+<li>Xmx：最大堆</li>
+<li>classpath：类路径</li>
+<li>java.class：要运行的 Java 对象，其中必须包含 Main 方法</li>
+<li>main.args：main 方法的参数</li>
+</ul>
+<p><strong>案例:</strong></p>
+<blockquote>
+<p>(1）新建一个 azkaban 的 maven 工程,创建包名：com.gxjzy</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242155388.png" alt="image-20240124215529299"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242209767.png" alt="image-20240124220948659"></p>
+<blockquote>
+<p>(2)   创建 com.gxjzy.TestJavaProcess 类</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.gxjzy;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">TestJavaProcess</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        System.out.println(<span class="string">&quot;this is a java process&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如下:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242212120.png" alt="image-20240124221221041"></p>
+<blockquote>
+<p>(3） 利用maven插件打包成 jar 包 azkaban-javaprocess-1.0-SNAPSHOT.jar</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242213730.png" alt="image-20240124221346592"></p>
+<p><code>打包后在的路径:</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/home/gxjzy/桌面/huangjing/azkaban/azkaban-javaprocess/target/azkaban-javaprocess-1.0-SNAPSHOT.jar</span><br></pre></td></tr></table></figure>
+
+<p>拷贝到桌面:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> /home/gxjzy/桌面/huangjing/azkaban/azkaban-javaprocess/target/azkaban-javaprocess-1.0-SNAPSHOT.jar /home/gxjzy/桌面</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242217284.png" alt="image-20240124221756206"></p>
+<blockquote>
+<p>(4)    新建 testJava.flow，内容如下</p>
+</blockquote>
+<p>java.class:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242222247.gif" alt="NVIDIA_Share_YAmik6uhuc"></p>
+<p>testJava.flow内容如下:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">test_java</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">javaprocess</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">Xms:</span> <span class="string">96M</span></span><br><span class="line">      <span class="attr">Xmx:</span> <span class="string">200M</span></span><br><span class="line">      <span class="attr">java.class:</span> <span class="string">com.gxjzy.TestJavaProcess</span></span><br></pre></td></tr></table></figure>
+
+
+
+<blockquote>
+<p>(5)   将 Jar 包、flow 文件和 project 文件打包成 javatest.zip</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip  javatest.zip azkaban-javaprocess-1.0-SNAPSHOT.jar testJava.flow azkaban.project </span><br><span class="line">  adding: azkaban-javaprocess-1.0-SNAPSHOT.jar (deflated 38%)</span><br><span class="line">  adding: testJava.flow (deflated 24%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242224457.png" alt="image-20240124222437379"></p>
+<blockquote>
+<p>(6)    创建项目&#x3D;》上传 javatest.zip &#x3D;》执行作业&#x3D;》观察结果</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242225776.png" alt="image-20240124222523654"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242225205.png" alt="image-20240124222552115"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242228021.png" alt="image-20240124222850906"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242229806.png" alt="image-20240124222916604"></p>
+<h3 id="4-2-条件工作流案例"><a href="#4-2-条件工作流案例" class="headerlink" title="4.2 条件工作流案例"></a>4.2 条件工作流案例</h3><p>​	条件工作流功能允许用户自定义执行条件来决定是否运行某些Job。条件可以由当前Job 的父 Job 输出的运行时参数构成，也可以使用预定义宏。在这些条件下，用户可以在确定 Job 执行逻辑时获得更大的灵活性，例如，只要父 Job 之一成功，就可以运行当前 Job。</p>
+<h4 id="4-2-1-运行时参数案例"><a href="#4-2-1-运行时参数案例" class="headerlink" title="4.2.1 运行时参数案例"></a>4.2.1 运行时参数案例</h4><blockquote>
+<p>(1) 基本原理</p>
+</blockquote>
+<ul>
+<li>（1）父 Job 将参数写入 <code>JOB_OUTPUT_PROP_FILE</code> 环境变量所指向的文件 </li>
+<li>（2）子 Job 使用 ${jobName:param}来获取父 Job 输出的参数并定义执行条件</li>
+</ul>
+<blockquote>
+<p>(2) 支持的条件运算符：</p>
+</blockquote>
+<ul>
+<li>（1）&#x3D;&#x3D; 等于 </li>
+<li>（2）!&#x3D; 不等于 </li>
+<li>（3）&gt; 大于 </li>
+<li>（4）&gt;&#x3D; 大于等于 </li>
+<li>（5）&lt; 小于 </li>
+<li>（6）&lt;&#x3D; 小于等于 </li>
+<li>（7）&amp;&amp; 与 </li>
+<li>（8）|| 或 </li>
+<li>（9）! 非</li>
+</ul>
+<blockquote>
+<p>(3) 案例</p>
+</blockquote>
+<p>需求: </p>
+<ul>
+<li>JobA 执行一个 shell 脚本。</li>
+<li>JobB 执行一个 shell 脚本，但 JobB 不需要每天都执行，而只需要每个周一执行。</li>
+</ul>
+<p>:one: 新建 JobA.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim JobA.sh</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;do JobA&quot;</span></span><br><span class="line">wk=`<span class="built_in">date</span> +%w`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&#123;\&quot;wk\&quot;:<span class="variable">$wk</span>&#125;&quot;</span> &gt; <span class="variable">$JOB_OUTPUT_PROP_FILE</span></span><br></pre></td></tr></table></figure>
+
+<p>:two:新建 JobB.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim JobB.sh</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;do JobB&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>:three:新建 condition.flow</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim condition.flow</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">JobA.sh</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobB</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">JobA</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">JobB.sh</span></span><br><span class="line">    <span class="attr">condition:</span> <span class="string">$&#123;JobA:wk&#125;</span> <span class="string">==</span> <span class="number">1</span></span><br></pre></td></tr></table></figure>
+
+<p>:four:将 JobA.sh、JobB.sh、condition.flow 和 azkaban.project 打包成 <code>condition.zip</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip condition.zip JobA.sh JobB.sh condition.flow azkaban.project </span><br><span class="line">  adding: JobA.sh (deflated 4%)</span><br><span class="line">  adding: JobB.sh (stored 0%)</span><br><span class="line">  adding: condition.flow (deflated 47%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242239345.png" alt="image-20240124223904256"></p>
+<p>:five:创建 condition 项目&#x3D;》上传 condition.zip 文件&#x3D;》执行作业&#x3D;》观察结果</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242240653.gif" alt="NVIDIA_Share_JcbWpzXYGX"></p>
+<p>:six:按照我们设定的条件，JobB 会根据当日日期决定是否执行。</p>
+<p>执行:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242242613.png" alt="image-20240124224220530"></p>
+<p>不执行:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242243458.png" alt="image-20240124224303374"></p>
+<h4 id="4-2-2-预定义宏案例"><a href="#4-2-2-预定义宏案例" class="headerlink" title="4.2.2 预定义宏案例"></a>4.2.2 预定义宏案例</h4><p>Azkaban 中预置了几个特殊的判断条件，称为预定义宏。</p>
+<p>预定义宏会根据所有父 Job 的完成情况进行判断，再决定是否执行。可用的预定义宏如 下：</p>
+<ul>
+<li>all_success: 表示父 Job 全部成功才执行(默认)</li>
+<li>all_done：表示父 Job 全部完成才执行</li>
+<li>all_failed：表示父 Job 全部失败才执行</li>
+<li>one_success：表示父 Job 至少一个成功才执行</li>
+<li>one_failed：表示父 Job 至少一个失败才执行</li>
+</ul>
+<blockquote>
+<p>案例:</p>
+</blockquote>
+<p><strong>需求：</strong></p>
+<ul>
+<li>JobA 执行一个 shell 脚本</li>
+<li>JobB 执行一个 shell 脚本</li>
+<li>JobC 执行一个 shell 脚本，要求 JobA、JobB 中有一个成功即可执行</li>
+</ul>
+<p>:one: 新建 JobA.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim JobA.sh</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;do JobA&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>:two:新建 JobB.sh</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim JobC.sh</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;do JobC&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>:three:新建 macro.flow</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim macro.flow</span><br></pre></td></tr></table></figure>
+
+<p>内容如下:</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobA</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">JobA.sh</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobB</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">JobB.sh</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">JobC</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">JobA</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">JobB</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">sh</span> <span class="string">JobC.sh</span></span><br><span class="line">    <span class="attr">condition:</span> <span class="string">one_success</span></span><br></pre></td></tr></table></figure>
+
+<p>:four:将 JobA.sh、JobC.sh、macro.flow 和 azkaban.project 打包成 <code>macro.zip</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">gxjzy@gxjzy:~/桌面$ zip macro.zip macro.flow JobC.sh JobA.sh azkaban.project </span><br><span class="line">  adding: macro.flow (deflated 59%)</span><br><span class="line">  adding: JobC.sh (stored 0%)</span><br><span class="line">  adding: JobA.sh (stored 0%)</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br></pre></td></tr></table></figure>
+
+<p>:five:创建 macro 项目&#x3D;》上传 macro.zip 文件&#x3D;》执行作业&#x3D;》观察结果</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242251969.gif" alt="NVIDIA_Share_vZvvWxZPTe"></p>
+<p>结果:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242251502.png" alt="image-20240124225159414"></p>
+<h3 id="4-3定时执行案例"><a href="#4-3定时执行案例" class="headerlink" title="4.3定时执行案例"></a>4.3定时执行案例</h3><p>需求：JobA 每间隔 1 分钟执行一次；</p>
+<p><strong>具体步骤：</strong></p>
+<blockquote>
+<p>(1）Azkaban 可以定时执行工作流。在执行工作流时候，选择左下角 Schedule</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242254928.png" alt="image-20240124225402804"></p>
+<blockquote>
+<p>(2）右上角注意时区是上海，然后在左面填写具体执行事件，填写的方法和 <code>crontab 配置定时 任务规则一致</code>。</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242256955.png" alt="image-20240124225651822"></p>
+<blockquote>
+<p>(3) 观察结果</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242257540.png" alt="image-20240124225741441"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242259166.png" alt="image-20240124225946056"></p>
+<blockquote>
+<p>(4) 删除定时调度</p>
+</blockquote>
+<p>点击 remove Schedule 即可删除当前任务的调度规则。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401242300352.png" alt="image-20240124230052256"></p>
+<h3 id="4-4-邮件报警案例"><a href="#4-4-邮件报警案例" class="headerlink" title="4.4 邮件报警案例"></a>4.4 邮件报警案例</h3><h4 id="4-4-1-注册邮箱"><a href="#4-4-1-注册邮箱" class="headerlink" title="4.4.1 注册邮箱"></a>4.4.1 注册邮箱</h4><p>(1)   这里使用QQ邮箱作为演示,其他邮箱同理</p>
+<p>(2）点击邮箱设置&#x3D;》账号管理</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251012284.png" alt="image-20240125101208149"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251012721.png" alt="image-20240125101226621"></p>
+<p>开启SMTP服务获取<code>授权码</code>:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251013643.png" alt="image-20240125101305549"></p>
+<h4 id="4-4-2-默认邮件报警案例"><a href="#4-4-2-默认邮件报警案例" class="headerlink" title="4.4.2 默认邮件报警案例"></a>4.4.2 默认邮件报警案例</h4><p><strong>Azkaban 默认支持通过邮件对失败的任务进行报警，配置方法如下：</strong></p>
+<blockquote>
+<p>(1)  在 azkaban-web 节 点 master 上 ， 编 辑 &#x2F;opt&#x2F;module&#x2F;azkaban&#x2F;azkabanweb&#x2F;conf&#x2F;azkaban.properties，修改如下内容：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim </span><br></pre></td></tr></table></figure>
+
+<p>添加如下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#这里设置邮件发送服务器，需要 申请邮箱，切开通 stmp 服务，以下只是例子</span></span><br><span class="line">mail.sender=atguigu@126.com</span><br><span class="line">mail.host=smtp.126.com</span><br><span class="line">mail.user=atguigu@126.com</span><br><span class="line">mail.password=用邮箱的授权码</span><br></pre></td></tr></table></figure>
+
+<p>略，待整理</p>
+<h3 id="5-spark比赛案例"><a href="#5-spark比赛案例" class="headerlink" title="5. spark比赛案例"></a>5. spark比赛案例</h3><p><strong>题目:</strong></p>
+<p>1、	本任务基于以下2、3、4小题完成，使用Azkaban完成第2、3、4题任务代码的调度。工作流要求，使用shell输出“开始”作为工作流的第一个job（job1），2、3、4题任务为<code>串行任务</code>且它们依赖job1的完成（命名为job2、job3、job4），job2、job3、job4完成之后使用shell输出“结束”作为工作流的最后一个job（endjob），endjob依赖job2、job3、job4，并将最终任务调度完成后的工作流截图，将截图粘贴至客户端桌面【Release\任务B提交结果.docx】中对应的任务序号下；</p>
+<blockquote>
+<p>1.创建azkaban.project文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">bigdata@gxjzy:~/桌面$ vim azkaban.project</span><br><span class="line">bigdata@gxjzy:~/桌面$ <span class="built_in">cat</span> azkaban.project </span><br><span class="line">azkaban-flow-version: 2.0</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>2.新建basic.flow 文件</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim basic.flow</span><br></pre></td></tr></table></figure>
+
+<p>代码如下(参考):</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">nodes:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">job1</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;开始&quot;</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">job2</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">/opt/module/spark-3.1.1-yarn/bin/spark-submit</span> <span class="string">--conf</span> <span class="string">spark.driver.extraJavaOptions=-Dfile.encoding=UTF-8</span> <span class="string">--class</span> <span class="string">test</span> <span class="string">/root/test-1.0-SNAPSHOT.jar</span> </span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">job1</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">job3</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">/opt/module/spark-3.1.1-yarn/bin/spark-submit</span> <span class="string">--conf</span> <span class="string">spark.driver.extraJavaOptions=-Dfile.encoding=UTF-8</span> <span class="string">--class</span> <span class="string">test</span> <span class="string">/root/test-1.0-SNAPSHOT.jar</span> </span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">job2</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">job4</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">/opt/module/spark-3.1.1-yarn/bin/spark-submit</span> <span class="string">--conf</span> <span class="string">spark.driver.extraJavaOptions=-Dfile.encoding=UTF-8</span> <span class="string">--class</span> <span class="string">test</span> <span class="string">/root/test-1.0-SNAPSHOT.jar</span> </span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">job3</span></span><br><span class="line"></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">endjob</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">command</span></span><br><span class="line">    <span class="attr">config:</span></span><br><span class="line">      <span class="attr">command:</span> <span class="string">echo</span> <span class="string">&quot;结束&quot;</span></span><br><span class="line">    <span class="attr">dependsOn:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">job4</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>3.将 <code>azkaban.project</code>、<code>basic.flow</code> 文件压缩到一个 zip 文件，<code>只能是zip包</code>,<code>文件名称必须是英文</code>。</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">bigdata@gxjzy:~/桌面$ zip -r first.zip azkaban.project basic.flow</span><br><span class="line">  adding: azkaban.project (stored 0%)</span><br><span class="line">  adding: basic.flow (deflated 75%)</span><br><span class="line"></span><br><span class="line">bigdata@gxjzy:~/桌面$ <span class="built_in">ls</span> | grep first.zip</span><br><span class="line">first.zip</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>4.在 WebServer 新建项目</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241051217.png" alt="image-20240124105151123"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241059957.png" alt="image-20240124105910852"></p>
+<blockquote>
+<p>(5) 上传文件</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241100607.png" alt="image-20240124110038512"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241119645.png" alt="image-20240124111918536"></p>
+<p><strong>添加成功如下:</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241127610.png" alt="image-20240124112737492"></p>
+<blockquote>
+<p>(6) 执行任务流</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407221519186.png" alt="image-20240722151945098"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407221520106.png" alt="image-20240722152002030"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401241130704.png" alt="image-20240124113018619"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407221448423.png" alt="image-20240722144852273"><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407221449396.png" alt="image-20240722144909278"></p>
+<blockquote>
+<p>最终所需截图:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407221528081.png" alt="image-20240722152803993"></p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/13-Azkaban%E8%B0%83%E5%BA%A6%E5%99%A8/" target="_blank">13.Azkaban调度器</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/14-DolphinScheduler-3-1-4-%E6%B5%B7%E8%B1%9A%E8%B0%83%E5%BA%A6%E5%99%A8/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/14-DolphinScheduler-3-1-4-%E6%B5%B7%E8%B1%9A%E8%B0%83%E5%BA%A6%E5%99%A8/" title="发布于 2024-11-08 03:34">14.DolphinScheduler-3.1.4 海豚调度器</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/12-sqoop%E9%85%8D%E7%BD%AE-1-4-2-m/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/12-sqoop%E9%85%8D%E7%BD%AE-1-4-2-m/" title="发布于 2024-11-08 03:32">12.sqoop配置(1.4.2).m</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>

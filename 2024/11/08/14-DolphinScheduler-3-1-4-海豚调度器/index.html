@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            14.DolphinScheduler-3.1.4 海豚调度器
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">14.DolphinScheduler-3.1.4 海豚调度器</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/14-DolphinScheduler-3-1-4-海豚调度器/" class="leancloud_visitors" data-flag-title="14.DolphinScheduler-3.1.4 海豚调度器">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/14-DolphinScheduler-3-1-4-海豚调度器/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="DolphinScheduler-3-1-4-海豚调度器"><a href="#DolphinScheduler-3-1-4-海豚调度器" class="headerlink" title="DolphinScheduler-3.1.4 海豚调度器"></a>DolphinScheduler-3.1.4 海豚调度器</h1><h2 id="1-DolphinScheduler-简介"><a href="#1-DolphinScheduler-简介" class="headerlink" title="1. DolphinScheduler 简介"></a>1. DolphinScheduler 简介</h2><p>官网:<a target="_blank" rel="noopener" href="https://dolphinscheduler.apache.org/zh-cn">https://dolphinscheduler.apache.org/zh-cn</a></p>
+<h3 id="1-1-DolphinScheduler-概述"><a href="#1-1-DolphinScheduler-概述" class="headerlink" title="1.1 DolphinScheduler 概述"></a>1.1 DolphinScheduler 概述</h3><p>​	Apache DolphinScheduler 是一个<code>分布式</code>、<code>易扩展的可视化 DAG 工作流任务调度平台</code>。 致力于解决数据处理流程中错综复杂的依赖关系，使调度系统在数据处理流程中开箱即用。</p>
+<h3 id="1-2-DolphinScheduler-核心架构"><a href="#1-2-DolphinScheduler-核心架构" class="headerlink" title="1.2 DolphinScheduler 核心架构"></a>1.2 DolphinScheduler 核心架构</h3><p>DolphinScheduler 的主要角色如下：</p>
+<ul>
+<li><code>MasterServer </code>采用分布式无中心设计理念，MasterServer 主要负责 DAG 任务切分、任 务提交、任务监控，并同时监听其它 MasterServer 和 WorkerServer 的健康状态。</li>
+<li><code>WorkerServer</code> 也采用分布式无中心设计理念，WorkerServer 主要负责任务的执行和提 供日志服务。</li>
+<li><code>ZooKeeper</code> 服务，系统中的 MasterServer 和 WorkerServer 节点都通过 ZooKeeper 来进 行集群管理和容错。</li>
+<li><code>Alert </code>服务，提供告警相关服务</li>
+<li><code>API </code>接口层，主要负责处理前端 UI 层的请求</li>
+<li><code>UI</code>，系统的前端页面，提供系统的各种可视化操作界面。</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251146913.png" alt="image-20240125114631853"></p>
+<h2 id="2-DolphinScheduler-部署说明"><a href="#2-DolphinScheduler-部署说明" class="headerlink" title="2. DolphinScheduler 部署说明"></a>2. DolphinScheduler 部署说明</h2><h3 id="2-1-软硬件环境要求"><a href="#2-1-软硬件环境要求" class="headerlink" title="2.1 软硬件环境要求"></a>2.1 软硬件环境要求</h3><h4 id="2-1-1-操作系统版本要求"><a href="#2-1-1-操作系统版本要求" class="headerlink" title="2.1.1 操作系统版本要求"></a>2.1.1 操作系统版本要求</h4><table>
+<thead>
+<tr>
+<th>操作系统</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Red Hat Enterprise Linux</td>
+<td>7.0 及以上</td>
+</tr>
+<tr>
+<td>CentOS</td>
+<td>7.0 及以上</td>
+</tr>
+<tr>
+<td>Oracle Enterprise Linux</td>
+<td>7.0 及以上</td>
+</tr>
+<tr>
+<td>Ubuntu LTS</td>
+<td>16.04 及以上</td>
+</tr>
+</tbody></table>
+<h4 id="2-1-2-服务器硬件要求"><a href="#2-1-2-服务器硬件要求" class="headerlink" title="2.1.2 服务器硬件要求"></a>2.1.2 服务器硬件要求</h4><table>
+<thead>
+<tr>
+<th>cpu</th>
+<th>内存</th>
+<th>硬盘类型</th>
+<th>网络</th>
+<th>实例数量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>4 核+</td>
+<td>8 GB+</td>
+<td>SAS</td>
+<td>千兆网卡</td>
+<td>1+</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-部署模式"><a href="#2-2-部署模式" class="headerlink" title="2.2 部署模式"></a>2.2 部署模式</h3><p>​		DolphinScheduler 支持多种部署模式，包括单机模式（Standalone）、伪集群模式（PseudoCluster）、集群模式（Cluster）等</p>
+<h4 id="2-2-1-单机模式"><a href="#2-2-1-单机模式" class="headerlink" title="2.2.1 单机模式"></a>2.2.1 单机模式</h4><p>​	单机模式（standalone）模式下，所有服务均集中于一个 StandaloneServer 进程中，并且其中内置了注册中心 Zookeeper 和数据库 H2。只需配置 JDK 环境，就可一键启动 DolphinScheduler，快速体验其功能。</p>
+<h4 id="2-2-2-伪集群模式"><a href="#2-2-2-伪集群模式" class="headerlink" title="2.2.2 伪集群模式"></a>2.2.2 伪集群模式</h4><p>​	伪集群模式（Pseudo-Cluster）是在单台机器部署 DolphinScheduler 各项服务，该模式 下 master、worker、api server、logger server 等服务都只在同一台机器上。Zookeeper 和数据 库需单独安装并进行相应配置。</p>
+<h4 id="2-2-3-集群模式"><a href="#2-2-3-集群模式" class="headerlink" title="2.2.3 集群模式"></a>2.2.3 集群模式</h4><p>​	集群模式（Cluster）与伪集群模式的区别就是在多台机器部署 DolphinScheduler 各项服 务，并且 Master、Worker 等服务可配置多个。</p>
+<h2 id="3-DolphinScheduler-集群模式部署"><a href="#3-DolphinScheduler-集群模式部署" class="headerlink" title="3. DolphinScheduler 集群模式部署"></a>3. DolphinScheduler 集群模式部署</h2><h3 id="3-1-集群规划"><a href="#3-1-集群规划" class="headerlink" title="3.1 集群规划"></a>3.1 集群规划</h3><p>集群模式下，可配置多个 Master 及多个 Worker。&#96;&#96;通常可配置 2~3 个 Master&#96;，若干个 Worker。由于集群资源有限，此处配置一个 Master，三个 Worker，集群规划如下。</p>
+<table>
+<thead>
+<tr>
+<th align="left">容器环境</th>
+<th>ip</th>
+<th>服务</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">master</td>
+<td>192.168.1.10</td>
+<td>master、worker</td>
+</tr>
+<tr>
+<td align="left">slave1</td>
+<td>192.168.1.20</td>
+<td>worker</td>
+</tr>
+<tr>
+<td align="left">slave2</td>
+<td>192.168.1.30</td>
+<td>worker</td>
+</tr>
+</tbody></table>
+<h3 id="3-2前置准备工作"><a href="#3-2前置准备工作" class="headerlink" title="3.2前置准备工作"></a>3.2前置准备工作</h3><p>（1）三台节点均需部署 JDK（1.8+），并配置相关环境变量。</p>
+<p>（2）需部署数据库，支持 MySQL（5.7+）或者 PostgreSQL（8.2.15+）。</p>
+<p>（3）需部署 Zookeeper（3.4.6+）。</p>
+<p>（4）<code>三台节点</code>均需安装&#96;&#96;进程树分析工具 psmisc&#96;。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y psmisc</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-3-解压-DolphinScheduler-安装包"><a href="#3-3-解压-DolphinScheduler-安装包" class="headerlink" title="3.3  解压 DolphinScheduler 安装包"></a>3.3  解压 DolphinScheduler 安装包</h3><p>（1）上传 DolphinScheduler 安装包到 master 节点的&#x2F;opt&#x2F;software 目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# ll /opt/software/ |grep dolphinscheduler</span><br><span class="line">-rw-rw-r-- 1 root root 672374885 May  5  2023 apache-dolphinscheduler-3.1.4-bin.tar.gz</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251155046.png" alt="image-20240125115548004"></p>
+<p>（2）解压安装包到&#x2F;opt&#x2F;module&#x2F;目录</p>
+<p>注：解压目录并非最终的安装目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# tar -zxvf /opt/software/apache-dolphinscheduler-3.1.4-bin.tar.gz -C /opt/module/</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">mv</span> apache-dolphinscheduler-3.1.4-bin/ apache-dolphinscheduler-3.1.4</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-4-创建元数据库及用户"><a href="#3-4-创建元数据库及用户" class="headerlink" title="3.4 创建元数据库及用户"></a>3.4 创建元数据库及用户</h3><p>DolphinScheduler 元数据存储在关系型数据库中，故需创建相应的数据库和用户。</p>
+<blockquote>
+<p>（1）创建数据库</p>
+</blockquote>
+<p>创建dolphinscheduler的元数据库，并指定编码</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">-</span>uroot <span class="operator">-</span>p123456 <span class="operator">-</span>e &quot;CREATE DATABASE dolphinscheduler DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_general_ci;&quot;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>（2）创建用户(可选，这里我<code>使用root用户登录</code>则跳过)</p>
+</blockquote>
+<p>创建dolphinscheduler的数据库用户和密码，并限定登陆范围</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">-</span>uroot <span class="operator">-</span>p123456 <span class="operator">-</span>e &quot;CREATE USER &#x27;dolphinscheduler&#x27;@&#x27;%&#x27; IDENTIFIED BY &#x27;123456&#x27;;&quot;</span><br></pre></td></tr></table></figure>
+
+<p>查看是否创建成功:</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mysql <span class="operator">-</span>uroot <span class="operator">-</span>p123456 <span class="operator">-</span>e &quot;SELECT user, host FROM mysql.user WHERE user = &#x27;dolphinscheduler&#x27;;&quot;</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251619800.png" alt="image-20240125161941749"></p>
+<p>:warning:注意:</p>
+<p>若出现以下错误信息，表明新建用户的密码过于简单。</p>
+<p>错误内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ERROR 1819 (HY000): Your password does not satisfy the current policy </span><br><span class="line">requirements</span><br></pre></td></tr></table></figure>
+
+<p>解决: 可提高密码复杂度或者执行以下命令降低 MySQL 密码强度级别。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">set</span> <span class="keyword">global</span> validate_password_policy<span class="operator">=</span><span class="number">0</span>;</span><br><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">set</span> <span class="keyword">global</span> validate_password_length<span class="operator">=</span><span class="number">4</span>;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>（3）赋予用户相应权限</p>
+</blockquote>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mysql<span class="operator">&gt;</span> <span class="keyword">GRANT</span> <span class="keyword">ALL</span> PRIVILEGES <span class="keyword">ON</span> dolphinscheduler.<span class="operator">*</span> <span class="keyword">TO</span> <span class="string">&#x27;dolphinscheduler&#x27;</span>@<span class="string">&#x27;%&#x27;</span>;</span><br><span class="line">mysql<span class="operator">&gt;</span> flush privileges;</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-5-添加MySQL驱动"><a href="#3-5-添加MySQL驱动" class="headerlink" title="3.5 添加MySQL驱动"></a>3.5 添加MySQL驱动</h3><p>将mysql-connector-java驱动（8.0.16）上传到&#x2F;opt&#x2F;jars，并移动到 DolphinScheduler 的<code>每个模块的 libs 目录下</code>，其中包括 <code>api-server/libs </code>和 <code>alert-server/libs</code> 和 &#96;&#96;master-server&#x2F;libs<code>和</code>worker-server&#x2F;lib<code>s和</code>tools&#x2F;libs&#96;</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# <span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-8.0.16.jar api-server/libs/</span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# <span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-8.0.16.jar alert-server/libs/</span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# <span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-8.0.16.jar master-server/libs/</span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# <span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-8.0.16.jar worker-server/libs/</span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# <span class="built_in">cp</span> /opt/software/jars/mysql-connector-java-8.0.16.jar tools/libs/</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-6-修改dolphinscheduler-env-sh配置文件："><a href="#3-6-修改dolphinscheduler-env-sh配置文件：" class="headerlink" title="3.6 修改dolphinscheduler_env.sh配置文件："></a>3.6 修改<code>dolphinscheduler_env.sh</code>配置文件：</h3><p>文件 .&#x2F;bin&#x2F;env&#x2F;dolphinscheduler_env.sh 描述了下列配置：</p>
+<ul>
+<li>DolphinScheduler 的数据库配置，将username和password改成你在上一步中设置的用户名和密码</li>
+<li>一些任务类型外部依赖路径或库文件，如 JAVA_HOME 和 SPARK_HOME都是在这里定义的</li>
+<li>注册中心zookeeper</li>
+<li>服务端相关配置，比如缓存，时区设置等</li>
+</ul>
+<p>如果您不使用某些任务类型，您可以忽略任务外部依赖项，但您必须根据您的环境更改 JAVA_HOME、注册中心和数据库相关配置。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# vim /opt/module/apache-dolphinscheduler-3.1.4/bin/env/dolphinscheduler_env.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改配置内容如下:</p>
+<blockquote>
+<p><code>确保所有节点都有spark服务</code></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># JAVA_HOME, will use it to start DolphinScheduler server</span></span><br><span class="line"><span class="comment"># 改为自己的JDK路径</span></span><br><span class="line"><span class="built_in">export</span> JAVA_HOME=<span class="variable">$&#123;JAVA_HOME:-/opt/module/jdk1.8.0_162&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Database related configuration, set database type, username and password</span></span><br><span class="line"><span class="comment"># MySQL数据库连接信息</span></span><br><span class="line"><span class="built_in">export</span> DATABASE=<span class="variable">$&#123;DATABASE:-mysql&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPRING_PROFILES_ACTIVE=<span class="variable">$&#123;DATABASE&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPRING_DATASOURCE_URL=<span class="string">&quot;jdbc:mysql://192.168.1.10:3306/dolphinscheduler?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false&amp;allowPublicKeyRetrieval=true&quot;</span></span><br><span class="line"><span class="built_in">export</span> SPRING_DATASOURCE_USERNAME=<span class="variable">$&#123;SPRING_DATASOURCE_USERNAME:-&quot;root&quot;&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPRING_DATASOURCE_PASSWORD=<span class="variable">$&#123;SPRING_DATASOURCE_PASSWORD:-&quot;123456&quot;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># DolphinScheduler server related configuration</span></span><br><span class="line"><span class="comment"># 不用修改</span></span><br><span class="line"><span class="built_in">export</span> SPRING_CACHE_TYPE=<span class="variable">$&#123;SPRING_CACHE_TYPE:-none&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPRING_JACKSON_TIME_ZONE=<span class="variable">$&#123;SPRING_JACKSON_TIME_ZONE:-UTC&#125;</span></span><br><span class="line"><span class="built_in">export</span> MASTER_FETCH_COMMAND_NUM=<span class="variable">$&#123;MASTER_FETCH_COMMAND_NUM:-10&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Registry center configuration, determines the type and link of the registry center</span></span><br><span class="line"><span class="comment"># zookeeper集群信息</span></span><br><span class="line"><span class="built_in">export</span> REGISTRY_TYPE=<span class="variable">$&#123;REGISTRY_TYPE:-zookeeper&#125;</span></span><br><span class="line"><span class="built_in">export</span> REGISTRY_ZOOKEEPER_CONNECT_STRING=<span class="variable">$&#123;REGISTRY_ZOOKEEPER_CONNECT_STRING:-master:2181,slave1:2181,slave2:2181&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Tasks related configurations, need to change the configuration if you use the related tasks.</span></span><br><span class="line"><span class="comment"># 对已有可以正常配置，没有的保持默认即可(SPARK_HOME1和SPARK_HOME2全改成本地spark目录，不然后面运行spark项目报错，确保所有节点都有spark服务)</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_HOME=<span class="variable">$&#123;HADOOP_HOME:-/opt/module/hadoop-3.1.3&#125;</span></span><br><span class="line"><span class="built_in">export</span> HADOOP_CONF_DIR=<span class="variable">$&#123;HADOOP_CONF_DIR:-/opt/module/hadoop-3.1.3/etc/hadoop&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPARK_HOME1=<span class="variable">$&#123;SPARK_HOME1:-/opt/module/spark-3.1.1-yarn&#125;</span></span><br><span class="line"><span class="built_in">export</span> SPARK_HOME2=<span class="variable">$&#123;SPARK_HOME2:-/opt/module/spark-3.1.1-yarn&#125;</span></span><br><span class="line"><span class="built_in">export</span> PYTHON_HOME=<span class="variable">$&#123;PYTHON_HOME:-/usr/bin/python&#125;</span></span><br><span class="line"><span class="built_in">export</span> HIVE_HOME=<span class="variable">$&#123;HIVE_HOME:-/opt/module/hive-3.1.2&#125;</span></span><br><span class="line"><span class="built_in">export</span> FLINK_HOME=<span class="variable">$&#123;FLINK_HOME:-/opt/module/flink-1.14.0&#125;</span></span><br><span class="line"><span class="built_in">export</span> DATAX_HOME=<span class="variable">$&#123;DATAX_HOME:-/usr/local/datax&#125;</span></span><br><span class="line"><span class="built_in">export</span> SEATUNNEL_HOME=<span class="variable">$&#123;SEATUNNEL_HOME:-/opt/soft/seatunnel&#125;</span></span><br><span class="line"><span class="built_in">export</span> CHUNJUN_HOME=<span class="variable">$&#123;CHUNJUN_HOME:-/opt/soft/chunjun&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$HADOOP_HOME</span>/bin:<span class="variable">$SPARK_HOME1</span>/bin:<span class="variable">$SPARK_HOME2</span>/bin:<span class="variable">$PYTHON_HOME</span>/bin:<span class="variable">$JAVA_HOME</span>/bin:<span class="variable">$HIVE_HOME</span>/bin:<span class="variable">$FLINK_HOME</span>/bin:<span class="variable">$DATAX_HOME</span>/bin:<span class="variable">$PATH</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>扩展:</p>
+</blockquote>
+<p>参数:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> JAVA_HOME=<span class="variable">$&#123;JAVA_HOME:-/opt/module/jdk1.8.0_162&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>解释:</p>
+<p><code>JAVA_HOME=$&#123;JAVA_HOME:-/opt/module/jdk1.8.0_162&#125;</code>: 这是一个变量赋值语句，它的含义是如果 <code>JAVA_HOME</code> 已经被设置为某个值，就使用该值，否则将其设置为 <code>/opt/module/jdk1.8.0_162</code>。</p>
+<p>修改成功如下图:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251610724.png" alt="image-20240125161039644"></p>
+<h3 id="3-7-初始化元数据"><a href="#3-7-初始化元数据" class="headerlink" title="3.7 初始化元数据"></a>3.7 初始化元数据</h3><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 切换到apache-dolphinscheduler-3.1.4-bin目录下，执行命令</span></span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# sh tools/bin/upgrade-schema.sh</span><br></pre></td></tr></table></figure>
+
+<p>初始化成功结果如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251622627.png" alt="image-20240125162202531"></p>
+<h3 id="3-8-修改安装环境配置"><a href="#3-8-修改安装环境配置" class="headerlink" title="3.8 修改安装环境配置"></a>3.8 修改安装环境配置</h3><p>​	完成基础环境和元数据库初始化的准备后，需要根据你的机器环境修改配置文件。配置文件可以在目录 <code>bin/env</code> 中找到，他们分别是 <code>install_env.sh</code> 和 <code>dolphinscheduler_env.sh</code>。</p>
+<blockquote>
+<p>(1) 修改 <code>install_env.sh</code> 文件</p>
+</blockquote>
+<p>文件 <code>install_env.sh</code> 描述了哪些机器将被安装 DolphinScheduler 以及每台机器对应安装哪些服务。您可以在路径 <code>bin/env/install_env.sh</code> 中找到此文件，可通过以下方式更改env变量,export <ENV_NAME>&#x3D;，配置详情如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# vim bin/env/install_env.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改配置如下:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># ---------------------------------------------------------</span></span><br><span class="line"><span class="comment"># INSTALL MACHINE</span></span><br><span class="line"><span class="comment"># ---------------------------------------------------------</span></span><br><span class="line"><span class="comment"># A comma separated list of machine hostname or IP would be installed DolphinScheduler,</span></span><br><span class="line"><span class="comment"># 包含集群中所有节点的 IP 地址或主机名，用逗号分隔</span></span><br><span class="line">ips=<span class="string">&quot;master,slave1,slave2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># SSH 连接的端口</span></span><br><span class="line">sshPort=<span class="variable">$&#123;sshPort:-&quot;22&quot;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Example for hostnames: masters=&quot;ds1,ds2&quot;, Example for IPs: masters=&quot;192.168.8.1,192.168.8.2&quot;</span></span><br><span class="line"><span class="comment">#masters=$&#123;masters:-&quot;ds1,ds2&quot;&#125;</span></span><br><span class="line"><span class="comment"># DolphinScheduler 的主节点，可以是单节点或多节点</span></span><br><span class="line">masters=<span class="string">&quot;master&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#workers=$&#123;workers:-&quot;ds1:default,ds2:default,ds3:default,ds4:default,ds5:default&quot;&#125;</span></span><br><span class="line"><span class="comment"># DolphinScheduler 的工作节点</span></span><br><span class="line">workers=<span class="string">&quot;master:default,slave1:default,slave2:default&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#alertServer=$&#123;alertServer:-&quot;ds3&quot;&#125;</span></span><br><span class="line"><span class="comment">#  DolphinScheduler 的报警服务器</span></span><br><span class="line">alertServer=<span class="string">&quot;slave2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Example for hostname: apiServers=&quot;ds1&quot;, Example for IP: apiServers=&quot;192.168.8.1&quot;</span></span><br><span class="line"><span class="comment">#apiServers=$&#123;apiServers:-&quot;ds1&quot;&#125;</span></span><br><span class="line"><span class="comment"># DolphinScheduler 的 API 服务器</span></span><br><span class="line">apiServers=<span class="string">&quot;master&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># DolphinScheduler 的最终安装路径，如果不存在，脚本会自动创建</span></span><br><span class="line">installPath=<span class="variable">$&#123;installPath:-&quot;/usr/local/dolphinscheduler-3.1.4&quot;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#deployUser=$&#123;deployUser:-&quot;dolphinscheduler&quot;&#125;</span></span><br><span class="line"><span class="comment"># 部署 DolphinScheduler 的用户 , 没有则使用root用户</span></span><br><span class="line">deployUser=<span class="variable">$&#123;deployUser:-&quot;root&quot;&#125;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># Zookeeper 的根目录，DolphinScheduler 默认使用 Zookeeper 作为注册中心</span></span><br><span class="line">zkRoot=<span class="variable">$&#123;zkRoot:-&quot;/dolphinscheduler&quot;&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>最终如下(参考):</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407201452746.png" alt="image-20240720145241671"></p>
+<h3 id="3-9-配置ds资源中心"><a href="#3-9-配置ds资源中心" class="headerlink" title="3.9 配置ds资源中心"></a>3.9 配置ds资源中心</h3><p>如果未配置，则会出现以下以下问题：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021613300.png" alt="image-20240302161342223"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021613517.png" alt="image-20240302161357448"></p>
+<p>:warning: 上传失败，提示存储未启用。</p>
+<blockquote>
+<p>本地资源配置:</p>
+</blockquote>
+<p>:one:修改api-server&#x2F;conf&#x2F;common.properties配置文件</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 ~]# vim /opt/module/dolphinscheduler-3.1.4/api-server/conf/common.properties</span><br></pre></td></tr></table></figure>
+
+<p>修改成如下配置：</p>
+<p>指定数据目录，需<code>手动创建</code>：</p>
+<blockquote>
+<p>:warning:注意:这里的指定数据存储目录是在hdfs层上,也就是hadoop上<br>如果到后面创建租户时报错如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202407212201992.png" alt="image-20240721220100909"></p>
+<p>排查方向可以从hdfs上查看,可能是存储目录没有创建,或者没有权限</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1.授权</span><br><span class="line">hdfs dfs -<span class="built_in">chmod</span> -R 777 /</span><br><span class="line">2.创建存储目录</span><br><span class="line">hdfs dfs -<span class="built_in">mkdir</span> -p /root/dolphinscheduler</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">[root@bigdata1 dolphinscheduler]# grep -Ev <span class="string">&quot;^#|^$&quot;</span> api-server/conf/common.properties </span><br><span class="line">data.basedir.path=/root/dolphinscheduler</span><br><span class="line">resource.storage.type=HDFS</span><br><span class="line">resource.storage.upload.base.path=/root/dolphinscheduler</span><br><span class="line">resource.aws.access.key.id=minioadmin</span><br><span class="line">resource.aws.secret.access.key=minioadmin</span><br><span class="line">resource.aws.region=cn-north-1</span><br><span class="line">resource.aws.s3.bucket.name=dolphinscheduler</span><br><span class="line">resource.aws.s3.endpoint=http://localhost:9000</span><br><span class="line">resource.alibaba.cloud.access.key.id=&lt;your-access-key-id&gt;</span><br><span class="line">resource.alibaba.cloud.access.key.secret=&lt;your-access-key-secret&gt;</span><br><span class="line">resource.alibaba.cloud.region=cn-hangzhou</span><br><span class="line">resource.alibaba.cloud.oss.bucket.name=dolphinscheduler</span><br><span class="line">resource.alibaba.cloud.oss.endpoint=https://oss-cn-hangzhou.aliyuncs.com</span><br><span class="line">resource.hdfs.root.user=hdfs</span><br><span class="line">resource.hdfs.fs.defaultFS=hdfs://bigdata1:9000</span><br><span class="line">hadoop.security.authentication.startup.state=<span class="literal">false</span></span><br><span class="line">java.security.krb5.conf.path=/opt/krb5.conf</span><br><span class="line">login.user.keytab.username=hdfs-mycluster@ESZ.COM</span><br><span class="line">login.user.keytab.path=/opt/hdfs.headless.keytab</span><br><span class="line">kerberos.expire.time=2</span><br><span class="line">resource.manager.httpaddress.port=8088</span><br><span class="line">yarn.resourcemanager.ha.rm.ids=192.168.xx.xx,192.168.xx.xx</span><br><span class="line">yarn.application.status.address=http://ds1:%s/ws/v1/cluster/apps/%s</span><br><span class="line">yarn.job.history.status.address=http://ds1:19888/ws/v1/history/mapreduce/jobs/%s</span><br><span class="line">datasource.encryption.enable=<span class="literal">false</span></span><br><span class="line">datasource.encryption.salt=!@#$%^&amp;*</span><br><span class="line">data-quality.jar.name=dolphinscheduler-data-quality-dev-SNAPSHOT.jar</span><br><span class="line">support.hive.oneSession=<span class="literal">false</span></span><br><span class="line">sudo.enable=<span class="literal">true</span></span><br><span class="line">setTaskDirToTenant.<span class="built_in">enable</span>=<span class="literal">false</span></span><br><span class="line">development.state=<span class="literal">false</span></span><br><span class="line">alert.rpc.port=50052</span><br><span class="line">conda.path=/opt/anaconda3/etc/profile.d/conda.sh</span><br><span class="line">task.resource.limit.state=<span class="literal">false</span></span><br><span class="line">ml.mlflow.preset_repository=https://github.com/apache/dolphinscheduler-mlflow</span><br><span class="line">ml.mlflow.preset_repository_version=<span class="string">&quot;main&quot;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>最终如下(参考):</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403221126495.png" alt="image-20240322112604395"></p>
+<p>:two:worker-server&#x2F;conf&#x2F;common.properties</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /opt/module/dolphinscheduler-3.1.4/worker-server/conf/common.properties</span><br></pre></td></tr></table></figure>
+
+<p>修改如:one:一致</p>
+<h3 id="3-10-安装DolphinScheduler"><a href="#3-10-安装DolphinScheduler" class="headerlink" title="3.10 安装DolphinScheduler"></a>3.10 安装DolphinScheduler</h3><p>1.启动zookeeper集群</p>
+<blockquote>
+<p>方案1:脚本启动(需要提前准备)</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# zk.sh start</span><br><span class="line">=======启动zookeeper集群==============</span><br><span class="line">---------------启动master-------------</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: /opt/module/apache-zookeeper-3.5.7/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">---------------启动slave1-------------</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: /opt/module/apache-zookeeper-3.5.7/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">---------------启动slave2-------------</span><br><span class="line">ZooKeeper JMX enabled by default</span><br><span class="line">Using config: /opt/module/apache-zookeeper-3.5.7/bin/../conf/zoo.cfg</span><br><span class="line">Starting zookeeper ... STARTED</span><br><span class="line">[root@master apache-dolphinscheduler-3.1.4]# jpsall</span><br><span class="line">===========master==========</span><br><span class="line">1122 Jps</span><br><span class="line">1027 QuorumPeerMain</span><br><span class="line">===========slave1==========</span><br><span class="line">553 QuorumPeerMain</span><br><span class="line">651 Jps</span><br><span class="line">===========slave2==========</span><br><span class="line">546 QuorumPeerMain</span><br><span class="line">636 Jps</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>方案2:所有节点指令启动服务</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">/opt/module/zookeeper/bin/zkServer.sh start</span><br></pre></td></tr></table></figure>
+
+
+
+<p>2.使用上面创建的部署用户运行以下命令完成部署，部署后的运行日志将存放在 安装目录下的logs 文件夹内</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# sh bin/install.sh</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意: </p>
+<p>​	第一次部署的话，可能出现 5 次sh: bin&#x2F;dolphinscheduler-daemon.sh: No such file or directory相关信息，为非重要信息直接忽略即可。</p>
+</blockquote>
+<p>成功结果如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251730292.png" alt="image-20240125173052213"></p>
+<p>(不用手动分发到子节点,<code>运行脚本后会自动分发到子节点并启动服务</code>)</p>
+<p>查看进程状态:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@master apache-dolphinscheduler-3.1.4]# jpsall</span><br><span class="line">===========master==========</span><br><span class="line">1442 WorkerServer</span><br><span class="line">1027 QuorumPeerMain</span><br><span class="line">1413 MasterServer</span><br><span class="line">1480 ApiApplicationServer</span><br><span class="line">1820 Jps</span><br><span class="line">===========slave1==========</span><br><span class="line">553 QuorumPeerMain</span><br><span class="line">894 Jps</span><br><span class="line">766 WorkerServer</span><br><span class="line">===========slave2==========</span><br><span class="line">546 QuorumPeerMain</span><br><span class="line">795 AlertServer</span><br><span class="line">956 Jps</span><br><span class="line">764 WorkerServer</span><br></pre></td></tr></table></figure>
+
+<p>结果:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251732518.png" alt="image-20240125173252462"></p>
+<h3 id="3-11-启停命令"><a href="#3-11-启停命令" class="headerlink" title="3.11 启停命令"></a>3.11 启停命令</h3><p>第一次安装后会自动启动所有服务的，如有服务问题或者后续需要启停，命令如下。下面的操作脚本都在dolphinScheduler安装目录bin下。</p>
+<blockquote>
+<p>前提是先启动zookeeper服务</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 一键停止集群所有服务</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/stop-all.sh</span><br><span class="line"><span class="comment"># 一键开启集群所有服务</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/start-all.sh</span><br><span class="line"><span class="comment"># 启停 Master</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop master-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start master-server</span><br><span class="line"><span class="comment"># 启停 Worker</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start worker-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop worker-server</span><br><span class="line"><span class="comment"># 启停 Api</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start api-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop api-server</span><br><span class="line"><span class="comment"># 启停 Logger</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start logger-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop logger-server</span><br><span class="line"><span class="comment"># 启停 Alert</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start alert-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop alert-server</span><br><span class="line"><span class="comment"># 启停 Python Gateway</span></span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh start python-gateway-server</span><br><span class="line">sh /usr/local/dolphinscheduler-3.1.4/bin/dolphinscheduler-daemon.sh stop python-gateway-server</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意:</p>
+<p>每个服务在路径 <service>&#x2F;conf&#x2F;dolphinscheduler_env.sh 中都有 dolphinscheduler_env.sh 文件，这是可以为微 服务需求提供便利。意味着您可以基于不同的环境变量来启动各个服务，只需要在对应服务中配置 <service>&#x2F;conf&#x2F;dolphinscheduler_env.sh 然后通过 <service>&#x2F;bin&#x2F;start.sh 命令启动即可。但是如果您使用命令 &#x2F;bin&#x2F;dolphinscheduler-daemon.sh start <service> 启动服务器，它将会用文件 bin&#x2F;env&#x2F;dolphinscheduler_env.sh 覆盖 <service>&#x2F;conf&#x2F;dolphinscheduler_env.sh 然后启动服务，目的是为了减少用户修改配置的成本.</p>
+<p>服务用途请具体参见《系统架构设计》小节。Python gateway service 默认与 api-server 一起启动，如果您不想启动 Python gateway service 请通过更改 api-server 配置文件 api-server&#x2F;conf&#x2F;application.yaml 中的 python-gateway.enabled : false 来禁用它。</p>
+</blockquote>
+<h3 id="3-11-登录-DolphinScheduler"><a href="#3-11-登录-DolphinScheduler" class="headerlink" title="3.11 登录 DolphinScheduler"></a>3.11 登录 DolphinScheduler</h3><p>浏览器访问地址 <a target="_blank" rel="noopener" href="http://master:12345/dolphinscheduler/ui">http://master:12345/dolphinscheduler/ui</a> 即可登录系统UI。</p>
+<p>默认的用户名和密码是 :</p>
+<table>
+<thead>
+<tr>
+<th>默认用户</th>
+<th>默认密码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>admin</td>
+<td>dolphinscheduler123</td>
+</tr>
+</tbody></table>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251738791.png" alt="image-20240125173833708"></p>
+<p>登录如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251739302.png" alt="image-20240125173909221"></p>
+<p>去监控中心查看Masters，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251740537.png" alt="image-20240125174039460"></p>
+<p>去监控中心查看workers，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251741029.png" alt="image-20240125174123941"></p>
+<p>到此为止，DolphinScheduler集群安装部署就完成了。</p>
+<h3 id="3-12-DolphinScheduler-Web-UI介绍"><a href="#3-12-DolphinScheduler-Web-UI介绍" class="headerlink" title="3.12 DolphinScheduler Web UI介绍"></a>3.12 DolphinScheduler Web UI介绍</h3><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401251749046.png" alt="image-20240125174906975"></p>
+<h2 id="4-DolphinScheduler功能应用"><a href="#4-DolphinScheduler功能应用" class="headerlink" title="4. DolphinScheduler功能应用"></a>4. DolphinScheduler功能应用</h2><h3 id="4-1-项目管理"><a href="#4-1-项目管理" class="headerlink" title="4.1 项目管理"></a>4.1 项目管理</h3><h4 id="4-1-1-项目创建"><a href="#4-1-1-项目创建" class="headerlink" title="4.1.1 项目创建"></a>4.1.1 项目创建</h4><p>点击顶部导航<code>项目管理---&gt;项目创建---&gt;填写如下信息</code></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252026180.png" alt="image-20240125202616089"></p>
+<h4 id="4-1-2-项目进入-修改与删除"><a href="#4-1-2-项目进入-修改与删除" class="headerlink" title="4.1.2 项目进入-修改与删除"></a>4.1.2 项目进入-修改与删除</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252030876.png" alt="image-20240125203038810"></p>
+<h4 id="4-1-3-项目首页"><a href="#4-1-3-项目首页" class="headerlink" title="4.1.3 项目首页"></a>4.1.3 项目首页</h4><p>在项目列表中—&gt;点击项目名称链接—&gt;进入项目首页—&gt;如下图：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252031973.png" alt="image-20240125203145884"></p>
+<p>项目首页包含该项目的<code>任务状态统计</code>、<code>流程状态统计</code>、<code>工作流定义统计</code>。这几个指标的说明如下:</p>
+<ul>
+<li><strong>任务状态统计</strong>：在指定时间范围内，统计任务实例中状态为提交成功、正在运行、准备暂停、暂停、准备停止、停止、失败、成功、需要容错、kill、等待线程的个数。</li>
+<li><strong>流程状态统计</strong>：在指定时间范围内，统计工作流实例中状态为提交成功、正在运行、准备暂停、暂停、准备停止、停止、失败、成功、需要容错、kill、等待线程的个数。</li>
+<li><strong>工作流定义统计</strong>：统计用户创建的工作流定义及管理员授予该用户的工作流定义。</li>
+</ul>
+<h3 id="4-2-工作流定义"><a href="#4-2-工作流定义" class="headerlink" title="4.2 工作流定义"></a>4.2 工作流定义</h3><h4 id="4-2-1-创建工作流定义"><a href="#4-2-1-创建工作流定义" class="headerlink" title="4.2.1 创建工作流定义"></a>4.2.1 创建工作流定义</h4><ul>
+<li><p>创建工作流执行需要的租户</p>
+<p>租户就是<code>操作系统的实际用户(admin)</code>，ds需要租户来真正执行。</p>
+</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261135964.png" alt="image-20240126113534892"></p>
+<p>租户创建完成。</p>
+<ul>
+<li><p>创建用户</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261138913.png" alt="image-20240126113814834"></p>
+<blockquote>
+<p>注意: 创建租户不创建用户的话,后面运行工作流时,DolphinScheduler运行工作流报错 <code>there is not any tenant suitable, please choo</code></p>
+</blockquote>
+</li>
+</ul>
+<p>创建完后切换到gxjzy用户,不使用admin管理员创建工作流:</p>
+<table>
+<thead>
+<tr>
+<th>用户</th>
+<th>密码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>gxjzy</td>
+<td>gxjzy123</td>
+</tr>
+</tbody></table>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261142722.png" alt="image-20240126114208659"></p>
+<p>以下操作都是以<code>gxjzy</code>这个用户为主</p>
+<ul>
+<li><p>点击项目管理-&gt;工作流-&gt;工作流定义，进入工作流定义页面，点击<code>创建工作流</code>按钮，进入<strong>工作流DAG编辑</strong>页面，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261145109.png" alt="image-20240126114503039"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252038478.png" alt="image-20240125203816405"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252038952.png" alt="image-20240125203836868"></p>
+</li>
+<li><p>工具栏中拖拽 <img src="https://img-blog.csdnimg.cn/img_convert/30c011d952316617275fdfbbe8b666a5.png" alt="img"> 到画板中，新增一个Shell任务,如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401252042824.gif" alt="NVIDIA_Share_AIvvfZyLB2"></p>
+</li>
+<li><p><strong>添加 Shell 任务的参数设置：</strong></p>
+<ol>
+<li>填写<code>节点名称</code>，<code>描述</code>，<code>脚本</code>字段；</li>
+<li><code>运行标志</code>勾选<code>正常</code>，若勾选<code>禁止执行</code>，运行工作流不会执行该任务；</li>
+<li>选择<code>任务优先级</code>：当 worker 线程数不足时，级别高的任务在执行队列中会优先执行，相同优先级的任务按照先进先出的顺序执行；</li>
+<li>选择<code>任务优先级</code>：当 worker 线程数不足时，级别高的任务在执行队列中会优先执行，相同优先级的任务按照先进先出的顺序执行；</li>
+<li>资源（非必选）：资源文件是资源中心-&gt;文件管理页面创建或上传的文件，如文件名为 <code>test.sh</code>，脚本中调用资源命令为 <code>sh test.sh</code>。&#x3D;&#x3D;注意&#x3D;&#x3D;调用需要使用资源的全路径；</li>
+<li>自定义参数（非必填）；</li>
+<li>点击<code>确定</code>按钮，保存任务设置。</li>
+</ol>
+</li>
+<li><p><strong>配置任务之间的依赖关系：</strong> 点击任务节点的右侧加号连接任务；如下图所示，任务 Node_B 和任务 Node_C 并行执行，当任务 Node_A 执行完，任务 Node_B、Node_C 会同时执行。</p>
+</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260940326.png" alt="image-20240126094015254"></p>
+<ul>
+<li><p><strong>配置任务之间的依赖关系：</strong> 点击任务节点的右侧加号连接任务；如下图所示，任务 Node_B 和任务 Node_C 并行执行，当任务 Node_A 执行完，任务 Node_B、Node_C 会同时执行。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260949842.gif" alt="NVIDIA_Share_jkA0wGhal4"></p>
+<p>&#x3D;&#x3D;注：&#x3D;&#x3D;上图中Node_B和Node_C是根据Node_A创建方式创建即可，后续的不同类型的工作流的创建也不在一步一步创建。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260956171.png" alt="image-20240126095625104"></p>
+</li>
+<li><p><strong>保存工作流定义：</strong> 点击画布右上角的<code>保存</code>按钮，弹出<code>基本信息</code>弹框，如下图所示，输入工作流定义名称，工作流定义描述，设置全局变量（选填，参考<a target="_blank" rel="noopener" href="https://dolphinscheduler.apache.org/parameter//#/zh-cn/docs/3.1.2/guide/parameter/global">全局参数</a>），点击<code>确定</code>按钮，工作流定义创建成功。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260952458.gif" alt="NVIDIA_Share_bnPEXYaEMQ"></p>
+<blockquote>
+<p>其他类型任务，请参考官网 <a target="_blank" rel="noopener" href="https://dolphinscheduler.apache.org/#TaskParamers">任务节点类型和参数设置</a>。</p>
+</blockquote>
+<ul>
+<li><strong>执行策略</strong><ul>
+<li><code>并行</code>：如果对于同一个工作流定义，同时有多个工作流实例，则并行执行工作流实例。</li>
+<li><code>串行等待</code>：如果对于同一个工作流定义，同时有多个工作流实例，则并行执行工作流实例。</li>
+<li><code>串行抛弃</code>：如果对于同一个工作流定义，同时有多个工作流实例，则抛弃后生成的工作流实例并杀掉正在跑的实例。</li>
+<li><code>串行优先</code>：如果对于同一个工作流定义，同时有多个工作流实例，则按照优先级串行执行工作流实例。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p><strong>实时任务的依赖关系：</strong> 若DAG中包含了实时任务的组件，则实时任务的关联关系显示为<code>虚线</code>，在执行工作流实例的时候会跳过实时任务的执行。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260958104.png" alt="image-20240126095808031"></p>
+</li>
+<li><p><strong>删除任务的依赖关系：</strong>进入DAG图中 ，选中连接线，点击右上角<code>删除</code>图标，删除任务间的依赖关系。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401260959625.png" alt="image-20240126095957548"></p>
+</li>
+</ul>
+<h4 id="4-2-2-工作流定义操作功能"><a href="#4-2-2-工作流定义操作功能" class="headerlink" title="4.2.2 工作流定义操作功能"></a>4.2.2 工作流定义操作功能</h4><ul>
+<li><p>点击项目管理-&gt;工作流-&gt;工作流定义，进入工作流定义页面，如下图所示</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261001341.png" alt="image-20240126100119263"></p>
+<p>工作流定义列表的操作功能如下：</p>
+<ul>
+<li><p><strong>编辑：</strong> 只能编辑<code>下线</code>的工作流定义。工作流DAG编辑同创建工作流定义。</p>
+</li>
+<li><p><strong>上线：</strong> 工作流状态为<code>下线</code>时，上线工作流，只有<code>上线</code>状态的工作流能运行，但不能编辑。</p>
+</li>
+<li><p><strong>下线：</strong> 工作流状态为<code>上线</code>时，下线工作流，下线状态的工作流可以编辑，但不能运行。</p>
+</li>
+<li><p><strong>运行：</strong> 只有上线的工作流能运行。运行操作步骤见运行工作流</p>
+</li>
+<li><p><strong>定时：</strong> 只有上线的工作流能设置定时，系统自动定时调度工作流运行。创建定时后的状态为”下线”，需在定时管理页面上线定时才生效。定时操作步骤见工作流定时</p>
+</li>
+<li><p><strong>定时管理：</strong> 定时管理页面可编辑、上线&#x2F;下线、删除定时。</p>
+</li>
+<li><p><strong>删除：</strong> 删除工作流定义。在同一个项目中，只能删除自己创建的工作流定义，其他用户的工作流定义不能进行删除，如果需要删除请联系创建用户或者管理员。</p>
+</li>
+<li><p><strong>下载：</strong> 下载工作流定义到本地。</p>
+</li>
+<li><p><strong>树形图：</strong> 以树形结构展示任务节点的类型及任务状态，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261004450.png" alt="image-20240126100431373"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-2-3-运行工作流"><a href="#4-2-3-运行工作流" class="headerlink" title="4.2.3 运行工作流"></a>4.2.3 运行工作流</h4><ul>
+<li><p>点击项目管理-&gt;工作流-&gt;工作流定义，进入工作流定义页面，如下图所示，点击<code>上线</code>按钮，上线工作流。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261005349.png" alt="image-20240126100556275"></p>
+</li>
+<li><p>点击<code>运行</code>按钮，弹出启动参数设置弹框，如下图所示，设置启动参数，点击弹框中的<code>运行</code>按钮，工作流开始运行，工作流实例页面生成一条工作流实例。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261007083.png" alt="image-20240126100712999"></p>
+<p><strong>工作流运行参数说明：</strong></p>
+<ul>
+<li><p>失败策略：当某一个任务节点执行失败时，其他并行的任务节点需要执行的策略。<code>继续</code>表示：某一任务失败后，其他任务节点正常执行；<code>结束</code>表示：终止所有正在执行的任务，并终止整个流程。</p>
+</li>
+<li><p>通知策略：当流程结束，根据流程状态发送流程执行信息通知邮件，包含任何状态都不发，成功发，失败发，成功或失败都发。</p>
+</li>
+<li><p>流程优先级：流程运行的优先级，分五个等级：<code>最高（HIGHEST），高(HIGH),中（MEDIUM）,低（LOW），最低（LOWEST）</code>。当 master 线程数不足时，级别高的流程在执行队列中会优先执行，相同优先级的流程按照先进先出的顺序执行。</p>
+</li>
+<li><p>Worker 分组：该流程只能在指定的 worker 机器组里执行。默认是 Default，可以在任一 worker 上执行。</p>
+</li>
+<li><p>通知组：选择通知策略||超时报警||发生容错时，会发送流程信息或邮件到通知组里的所有成员。</p>
+</li>
+<li><p>启动参数: 在启动新的流程实例时，设置或覆盖全局参数的值。</p>
+</li>
+<li><p>补数：指运行指定日期范围内的工作流定义，根据补数策略生成对应的工作流实例，补数策略包括串行补数、并行补数 2 种模式。</p>
+<blockquote>
+<p>日期可以通过页面选择或者手动输入，日期范围是左关右关区间(startDate &lt;&#x3D; N &lt;&#x3D; endDate)</p>
+</blockquote>
+<ul>
+<li><p>串行补数：指定时间范围内，从开始日期至结束日期依次执行补数，依次生成多条流程实例；点击运行工作流，选择串行补数模式：例如从<code>12月 1号到12月20号</code>依次执行，依次在流程实例页面生成两条流程实例。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261012339.png" alt="image-20240126101213262"></p>
+<p>调度日期手动输入，在弹出的输入框中输入如下即可：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2024-01-26 00:00:00,2024-01-26 00:00:00</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261502465.png" alt="image-20240126150255398"></p>
+<p>重跑后结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261504359.png" alt="image-20240126150435293"></p>
+<ul>
+<li><p>并行度：是指在并行补数的模式下，最多并行执行的实例数。例如同时执行7月6号到7月10号的工作流定义，并行度为2，那么流程实例为：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261508776.png" alt="image-20240126150816717"></p>
+<p>调度日期手动输入，在弹出的输入框中输入如下即可：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2024-01-26 00:00:00,2024-01-30 00:00:00</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261509420.png" alt="image-20240126150926369"></p>
+<p>依赖模式补数结果如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261512730.png" alt="image-20240126151242654"></p>
+<ul>
+<li><p>补数与定时配置的关系：</p>
+<ol>
+<li><p><code>未配置定时</code>或<code>已配置定时并定时状态下线</code>：根据所选的时间范围结合定时默认配置(每天0点)进行补数，比如该工作流调度日期为7月7号到7月10号，流程实例为：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261514931.png" alt="image-20240126151411875"></p>
+</li>
+<li><p><code>已配置定时并定时状态上线</code>：根据所选的时间范围结合定时配置进行补数，比如该工作流调度日期为7月7号到7月10号，配置了定时（每日凌晨5点运行），流程实例为：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261517155.png" alt="image-20240126151759069"></p>
+<p>定时配置好后，选择<code>定时管理</code>：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261518168.png" alt="image-20240126151842119"></p>
+<p>将工作流的定时<code>上线</code>，如下图：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261533150.png" alt="image-20240126153301064"></p>
+</li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li><p>空跑</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261534601.png" alt="image-20240126153445535"></p>
+<p>空跑状态:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261535822.png" alt="image-20240126153537773"></p>
+<p>任务实例状态：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261537759.png" alt="image-20240126153755687"></p>
+<p>:star: 但是，任务并没有真正执行。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-2-4-单独运行任务"><a href="#4-2-4-单独运行任务" class="headerlink" title="4.2.4 单独运行任务"></a>4.2.4 单独运行任务</h4><ul>
+<li><p>右键选中任务，点击”启动”按钮(只有已上线的任务才能点击运行)</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261539280.png" alt="image-20240126153958221"></p>
+</li>
+<li><p>弹出启动参数设置弹框，参数说明同运行工作流</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261540932.png" alt="image-20240126154054879"></p>
+<blockquote>
+<p>注意：</p>
+<p>节点执行类型的选择。</p>
+</blockquote>
+</li>
+</ul>
+<h4 id="4-2-5-工作流定时"><a href="#4-2-5-工作流定时" class="headerlink" title="4.2.5 工作流定时"></a>4.2.5 工作流定时</h4><ul>
+<li><p>创建定时：点击项目管理-&gt;工作流-&gt;工作流定义，进入工作流定义页面，上线工作流，点击<code>定时</code>按钮,弹出定时参数设置弹框，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261545451.png" alt="image-20240126154513383"></p>
+</li>
+<li><p>选择起止时间。在起止时间范围内，定时运行工作流；不在起止时间范围内，不再产生定时工作流实例。</p>
+</li>
+<li><p>添加一个每天5时执行一次的定时，如下图所示:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261546433.png" alt="image-20240126154639374"></p>
+</li>
+<li><p>失败策略、通知策略、流程优先级、Worker 分组、通知组、收件人、抄送人同工作流运行参数。</p>
+</li>
+<li><p>点击<code>创建</code>按钮，创建定时成功，此时定时状态为”<strong>下线</strong>“，定时需<strong>上线</strong>才生效。</p>
+</li>
+<li><p>定时上线：点击<code>定时管理</code>按钮，进入定时管理页面，点击<code>上线</code>按钮，定时状态变为<code>上线</code>，如下图所示，工作流定时生效。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261548006.png" alt="image-20240126154816957"></p>
+</li>
+<li><p>工作流定时上线状态</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261549078.png" alt="image-20240126154942997"></p>
+</li>
+</ul>
+<h4 id="4-2-6-导出工作流"><a href="#4-2-6-导出工作流" class="headerlink" title="4.2.6 导出工作流"></a>4.2.6 导出工作流</h4><p>工作流定义列表，选中操作中的导出，如下图：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261553309.png" alt="image-20240126155314250"></p>
+<p>点击导出后，工作流文件将会被下载到电脑本地。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261553972.png" alt="image-20240126155339912"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261554785.png" alt="image-20240126155455701"></p>
+<h4 id="4-2-7-倒入工作流"><a href="#4-2-7-倒入工作流" class="headerlink" title="4.2.7 倒入工作流"></a>4.2.7 倒入工作流</h4><p>点击项目管理-&gt;工作流-&gt;工作流定义，进入工作流定义页面，点击<code>导入工作流</code>按钮，导入本地工作流文件，工作流定义列表显示导入的工作流，状态为下线。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261556665.png" alt="image-20240126155646585"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261557448.png" alt="image-20240126155753377"></p>
+<p>到此为止，工作流相关的操作就结束了。</p>
+<p><strong>工作流复制</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261618729.png" alt="image-20240126161828661"></p>
+<p>复制完成的结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261619488.png" alt="image-20240126161902435"></p>
+<blockquote>
+<p>注意:</p>
+<p>复制不包含上下线的状态。</p>
+</blockquote>
+<h3 id="4-3-工作流实例"><a href="#4-3-工作流实例" class="headerlink" title="4.3  工作流实例"></a>4.3  工作流实例</h3><h4 id="4-3-1-查看工作流实例"><a href="#4-3-1-查看工作流实例" class="headerlink" title="4.3.1 查看工作流实例"></a>4.3.1 查看工作流实例</h4><ul>
+<li><p>点击项目管理-&gt;工作流-&gt;工作流实例，进入工作流实例页面，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261620744.png" alt="image-20240126162033663"></p>
+</li>
+<li><p>点击工作流名称链接，进入DAG查看页面，查看任务执行状态，如下图所示。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261621783.png" alt="image-20240126162110721"></p>
+</li>
+</ul>
+<h4 id="4-3-2-查看任务日志"><a href="#4-3-2-查看任务日志" class="headerlink" title="4.3.2 查看任务日志"></a>4.3.2 查看任务日志</h4><ul>
+<li><p>进入工作流实例页面，点击工作流名称，进入DAG查看页面，双击任务节点，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261622104.png" alt="image-20240126162233028"></p>
+<ul>
+<li><p>点击”查看日志”，弹出日志弹框就是任务日志信息，如下图所示。任务实例页面也可查看任务日志，参考<a target="_blank" rel="noopener" href="https://dolphinscheduler.apache.org/#/zh-cn/docs/3.1.4/guide/project/task-instance">任务查看日志</a>。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261623642.png" alt="image-20240126162300520"></p>
+</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-3-3-查看任务历史记录"><a href="#4-3-3-查看任务历史记录" class="headerlink" title="4.3.3 查看任务历史记录"></a>4.3.3 查看任务历史记录</h4><ul>
+<li>点击项目管理-&gt;工作流-&gt;工作流实例，进入工作流实例页面，点击工作流名称，进入工作流 DAG 页面;</li>
+<li>双击任务节点，如下图所示，点击”查看历史”，跳转到任务实例页面，并展示该工作流实例运行的任务实例列表</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261625133.png" alt="image-20240126162523003"></p>
+<h4 id="4-3-4-查看运行参数"><a href="#4-3-4-查看运行参数" class="headerlink" title="4.3.4 查看运行参数"></a>4.3.4 查看运行参数</h4><ul>
+<li>点击项目管理-&gt;工作流-&gt;工作流实例，进入工作流实例页面，点击工作流名称，进入工作流 DAG 页面;</li>
+<li>点击左上角<code>查看变量</code>，查看工作流实例的全局参数和局部参数；点击左上角<code>启动参数</code>，查看工作流实例的启动参数，如下图所示</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261627698.png" alt="image-20240126162708613"></p>
+<h4 id="4-3-5-工作流实例操作功能"><a href="#4-3-5-工作流实例操作功能" class="headerlink" title="4.3.5 工作流实例操作功能"></a>4.3.5 工作流实例操作功能</h4><p>点击项目管理-&gt;工作流-&gt;工作流实例，进入工作流实例页面，如下图所示：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261628173.png" alt="image-20240126162823104"></p>
+<ul>
+<li><p><strong>编辑：</strong> 只能编辑<code>成功/失败/停止</code> 状态的流程。点击<code>编辑</code>按钮或工作流实例名称进入 DAG 编辑页面，编辑后点击<code>保存</code>按钮，弹出保存 DAG 弹框，如下图所示，修改流程定义信息，在弹框中勾选<code>是否更新工作流定义</code>，保存后则将实例修改的信息更新到工作流定义；若不勾选，则不更新工作流定义。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261629089.png" alt="image-20240126162944975"></p>
+</li>
+<li><p><strong>重跑：</strong> 重新执行已经终止的流程。</p>
+</li>
+<li><p><strong>恢复失败：</strong> 针对失败的流程，可以执行恢复失败操作，从失败的节点开始执行。</p>
+</li>
+<li><p><strong>停止：</strong> 对正在运行的流程进行<strong>停止</strong>操作，后台会先 <code>kill</code> worker 进程,再执行 <code>kill -9</code> 操作。</p>
+</li>
+<li><p><strong>暂停：</strong> 对正在运行的流程进行<strong>暂停</strong>操作，系统状态变为<strong>等待执行</strong>，会等待正在执行的任务结束，暂停下一个要执行的任务。</p>
+</li>
+<li><p><strong>恢复暂停：</strong> 对暂停的流程恢复，直接从<strong>暂停的节点</strong>开始运行。</p>
+</li>
+<li><p><strong>删除：</strong> 删除工作流实例及工作流实例下的任务实例。</p>
+</li>
+<li><p><strong>甘特图：</strong> Gantt 图纵轴是某个工作流实例下的任务实例的拓扑排序，横轴是任务实例的运行时间。</p>
+</li>
+</ul>
+<h3 id="4-4-spark-项目实践"><a href="#4-4-spark-项目实践" class="headerlink" title="4.4 spark 项目实践"></a>4.4 spark 项目实践</h3><p>题目来源：&#x3D;&#x3D;GZ033 大数据应用开发赛题第08套指标计算&#x3D;&#x3D;</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">本任务基于以下<span class="number">2</span>、<span class="number">3</span>、<span class="number">4</span>小题完成，使用DolphinScheduler完成第<span class="number">2</span>、<span class="number">3</span>、<span class="number">4</span>题任务代码的调度。工作流要求，使用shell输出“开始”作为工作流的第一个job（job1），<span class="number">2</span>、<span class="number">3</span>、<span class="number">4</span>题任务为并行任务且它们依赖job1的完成（命名为job2、job3、job4），job2、job3、job4完成之后使用shell输出“结束”作为工作流的最后一个job（endjob），endjob依赖job2、job3、job4，并将最终任务调度完成后的工作流截图，将截图粘贴至客户端桌面</span><br></pre></td></tr></table></figure>
+
+<p>流程如下：</p>
+<p>:one: 创建租户“test” &#x3D;&#x3D;》:two: 创建用户”test” &#x3D;&#x3D;》 :three: 登录“test”用户 &#x3D;&#x3D;》 :four: 资源中心 上传文件（scala jar包） &#x3D;&#x3D;》 :five: 创建项目 &#x3D;&#x3D;》:six:工作流定义 &#x3D;&#x3D;》:seven:项目上线运行</p>
+<blockquote>
+<p>这里从:four:开始做演示：</p>
+</blockquote>
+<h4 id="four-进入资源中心-上传jar包"><a href="#four-进入资源中心-上传jar包" class="headerlink" title=":four:进入资源中心,上传jar包"></a>:four:进入资源中心,上传jar包</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021718190.png" alt="image-20240302171859114"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021719689.png" alt="image-20240302171914614"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021720982.png" alt="image-20240302172010907"></p>
+<p>上传后如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021720399.png" alt="image-20240302172058316"></p>
+<h4 id="five-创建项目后进入项目"><a href="#five-创建项目后进入项目" class="headerlink" title=":five: 创建项目后进入项目"></a>:five: 创建项目后进入项目</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021724760.png" alt="image-20240302172438666"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021725536.png" alt="image-20240302172517441"></p>
+<h4 id="six-工作流定义"><a href="#six-工作流定义" class="headerlink" title=":six:工作流定义"></a>:six:工作流定义</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021726038.png" alt="image-20240302172645956"></p>
+<p>job1:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021804867.png" alt="image-20240302180418779"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021804691.png" alt="image-20240302180431605"></p>
+<p>job2:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021804830.png" alt="image-20240302180456752"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021806595.png" alt="image-20240302180649516"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021808810.png" alt="image-20240302180818733"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">参数:</span><br><span class="line">--conf spark.driver.extraJavaOptions=-Dfile.encoding=UTF-8</span><br></pre></td></tr></table></figure>
+
+
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021808576.png" alt="image-20240302180848499"></p>
+<blockquote>
+<p>job3 job4操作如job2 一致:</p>
+</blockquote>
+<p>添加后如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021811653.png" alt="image-20240302181158591"></p>
+<p>endjob：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021813328.png" alt="image-20240302181308249"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021813851.png" alt="image-20240302181353761"></p>
+<blockquote>
+<p>最终结果如下：</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021814917.png" alt="image-20240302181426845"></p>
+<p>保存退出：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021815952.png" alt="image-20240302181530868"></p>
+<h4 id="seven-项目上线运行"><a href="#seven-项目上线运行" class="headerlink" title=":seven:项目上线运行"></a>:seven:项目上线运行</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021816641.png" alt="image-20240302181648571"></p>
+<p>运行项目：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021817156.png" alt="image-20240302181718090"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021817065.png" alt="image-20240302181752992"></p>
+<p>运行后打开工作流实例查看运行状态：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021820628.png" alt="image-20240302182032555"></p>
+<p>等待片刻后，运行成功：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021820714.png" alt="image-20240302182055653"></p>
+<p>点击进入工作流实例，可以看到全部运行成功：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021821154.png" alt="image-20240302182147083"></p>
+<p>右键可查运行看日志：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021822286.png" alt="image-20240302182216214"></p>
+<p>查看运行日志:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202403021822574.png" alt="image-20240302182255489"></p>
+<p>完成</p>
+<h3 id="4-5-数据源中心"><a href="#4-5-数据源中心" class="headerlink" title="4.5 数据源中心"></a>4.5 数据源中心</h3><ul>
+<li>MySQL</li>
+<li>PostgreSQL</li>
+<li>HIVE</li>
+<li>Spark</li>
+<li>Amazon Athena</li>
+<li>ClickHouse</li>
+<li>等等….</li>
+</ul>
+<h4 id="4-5-1-MySQL数据源"><a href="#4-5-1-MySQL数据源" class="headerlink" title="4.5.1 MySQL数据源"></a>4.5.1 MySQL数据源</h4><p>点击顶部导航<code>数据源中心---&gt;创建数据源---&gt;数据源选择MySQL---&gt;填写如下信息---&gt;测试连接---&gt;成功---&gt;确定</code></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401261737506.png" alt="image-20240126173733422"></p>
+<ul>
+<li>数据源：选择 MYSQL</li>
+<li>数据源名称：输入数据源的名称</li>
+<li>描述：输入数据源的描述</li>
+<li>IP 主机名：输入连接 MySQL 的 IP</li>
+<li>端口：输入连接 MySQL 的端口</li>
+<li>用户名：设置连接 MySQL 的用户名\</li>
+<li>密码：设置连接 MySQL 的密码</li>
+<li>数据库名：输入连接 MySQL 的数据库名称</li>
+<li>jdbc 连接参数：用于 MySQL 连接的参数设置，以 JSON 形式填写</li>
+</ul>
+<blockquote>
+<p>注意：</p>
+<p>数据源中心支持列出、查看、修改、删除等操作。</p>
+</blockquote>
+<h4 id="4-5-2-Hive数据源"><a href="#4-5-2-Hive数据源" class="headerlink" title="4.5.2 Hive数据源"></a>4.5.2 Hive数据源</h4><p>点击顶部导航<code>数据源中心---&gt;创建数据源---&gt;数据源选择HIVE/UMPALA---&gt;写如下信息---&gt;测试连接---&gt;成功---&gt;确定</code></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401262025907.png" alt="image-20240126202517833"></p>
+<ul>
+<li>数据源：选择 HIVE&#x2F;IMPALA</li>
+<li>数据源名称：输入数据源的名称</li>
+<li>描述：输入数据源的描述</li>
+<li>IP 主机名：输入连接 HIVE 的 IP</li>
+<li>端口：输入连接 HIVE 的端口,一般是hiveserver2,默认端口10000</li>
+<li>用户名：设置连接 HIVE 的用户名，默认是系统的登录用户的用户名</li>
+<li>密码：设置连接 HIVE 的密码，与系统登录用户匹配的密码</li>
+<li>数据库名：输入连接 HIVE 的数据库名称(如果数据库不存在则报错) 连接<code>default</code>库进行测试</li>
+<li>Jdbc 连接参数：用于 HIVE 连接的参数设置，以 JSON 形式填写</li>
+</ul>
+<blockquote>
+<p>注意：如果您希望在同一个会话中执行多个 HIVE SQL，您可以修改配置文件 common.properties 中的配置，设置 support.hive.oneSession &#x3D; true。 这对运行 HIVE SQL 前设置环境变量的场景会很有帮助。参数 support.hive.oneSession 默认值为 false，多条 SQL 将在不同的会话中运行。</p>
+</blockquote>
+<h4 id="4-5-3-spark数据源"><a href="#4-5-3-spark数据源" class="headerlink" title="4.5.3 spark数据源"></a>4.5.3 spark数据源</h4><p>点击顶部导航<code>数据源中心---&gt;创建数据源---&gt;数据源选择SPARK---&gt;写如下信息---&gt;测试连接---&gt;成功---&gt;确定</code></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401262033028.png" alt="image-20240126203306950"></p>
+<ul>
+<li>数据源：选择 Spark</li>
+<li>数据源名称：输入数据源的名称</li>
+<li>描述：输入数据源的描述</li>
+<li>IP&#x2F;主机名：输入连接Spark的IP</li>
+<li>端口：输入连接Spark的端口</li>
+<li>用户名：设置连接Spark的用户名</li>
+<li>密码：设置连接Spark的密码</li>
+<li>数据库名：输入连接Spark的数据库名称(默认库default)</li>
+<li>Jdbc连接参数：用于Spark连接的参数设置，以JSON形式填写</li>
+</ul>
+<blockquote>
+<p>注意：如果开启了<strong>kerberos</strong>，则需要填写 <strong>Principal</strong></p>
+</blockquote>
+<h4 id="4-5-4-Clickhouse数据源"><a href="#4-5-4-Clickhouse数据源" class="headerlink" title="4.5.4 Clickhouse数据源"></a>4.5.4 Clickhouse数据源</h4><p>点击顶部导航<code>数据源中心---&gt;创建数据源---&gt;数据源选择SPARK---&gt;写如下信息---&gt;测试连接---&gt;成功---&gt;确定</code></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401262211071.png" alt="image-20240126221156993"></p>
+<ul>
+<li>数据源：选择 clickhouse</li>
+<li>数据源名称：输入数据源的名称</li>
+<li>描述：输入数据源的描述</li>
+<li>IP&#x2F;主机名：输入连接clickhouse的IP</li>
+<li>端口：输入连接clickhousek的端口,默认远程连接端口<code>8123</code></li>
+<li>用户名：设置连接clickhouse的用户名(defaul)</li>
+<li>密码：设置连接clickhouse的密码</li>
+<li>数据库名：输入连接clickhouse的数据库名称(默认库default)</li>
+<li>Jdbc连接参数：用于Spark连接的参数设置，以JSON形式填写</li>
+</ul>
+<p>待整理….</p>
+<p>参考文档:<a target="_blank" rel="noopener" href="https://blog.csdn.net/u010839779/article/details/130522432?spm=1001.2014.3001.5506">https://blog.csdn.net/u010839779/article/details/130522432?spm=1001.2014.3001.5506</a></p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/14-DolphinScheduler-3-1-4-%E6%B5%B7%E8%B1%9A%E8%B0%83%E5%BA%A6%E5%99%A8/" target="_blank">14.DolphinScheduler-3.1.4 海豚调度器</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                        <a href="/2024/11/08/15-Hudi%E6%95%B0%E6%8D%AE%E6%B9%96%E9%85%8D%E7%BD%AE-0-12-0-md/" class="prev-prefix">« </a> 上一篇：    <a href="/2024/11/08/15-Hudi%E6%95%B0%E6%8D%AE%E6%B9%96%E9%85%8D%E7%BD%AE-0-12-0-md/" title="发布于 2024-11-08 03:35">15.Hudi数据湖配置(0.12.0).md</a>
+                        <br>
+                    
+                    
+                        <a href="/2024/11/08/13-Azkaban%E8%B0%83%E5%BA%A6%E5%99%A8/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/13-Azkaban%E8%B0%83%E5%BA%A6%E5%99%A8/" title="发布于 2024-11-08 03:33">13.Azkaban调度器</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>

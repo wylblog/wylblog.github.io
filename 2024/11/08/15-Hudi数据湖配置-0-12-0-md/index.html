@@ -1,0 +1,1529 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, shrink-to-fit=no">
+    <meta name="referrer" content="origin">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta http-equiv="Cache-Control" content="no-transform">
+    <meta http-equiv="Cache-Control" content="no-siteapp">
+    <title>
+        
+            15.Hudi数据湖配置(0.12.0).md
+        
+    </title>
+    <link rel="shortcut icon" href="#"/>
+
+    <link type="text/css" rel="stylesheet" href="/font/LongCang.css">
+    <link type="text/css" rel="stylesheet" href="/font/Monda.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSansSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/NotoSerifSC.css">
+    <link type="text/css" rel="stylesheet" href="/font/Playball.css">
+    <link type="text/css" rel="stylesheet" href="/font/PTMono.css">
+    <link type="text/css" rel="stylesheet" href="/font/Roboto.css">
+    <link type="text/css" rel="stylesheet" href="/font/RobotoSlab.css">
+    <link type="text/css" rel="stylesheet" href="/font/Rosario.css">
+    <link type="text/css" rel="stylesheet" href="/font/UbuntuMono.css">
+
+    <link type="text/css" rel="stylesheet" href="/css/base.css">
+    <link type="text/css" rel="stylesheet" href="/css/code.css">
+
+    <script type="text/javascript" src="/js/jquery-3.4.1.min.js"></script>
+<meta name="generator" content="Hexo 7.3.0"></head>
+<body>
+    <a id="cover"></a>
+    <link type="text/css" rel="stylesheet" href="/css/post.css">
+<div id="header" class="header">
+    <div class="vertical">
+        <div class="inner">
+            
+                <h1 class="header-subtitle">15.Hudi数据湖配置(0.12.0).md</h1>
+                <div class="header-subinfo">
+                    <p class="article-info-text">
+                        <span>
+                            <i class="iconfont icon-time"></i> 发表时间：2024-11-08
+                        </span>
+                        
+                            
+                                <span id="/2024/11/08/15-Hudi数据湖配置-0-12-0-md/" class="leancloud_visitors" data-flag-title="15.Hudi数据湖配置(0.12.0).md">
+                                    <i class="iconfont icon-browse"></i> 阅读：<sapn class="leancloud-visitors-count"></span>
+                                </span>
+                            
+                            
+                                <span>
+                                    <i class="iconfont icon-interactive"></i> 评论：<span class="valine-comment-count" data-xid="/2024/11/08/15-Hudi数据湖配置-0-12-0-md/"></span>
+                                </span>
+                              
+                        
+                    </p>
+                    
+                    
+                        
+                            <span class="tag-color">大数据运维</span>
+                        
+                            <span class="tag-color">数据库系列</span>
+                        
+                    
+                </div>
+            
+        </div>
+    </div>
+    
+</div>
+<div id="container">
+    
+        <!-- 文章页面 -->
+        <div id="article">
+            <div class="toc"></div>
+            <div class="article-body">
+                <h1 id="Hudi数据湖"><a href="#Hudi数据湖" class="headerlink" title="Hudi数据湖"></a>Hudi数据湖</h1><h2 id="1-Hudi概述"><a href="#1-Hudi概述" class="headerlink" title="1.Hudi概述"></a>1.Hudi概述</h2><h3 id="1-1-Hudi简介"><a href="#1-1-Hudi简介" class="headerlink" title="1.1 Hudi简介"></a>1.1 Hudi简介</h3><p>​	Apache Hudi（Hadoop Upserts Delete and Incremental）是下一代流数据湖平台。Apache Hudi将核心仓库和数据库功能直接引入数据湖。Hudi提供了表、事务、<code>高效的upserts/delete、高级索引、流摄取服务、数据集群/压缩优化和并发</code>，同时保持数据的开源文件格式。</p>
+<p>​	Apache Hudi不仅非常<code>适合于流工作负载</code>，而且还允许创建高效的<code>增量批处理</code>管道。</p>
+<p>​	Apache Hudi可以轻松地在任何云存储平台上使用。Hudi的高级性能优化，使分析工作负载更快的任何流行的查询引擎，包括Apache Spark、Flink、Presto、Trino、Hive等。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171705084.png" alt="image-20240117170546012"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171706141.png" alt="image-20240117170621072"></p>
+<h3 id="1-2-发展历史"><a href="#1-2-发展历史" class="headerlink" title="1.2 发展历史"></a>1.2 发展历史</h3><ul>
+<li><p>2015 年：发表了增量处理的核心思想&#x2F;原则（O’reilly 文章）。</p>
+</li>
+<li><p>2016 年：由 Uber 创建并为所有数据库&#x2F;关键业务提供支持。</p>
+</li>
+<li><p>2017 年：由 Uber 开源，并支撑 100PB 数据湖。</p>
+</li>
+<li><p>2018 年：吸引大量使用者，并因云计算普及。</p>
+</li>
+<li><p>2019 年：成为 ASF 孵化项目，并增加更多平台组件。</p>
+</li>
+<li><p>2020 年：毕业成为 Apache 顶级项目，社区、下载量、采用率增长超过 10 倍。</p>
+</li>
+<li><p>2021 年：支持 Uber 500PB 数据湖，SQL DML、Flink 集成、索引、元服务器、缓存。</p>
+</li>
+</ul>
+<h3 id="1-3-Hudi特性"><a href="#1-3-Hudi特性" class="headerlink" title="1.3 Hudi特性"></a>1.3 Hudi特性</h3><ul>
+<li><code>可插拔索引机制</code>支持快速Upsert&#x2F;Delete。</li>
+<li>支持<code>增量</code>拉取表<code>变更</code>以进行处理。</li>
+<li>支持<code>事务</code>提交及回滚，<code>并发</code>控制。</li>
+<li>支持Spark、Presto、Trino、Hive、Flink等引擎的SQL读写。</li>
+<li>自动管理小文件，数据聚簇，压缩，清理。</li>
+<li>流式摄入，内置CDC源和工具。</li>
+<li>内置可扩展存储访问的元数据跟踪。</li>
+<li>向后兼容的方式实现表结构变更的支持。</li>
+</ul>
+<h3 id="1-4-使用场景"><a href="#1-4-使用场景" class="headerlink" title="1.4 使用场景"></a>1.4 使用场景</h3><blockquote>
+<p>(1) <strong>近实时写入</strong></p>
+</blockquote>
+<ul>
+<li>减少碎片化工具的使用。</li>
+<li>CDC 增量导入 RDBMS 数据。</li>
+<li>限制小文件的大小和数量。</li>
+</ul>
+<blockquote>
+<p>(2) <strong>近实时分析</strong></p>
+</blockquote>
+<ul>
+<li>相对于秒级存储（Druid, OpenTSDB），节省资源。</li>
+<li>提供分钟级别时效性，支撑更高效的查询。</li>
+<li>Hudi作为lib，非常轻量。</li>
+</ul>
+<blockquote>
+<p>(3) <strong>增量 pipeline</strong></p>
+</blockquote>
+<ul>
+<li>区分arrivetime和event time处理延迟数据。</li>
+<li>更短的调度interval减少端到端延迟（小时 -&gt; 分钟） &#x3D;&gt; Incremental Processing。</li>
+</ul>
+<blockquote>
+<p>(4) <strong>增量导出</strong></p>
+</blockquote>
+<ul>
+<li>替代部分Kafka的场景，数据导出到在线服务存储 e.g. ES。</li>
+</ul>
+<h2 id="2-安装部署"><a href="#2-安装部署" class="headerlink" title="2. 安装部署"></a>2. 安装部署</h2><h3 id="2-1-环境准备"><a href="#2-1-环境准备" class="headerlink" title="2.1 环境准备"></a>2.1 环境准备</h3><p>需要提前部署好以下组件:</p>
+<table>
+<thead>
+<tr>
+<th>组件名</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Hadoop</td>
+<td>3.1.3</td>
+</tr>
+<tr>
+<td>Hive</td>
+<td>3.1.2</td>
+</tr>
+<tr>
+<td>Flink</td>
+<td>1.13.6，scala-2.12</td>
+</tr>
+<tr>
+<td>Spark</td>
+<td>3.2.2，scala-2.12</td>
+</tr>
+</tbody></table>
+<h3 id="2-2-安装Maven"><a href="#2-2-安装Maven" class="headerlink" title="2.2 安装Maven"></a>2.2 <strong>安装Maven</strong></h3><blockquote>
+<p>（1）上传apache-maven-3.6.1-bin.tar.gz到&#x2F;opt&#x2F;software目录，并解压更名</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/apache-maven-3.6.3-bin.tar.gz -C /opt/module/</span><br><span class="line">[root@master ~]# <span class="built_in">mv</span> /opt/module/apache-maven-3.6.3/ /opt/module/maven-3.6.3</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(2) 添加环境变量</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/profile</span><br></pre></td></tr></table></figure>
+
+<p>添加以下内容:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#MAVEN_HOME</span></span><br><span class="line"><span class="built_in">export</span> MAVEN_HOME=/opt/module/maven-3.6.3</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$MAVEN_HOME</span>/bin</span><br></pre></td></tr></table></figure>
+
+<p>刷新环境变量:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">source</span> /etc/profile</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(3) 版本验证</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# mvn -v</span><br><span class="line">Apache Maven 3.6.3 (cecedd343002696d0abb50b32b541b8a6ba2883f)</span><br><span class="line">Maven home: /opt/module/apache-maven-3.6.3</span><br><span class="line">Java version: 1.8.0_162, vendor: Oracle Corporation, runtime: /opt/module/jdk1.8.0_162/jre</span><br><span class="line">Default locale: en_US, platform encoding: ANSI_X3.4-1968</span><br><span class="line">OS name: <span class="string">&quot;linux&quot;</span>, version: <span class="string">&quot;5.4.0-150-generic&quot;</span>, <span class="built_in">arch</span>: <span class="string">&quot;amd64&quot;</span>, family: <span class="string">&quot;unix&quot;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(4) <strong>修改为阿里镜像</strong></p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">cp</span> <span class="variable">$MAVEN_HOME</span>/conf/settings.xml <span class="variable">$MAVEN_HOME</span>/conf/settings.xml.bak</span><br><span class="line">[root@master ~]# vim <span class="variable">$MAVEN_HOME</span>/conf/settings.xml</span><br></pre></td></tr></table></figure>
+
+<p>添加以下配置:</p>
+<p>&#x3D;&#x3D;(本操作需要联网-建议提前下载好使用离线maven源)&#x3D;&#x3D;</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- 添加阿里云镜像--&gt;</span></span><br><span class="line"> <span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">id</span>&gt;</span>aliyunmaven<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>*<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">name</span>&gt;</span>阿里云公共仓库<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://maven.aliyun.com/repository/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"> <span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br><span class="line"> </span><br><span class="line">本地库:(53行左右)</span><br><span class="line"><span class="tag">&lt;<span class="name">localRepository</span>&gt;</span>/opt/software/RepMaven<span class="tag">&lt;/<span class="name">localRepository</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>添加后如下:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401171731685.png" alt="image-20240117173132599"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401221535958.png" alt="image-20240122153540849"></p>
+<h3 id="2-3-安装Hudi"><a href="#2-3-安装Hudi" class="headerlink" title="2.3 安装Hudi"></a>2.3 安装Hudi</h3><p>下载地址：<a target="_blank" rel="noopener" href="https://github.com/apache/hudi/">https://github.com/apache/hudi/</a></p>
+<p>hudi-0.12: <a target="_blank" rel="noopener" href="http://archive.apache.org/dist/hudi/0.12.0/hudi-0.12.0.src.tgz">http://archive.apache.org/dist/hudi/0.12.0/hudi-0.12.0.src.tgz</a></p>
+<h4 id="2-3-1-解压安装"><a href="#2-3-1-解压安装" class="headerlink" title="2.3.1 解压安装"></a>2.3.1 解压安装</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# tar -zxvf /opt/software/hudi-0.12.0.src.tgz -C /opt/module/</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>添加环境变量</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#HUDI_HOME</span></span><br><span class="line"><span class="built_in">export</span> HUDI_HOME=/opt/module/hudi-0.12.0</span><br><span class="line"><span class="built_in">export</span> PATH=<span class="variable">$PATH</span>:<span class="variable">$HUDI_HOME</span>/hudi-cli</span><br><span class="line"><span class="built_in">export</span> HUDI_CONF_DIR=<span class="variable">$HUDI_HOME</span>/conf</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-3-2-修改pom文件-这里maven选择使用本地库"><a href="#2-3-2-修改pom文件-这里maven选择使用本地库" class="headerlink" title="2.3.2 修改pom文件(这里maven选择使用本地库)"></a>2.3.2 修改pom文件(这里maven选择使用本地库)</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /opt/module/hudi-0.12.0/pom.xml</span><br></pre></td></tr></table></figure>
+
+<p><strong>修改如下:</strong></p>
+<blockquote>
+<p>(1) 新增repository加速依赖下载</p>
+<p>:warning:加在第一行仓库:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401201226241.png" alt="image-20240120122613146"></p>
+</blockquote>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">releases</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如下:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401201227154.png" alt="image-20240120122713065"></p>
+<p>:star::star::star:因为比赛环境没有网络,则改成本地maven库:</p>
+<p>添加以下内容:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>local-repo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--修改成自己的本地库地址--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>file://opt/software/RepMaven<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line">	<span class="comment">&lt;!-- 添加其他本地私有 Maven 仓库 --&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404081620664.png" alt="image-20240408162011556"></p>
+<blockquote>
+<p>(2) 修改依赖的组件版本</p>
+</blockquote>
+<p>主要修改hadoop版本和hive版本</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">hadoop.version</span>&gt;</span>3.1.3<span class="tag">&lt;/<span class="name">hadoop.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">hive.version</span>&gt;</span>3.1.2<span class="tag">&lt;/<span class="name">hive.version</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>快捷替换指令:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">1.修改hadoop默认版本</span><br><span class="line">:%s#&lt;hadoop.version&gt;2.10.1&lt;/hadoop.version&gt;#&lt;hadoop.version&gt;3.1.3&lt;/hadoop.version&gt;#g</span><br><span class="line">2.修改hive默认版本</span><br><span class="line">:%s#&lt;hive.version&gt;2.3.1&lt;/hive.version&gt;#&lt;hive.version&gt;3.1.2&lt;/hive.version&gt;#g</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<p>修改结果如下:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172038318.png" alt="image-20240117203806250"></p>
+<h4 id="2-3-3-修改源码兼容hadoop3"><a href="#2-3-3-修改源码兼容hadoop3" class="headerlink" title="2.3.3 修改源码兼容hadoop3"></a>2.3.3 修改源码兼容hadoop3</h4><blockquote>
+<p>Hudi默认依赖的hadoop2，要兼容hadoop3，除了修改版本，还需要修改如下代码：</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# vim /opt/module/hudi-0.12.0/hudi-common/src/main/java/org/apache/hudi/common/table/log/block/HoodieParquetDataBlock.java </span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>修改第<code>110行</code>，原先只有一个参数，添加第二个参数null：</p>
+</blockquote>
+<p>:one: 原先参数:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172042986.png" alt="image-20240117204247909"></p>
+<p>:two: 现在添加第二个参数:<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172044178.png" alt="image-20240117204432103"></p>
+<p>:warning: 否则会因为hadoop2.x和3.x版本兼容问题，报错如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172044484.png" alt="image-20240117204459430"></p>
+<h4 id="2-3-4-手动安装Kafka依赖-star"><a href="#2-3-4-手动安装Kafka依赖-star" class="headerlink" title="2.3.4 手动安装Kafka依赖(:star:)"></a>2.3.4 手动安装Kafka依赖(:star:)</h4><blockquote>
+<p>因为服务器本地已有所有所需依赖。<code>此处跳过</code></p>
+</blockquote>
+<p>有几个kafka的依赖需要手动安装，否则编译报错如下：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172045872.png" alt="image-20240117204556819"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401211234129.png" alt="image-20240121123457042"></p>
+<blockquote>
+<p>(1) 下载jar包</p>
+</blockquote>
+<p>网址下载:<a target="_blank" rel="noopener" href="http://packages.confluent.io/archive/5.3/confluent-5.3.4-2.12.zip">http://packages.confluent.io/archive/5.3/confluent-5.3.4-2.12.zip</a></p>
+<p>解压后找到以下jar包，上传服务器master:</p>
+<ul>
+<li><p>common-config-5.3.4.jar</p>
+</li>
+<li><p>common-utils-5.3.4.jar</p>
+</li>
+<li><p>kafka-avro-serializer-5.3.4.jar</p>
+</li>
+<li><p>kafka-schema-registry-client-5.3.4.jar</p>
+</li>
+</ul>
+<p>:one: 拉取包:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget http://packages.confluent.io/archive/5.3/confluent-5.3.4-2.12.zip</span><br></pre></td></tr></table></figure>
+
+<p>:two: 解压:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# unzip -d /opt/module/ /opt/software/confluent-5.3.4-2.12.zip</span><br></pre></td></tr></table></figure>
+
+<p>:three: 找到所需要的jar包:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ -name <span class="string">&quot;common-config-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;common-utils-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;kafka-avro-serializer-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;kafka-schema-registry-client-5.3.4.jar&quot;</span> </span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172142141.png" alt="image-20240117214226038"></p>
+<p>高级用法,结合<code>awk</code>进行去重处理(扩展):</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">find ./ -name <span class="string">&quot;common-config-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;common-utils-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;kafka-avro-serializer-5.3.4.jar&quot;</span> -o -name <span class="string">&quot;kafka-schema-registry-client-5.3.4.jar&quot;</span> | awk -F<span class="string">&#x27;/&#x27;</span> <span class="string">&#x27;!seen[$NF]++&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><code>awk -F&#39;/&#39; &#39;!seen[$NF]++&#39;</code>:</p>
+<ul>
+<li><code>awk</code>: 文本处理工具，用于对文本进行处理和分析。</li>
+<li><code>-F&#39;/&#39;</code>: 指定字段分隔符为斜杠 <code>/</code>。</li>
+<li><code>&#39;!seen[$NF]++&#39;</code>: 使用 <code>awk</code> 编程，其中 <code>$NF</code> 表示每行的最后一个字段（即文件名）。<code>seen[$NF]++</code> 则是一个数组，用于记录文件名是否已经出现。<code>!seen[$NF]++</code> 则表示如果文件名尚未出现过，就打印当前行，并在数组中标记为已经出现过，实现去重的效果。</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172142231.png" alt="image-20240117214249175"></p>
+<p>创建一个目录存储所需jar包:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">mkdir</span> jar</span><br></pre></td></tr></table></figure>
+
+<p>将所需包复制到上面创建的<code>jar目录</code>:</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">cp</span> ./confluent-5.3.4/share/java/kafka-connect-storage-common/kafka-schema-registry-client-5.3.4.jar jar/</span><br><span class="line">[root@master module]# <span class="built_in">cp</span> ./confluent-5.3.4/share/java/kafka-connect-storage-common/kafka-avro-serializer-5.3.4.jar jar/</span><br><span class="line">[root@master module]# <span class="built_in">cp</span> ./confluent-5.3.4/share/java/confluent-hub-client/common-utils-5.3.4.jar jar/</span><br><span class="line">[root@master module]# <span class="built_in">cp</span> ./confluent-5.3.4/share/java/kafka-connect-replicator/common-config-5.3.4.jar jar/</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# ll jar/</span><br><span class="line">total 148</span><br><span class="line">-rw-r--r-- 1 root root 23908 Jan 17 13:44 common-config-5.3.4.jar</span><br><span class="line">-rw-r--r-- 1 root root 20904 Jan 17 13:44 common-utils-5.3.4.jar</span><br><span class="line">-rw-r--r-- 1 root root 35590 Jan 17 13:44 kafka-avro-serializer-5.3.4.jar</span><br><span class="line">-rw-r--r-- 1 root root 65169 Jan 17 13:44 kafka-schema-registry-client-5.3.4.jar</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>(2) install到maven本地仓库</p>
+</blockquote>
+<p>将jar目录下的jar包全部安装到本地 Maven 仓库中，以便在 Maven 项目中引用这些依赖项</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master module]# <span class="built_in">cd</span> jar/</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172154229.png" alt="image-20240117215411168"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master jar]# mvn install:install-file -DgroupId=io.confluent -DartifactId=common-config -Dversion=5.3.4 -Dpackaging=jar -Dfile=./common-config-5.3.4.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401211237236.png" alt="image-20240121123709162"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master jar]# mvn install:install-file -DgroupId=io.confluent -DartifactId=common-utils -Dversion=5.3.4 -Dpackaging=jar -Dfile=./common-utils-5.3.4.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172155059.png" alt="image-20240117215516995"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master jar]# mvn install:install-file -DgroupId=io.confluent -DartifactId=kafka-avro-serializer -Dversion=5.3.4 -Dpackaging=jar -Dfile=./kafka-avro-serializer-5.3.4.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172155395.png" alt="image-20240117215545334"></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master jar]# mvn install:install-file -DgroupId=io.confluent -DartifactId=kafka-schema-registry-client -Dversion=5.3.4 -Dpackaging=jar -Dfile=./kafka-schema-registry-client-5.3.4.jar</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401172156921.png" alt="image-20240117215618856"></p>
+<h4 id="2-3-5-解决spark模块依赖冲突"><a href="#2-3-5-解决spark模块依赖冲突" class="headerlink" title="2.3.5 解决spark模块依赖冲突"></a>2.3.5 解决spark模块依赖冲突</h4><p>(编译的时候不会出问题,但是实际使用中会出现问题,所以建议修改)</p>
+<p>&#x3D;&#x3D;(如果不使用spark可以忽略,这一块不影响fink)&#x3D;&#x3D;</p>
+<p>修改了Hive版本为<code>3.1.2</code>，其携带的jetty是<code>0.9.3</code>，<code>hudi本身用的0.9.4</code>，存在依赖冲突。</p>
+<blockquote>
+<p>(1) 修改<code>hudi-spark-bundle</code>的pom文件，排除低版本jetty，添加hudi指定版本的jetty:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /opt/module/hudi-0.12.0/packaging/hudi-spark-bundle/pom.xml</span><br></pre></td></tr></table></figure>
+
+<p>(具体位置如后面截图)</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!-- Hive(382行) --&gt;</span> </span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-service<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;spark.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>servlet-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--1.添加以下参数(393行)--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.pentaho<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">       <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-service-rpc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;spark.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;spark.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--2.hive-jdbc添加以下参数(420行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet.jsp<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-metastore<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;spark.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--3.hive-metastore添加以下参数(441行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.datanucleus<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>datanucleus-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet.jsp<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;spark.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--4.hive-common添加以下参数(466)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty.orbit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!-- 在zookeeper上方, hive-common下方添加以下配置--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 增加hudi配置版本的jetty --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-util<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-webapp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-http<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>第一部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202216071.png" alt="image-20240120221648999"></p>
+<p>第二部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202225105.png" alt="image-20240120222518039"></p>
+<p>第三部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202231165.png" alt="image-20240120223140100"></p>
+<p>第四部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202237596.png" alt="image-20240120223736523"></p>
+<p>第五部分添加如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202242074.png" alt="image-20240120224214007"></p>
+<p>否则在使用spark向hudi表插入数据时，会报错如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NoSuchMethodError: org.apache.hudi.org.apache.jetty.server.session.SessionHandler.setHttpOnly(Z)V</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202246942.png" alt="image-20240120224650861"></p>
+<blockquote>
+<p>(2) 修改<code>hudi-utilities-bundle</code>的pom文件，<code>排除低版本jetty</code>，添加hudi指定版本的jetty:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /opt/module/hudi-0.12.0/packaging/hudi-utilities-bundle/pom.xml</span><br></pre></td></tr></table></figure>
+
+<p>在405行的位置，修改如下:</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br></pre></td><td class="code"><pre><span class="line">     <span class="comment">&lt;!-- Hoodie (345行)--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hudi<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hudi-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;project.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">       <span class="comment">&lt;!--1.在hudi-common下添加以下内容(350行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hudi<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hudi-client-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;project.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">       <span class="comment">&lt;!--2.在hudi-client-common下添加以下内容(361行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">       <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="comment">&lt;!-- Hive (417行)--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-service<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;utilities.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--3.hive-service添加以下内容(423行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>servlet-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.pentaho<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-service-rpc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;utilities.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;utilities.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--4.hive-jdbc添加以下参数(455行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet.jsp<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-metastore<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;utilities.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--5.hive-metastore添加以下参数(476行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.datanucleus<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>datanucleus-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>javax.servlet.jsp<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>guava<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.google.guava<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>$&#123;hive.groupid&#125;<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hive-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hive.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">scope</span>&gt;</span>$&#123;utilities.bundle.hive.scope&#125;<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--6.hive-common添加以下参数(501行)--&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty.orbit<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javax.servlet<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">          <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>*<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line">      <span class="comment">&lt;!--添加完成--&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 在zookeeper上方, hive-common下方添加以下配置--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 7.增加hudi配置版本的jetty --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-util<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-webapp<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.eclipse.jetty<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jetty-http<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;jetty.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>第一部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231155035.png" alt="image-20240123115520921"></p>
+<p>第二部分修改如下:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231156195.png" alt="image-20240123115614101"></p>
+<p>第三部分:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231157542.png" alt="image-20240123115726440"></p>
+<p>第四部分:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231158155.png" alt="image-20240123115816044"></p>
+<p>第五部分:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231159856.png" alt="image-20240123115914745"></p>
+<p>第六部分:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231200928.png" alt="image-20240123120018812"></p>
+<p>第七部分:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231201141.png" alt="image-20240123120138045"></p>
+<h4 id="2-3-6-执行编译命令"><a href="#2-3-6-执行编译命令" class="headerlink" title="2.3.6 执行编译命令"></a>2.3.6 执行编译命令</h4><blockquote>
+<p>回到hudi根目录进行编译</p>
+</blockquote>
+<p><strong>编译命令如下:</strong></p>
+<p>(详细参数可以看<code>README.md</code>帮助文档)</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mvn clean package -DskipTests -Dspark3.2 -Dflink1.13 -Dscala-2.12 -Dhadoop.version=3.1.3 -Pflink-bundle-shade-hive3</span><br></pre></td></tr></table></figure>
+
+<p>参数解释:</p>
+<ul>
+<li><code>clean</code>: 清理之前构建的输出。</li>
+<li><code>package</code>: 编译源代码并打包成可执行的 JAR 文件。</li>
+<li><code>-DskipTests</code>: 跳过运行测试。</li>
+<li><code>-Dspark3.2</code>: 使用 Spark 3.2 版本。</li>
+<li><code>-Dflink1.13</code>: 使用 Flink 1.13 版本。</li>
+<li><code>-Dscala-2.12</code>: 使用 Scala 2.12 版本。</li>
+<li><code>-Dhadoop.version=3.1.3</code>: 使用 Hadoop 3.1.3 版本。</li>
+<li><code>-Pflink-bundle-shade-hive3</code>: 激活名为 <code>flink-bundle-shade-hive3</code> 的 Maven profile。Profiles 是 Maven 中的一种机制，它允许在构建时选择不同的配置集。</li>
+</ul>
+<p><strong>开始编译(过程较久):</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hudi-0.12.0]# mvn clean package -DskipTests -Dspark3.1 -Dflink1.14 -Dscala-2.12 -Dhadoop.version=3.1.3 -Pflink-bundle-shade-hive3</span><br></pre></td></tr></table></figure>
+
+<p>编译过程:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401202317434.gif" alt="VirtualBoxVM_rYnlolxWAU"></p>
+<blockquote>
+<p>编译成功如下:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401222247128.png" alt="image-20240122224743009"></p>
+<blockquote>
+<p>进入客户端测试登录:</p>
+</blockquote>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[root@master hudi-0.12.0]# ./hudi-cli/hudi-cli.sh</span><br></pre></td></tr></table></figure>
+
+<p>成功如图:</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401222250051.png" alt="image-20240122225035934"></p>
+<p>编译完成后，相关的包在packaging目录的各个模块中：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">[root@master packaging]# <span class="built_in">pwd</span></span><br><span class="line">/opt/module/hudi-0.12.0/packaging</span><br><span class="line">[root@master packaging]# <span class="built_in">ls</span></span><br><span class="line">README.md                 hudi-flink-bundle      hudi-hive-sync-bundle      hudi-presto-bundle           hudi-trino-bundle</span><br><span class="line">hudi-aws-bundle           hudi-gcp-bundle        hudi-integ-test-bundle     hudi-spark-bundle            hudi-utilities-bundle</span><br><span class="line">hudi-datahub-sync-bundle  hudi-hadoop-mr-bundle  hudi-kafka-connect-bundle  hudi-timeline-server-bundle  hudi-utilities-slim-bundle</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231209296.png" alt="image-20240123120911193"></p>
+<p>比如，flink与hudi的包：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@master packaging]# <span class="built_in">ls</span> hudi-flink-bundle/target/</span><br><span class="line">classes                                   hudi-flink1.13-bundle-0.12.0.jar  original-hudi-flink1.13-bundle-0.12.0-sources.jar</span><br><span class="line">dependency-reduced-pom.xml                maven-archiver                    original-hudi-flink1.13-bundle-0.12.0.jar</span><br><span class="line">generated-sources                         maven-shared-archive-resources    rat.txt</span><br><span class="line">hudi-flink1.13-bundle-0.12.0-sources.jar  maven-status                      test-classes</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231211543.png" alt="image-20240123121100456"></p>
+<h4 id="2-3-7-spark-shell操作Hudi测试"><a href="#2-3-7-spark-shell操作Hudi测试" class="headerlink" title="2.3.7 spark-shell操作Hudi测试"></a>2.3.7 spark-shell操作Hudi测试</h4><p>题目：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">完成解压安装及配置后使用maven对Hudi进行构建（spark3.<span class="number">1</span>,scala<span class="literal">-2</span>.<span class="number">12</span>），编译完成后与Spark集成，集成后使用spark<span class="literal">-shell</span>操作Hudi，将spark<span class="literal">-shell</span>启动使用spark<span class="literal">-shell</span>运行下面给到的案例，并将最终查询结果截图粘贴</span><br></pre></td></tr></table></figure>
+
+<p>测试代码如下：</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.apache.hudi.<span class="type">QuickstartUtils</span>._</span><br><span class="line"><span class="keyword">import</span> scala.collection.<span class="type">JavaConversions</span>._</span><br><span class="line"><span class="keyword">import</span> org.apache.spark.sql.<span class="type">SaveMode</span>._</span><br><span class="line"><span class="keyword">import</span> org.apache.hudi.<span class="type">DataSourceReadOptions</span>._</span><br><span class="line"><span class="keyword">import</span> org.apache.hudi.<span class="type">DataSourceWriteOptions</span>._</span><br><span class="line"><span class="keyword">import</span> org.apache.hudi.config.<span class="type">HoodieWriteConfig</span>._</span><br><span class="line"><span class="keyword">import</span> org.apache.hudi.common.model.<span class="type">HoodieRecord</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> tableName = <span class="string">&quot;hudi_trips_cow&quot;</span></span><br><span class="line"><span class="keyword">val</span> basePath = <span class="string">&quot;file:///tmp/hudi_trips_cow&quot;</span></span><br><span class="line"><span class="keyword">val</span> dataGen = <span class="keyword">new</span> <span class="type">DataGenerator</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> inserts = convertToStringList(dataGen.generateInserts(<span class="number">10</span>))</span><br><span class="line"><span class="keyword">val</span> df = spark.read.json(spark.sparkContext.parallelize(inserts, <span class="number">2</span>))</span><br><span class="line"></span><br><span class="line">df.write.format(<span class="string">&quot;hudi&quot;</span>).</span><br><span class="line">  options(getQuickstartWriteConfigs).</span><br><span class="line">  option(<span class="type">PRECOMBINE_FIELD_OPT_KEY</span>, <span class="string">&quot;ts&quot;</span>).</span><br><span class="line">  option(<span class="type">RECORDKEY_FIELD_OPT_KEY</span>, <span class="string">&quot;uuid&quot;</span>).</span><br><span class="line">  option(<span class="type">PARTITIONPATH_FIELD_OPT_KEY</span>, <span class="string">&quot;partitionpath&quot;</span>).</span><br><span class="line">  option(<span class="type">TABLE_NAME</span>, tableName).</span><br><span class="line">  mode(<span class="type">Overwrite</span>).</span><br><span class="line">  save(basePath)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> tripsSnapshotDF = spark.read.format(<span class="string">&quot;hudi&quot;</span>).load(basePath + <span class="string">&quot;/*/*/*/*&quot;</span>)</span><br><span class="line">tripsSnapshotDF.createOrReplaceTempView(<span class="string">&quot;hudi_trips_snapshot&quot;</span>)</span><br><span class="line"></span><br><span class="line">spark.sql(<span class="string">&quot;select fare, begin_lon, begin_lat, ts from  hudi_trips_snapshot where fare &gt; 20.0&quot;</span>).show()</span><br></pre></td></tr></table></figure>
+
+<p>:one:拷贝编译好的包到 spark 的 jars 目录</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">cp</span> <span class="variable">$HUDI_HOME</span>/packaging/hudi-spark-bundle/target/hudi-spark3.1-bundle_2.12-0.12.0.jar <span class="variable">$SPARK_HOME</span>/jars</span><br></pre></td></tr></table></figure>
+
+<p>:two:执行spark-shell <code>指定序列化器</code></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">spark-shell --conf <span class="string">&#x27;spark.serializer=org.apache.spark.serializer.KryoSerializer&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404091142624.png" alt="image-20240409114205542"></p>
+<p>:three:粘贴上面提供的测试代码</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404091145321.gif" alt="VirtualBoxVM_eZr85zCG4H"></p>
+<p>结果：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images202404091146346.png" alt="image-20240409114600280"></p>
+<h2 id="3-核心概念"><a href="#3-核心概念" class="headerlink" title="3. 核心概念"></a>3. 核心概念</h2><h3 id="3-1-基本概念"><a href="#3-1-基本概念" class="headerlink" title="3.1 基本概念"></a>3.1 基本概念</h3><h4 id="3-1-1-时间轴（TimeLine）"><a href="#3-1-1-时间轴（TimeLine）" class="headerlink" title="3.1.1 时间轴（TimeLine）"></a>3.1.1 时间轴（TimeLine）</h4><p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231212824.png" alt="image-20240123121237729"></p>
+<p>Hudi的核心是维护表上在不同的<strong>即时时间（instants）</strong>执行的所有操作的<strong>时间轴（timeline）</strong>，这有助于提供表的即时视图，同时还有效地支持按到达顺序检索数据。一个instant由以下三个部分组成：</p>
+<p>:one:<strong>Instant action：在表上执行的操作类型</strong></p>
+<ul>
+<li>COMMITS：一次commit表示将一批数据原子性地写入一个表。</li>
+<li>CLEANS：清除表中不再需要的旧版本文件的后台活动。</li>
+<li>DELTA_COMMIT：增量提交指的是将一批数据原子性地写入一个MergeOnRead类型的表，其中部分或所有数据可以写入增量日志。</li>
+<li>COMPACTION：合并Hudi内部差异数据结构的后台活动，例如:将更新操作从基于行的log日志文件合并到列式存储的数据文件。在内部，COMPACTION体现为timeline上的特殊提交。</li>
+<li>ROLLBACK：表示当commit&#x2F;delta_commit不成功时进行回滚，其会删除在写入过程中产生的部分文件。</li>
+<li>SAVEPOINT：将某些文件组标记为已保存，以便其不会被删除。在发生灾难需要恢复数据的情况下，它有助于将数据集还原到时间轴上的某个点</li>
+</ul>
+<p>:two:<strong>Instant time</strong></p>
+<p>通常是一个时间戳（例如：20190117010349），它按照动作开始时间的顺序单调增加。</p>
+<p>:three:<strong>State</strong></p>
+<ul>
+<li>REQUESTED：表示某个action已经调度，但尚未执行。</li>
+<li>INFLIGHT：表示action当前正在执行。</li>
+<li>COMPLETED：表示timeline上的action已经完成。</li>
+</ul>
+<p>:four:<strong>两个时间概念</strong></p>
+<p>区分两个重要的时间概念：</p>
+<ul>
+<li>Arrival time: 数据到达 Hudi 的时间，commit time。</li>
+<li>Event time: record 中记录的时间。</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231216523.png" alt="image-20240123121655417"></p>
+<p>​	上图中采用时间（小时）作为分区字段，从 10:00 开始陆续产生各种 commits，10:20 来了一条 9:00 的数据，根据event time该数据仍然可以落到 9:00 对应的分区，通过 timeline 直接消费 10:00 （commit time）之后的增量更新（只消费有新 commits 的 group），那么这条延迟的数据仍然可以被消费到。</p>
+<h4 id="3-1-2-文件布局（File-Layout）"><a href="#3-1-2-文件布局（File-Layout）" class="headerlink" title="3.1.2 文件布局（File Layout）"></a>3.1.2 文件布局（File Layout）</h4><blockquote>
+<p>Hudi将一个表映射为如下文件结构:</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231218721.png" alt="image-20240123121804619"></p>
+<blockquote>
+<p>Hudi存储分为两个部分：</p>
+</blockquote>
+<p>:one:元数据：.hoodie目录对应着表的元数据信息，包括表的版本管理（Timeline）、归档目录（存放过时的instant也就是版本），一个instant记录了一次提交（commit）的行为、时间戳和状态，Hudi以时间轴的形式维护了在数据集上执行的所有操作的元数据；</p>
+<p>:two:数据：和hive一样，以分区方式存放数据；分区里面存放着Base File（.parquet）和Log File（.log.*）；</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231219257.png" alt="image-20240123121912143"></p>
+<p>（1）Hudi将数据表组织成分布式文件系统基本路径（basepath）下的目录结构</p>
+<p>（2）表被划分为多个分区，这些分区是包含该分区的数据文件的文件夹，非常类似于Hive表</p>
+<p>（3）在每个分区中，文件被组织成文件组，由文件ID唯一标识</p>
+<p>（4）每个文件组包含几个文件片（FileSlice）</p>
+<p>（5）每个文件片包含：</p>
+<ul>
+<li>一个基本文件(.parquet)：在某个commit&#x2F;compaction即时时间（instant time）生成的（MOR可能没有）</li>
+<li>多个日志文件(.log.*)，这些日志文件包含自生成基本文件以来对基本文件的插入&#x2F;更新（COW没有）</li>
+</ul>
+<p>（6）Hudi采用了多版本并发控制(Multiversion Concurrency Control, MVCC)</p>
+<ul>
+<li><p>compaction操作：合并日志和基本文件以产生新的文件片</p>
+</li>
+<li><p>clean操作：清除不使用的&#x2F;旧的文件片以回收文件系统上的空间</p>
+</li>
+</ul>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231220259.png" alt="image-20240123122015150"></p>
+<p>（7）Hudi的base file（parquet 文件）在 footer 的 meta 去记录了 record key 组成的 BloomFilter，用于在 file based index 的实现中实现高效率的 key contains 检测。只有不在 BloomFilter 的 key 才需要扫描整个文件消灭假阳。</p>
+<p>（8）Hudi 的 log （avro 文件）是自己编码的，通过积攒数据 buffer 以 LogBlock 为单位写出，每个 LogBlock 包含 magic number、size、content、footer 等信息，用于数据读、校验和过滤。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231220298.png" alt="image-20240123122036188"></p>
+<h4 id="3-1-3-索引（Index）"><a href="#3-1-3-索引（Index）" class="headerlink" title="3.1.3 索引（Index）"></a>3.1.3 索引（Index）</h4><blockquote>
+<p>(1) 原理:</p>
+</blockquote>
+<p>​	Hudi通过索引机制提供高效的upserts，具体是将给定的hoodie key(record key + partition path)与文件id（文件组）建立唯一映射。这种映射关系，数据第一次写入文件后保持不变，所以，一个 FileGroup 包含了一批 record 的所有版本记录。Index 用于区分消息是 INSERT 还是 UPDATE。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231222439.png" alt="image-20240123122214321"></p>
+<p>​	Hudi 为了消除不必要的读写，引入了索引的实现。在有了索引之后，更新的数据可以快速被定位到对应的 File Group。上图为例，白色是基本文件，黄色是更新数据，有了索引机制，可以做到：避免读取不需要的文件、避免更新不必要的文件、无需将更新数据与历史数据做分布式关联，只需要在 File Group 内做合并。</p>
+<blockquote>
+<p>(2) <strong>索引选项</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th align="left"><strong>Index</strong>类型</th>
+<th><strong>原理</strong></th>
+<th><strong>优点</strong></th>
+<th><strong>缺点</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">Bloom  Index</td>
+<td>默认配置，使用布隆过滤器来判断记录存在与否，也可选使用record key的范围裁剪需要的文件</td>
+<td>效率高，不依赖外部系统，数据和索引保持一致性</td>
+<td>因假阳性问题，还需回溯原文件再查找一遍</td>
+</tr>
+<tr>
+<td align="left">Simple  Index</td>
+<td>把update&#x2F;delete操作的新数据和老数据进行join</td>
+<td>实现最简单，无需额外的资源</td>
+<td>性能比较差</td>
+</tr>
+<tr>
+<td align="left">HBase  Index</td>
+<td>把index存放在HBase里面。在插入 File Group定位阶段所有task向HBase发送 Batch Get 请求，获取 Record Key 的 Mapping 信息</td>
+<td>对于小批次的keys，查询效率高</td>
+<td>需要外部的系统，增加了运维压力</td>
+</tr>
+<tr>
+<td align="left">Flink  State-based Index</td>
+<td>HUDI  在 0.8.0 版本中实现的 Flink witer，采用了 Flink 的 state 作为底层的 index 存储，每个 records 在写入之前都会先计算目标 bucket ID。</td>
+<td>不同于 BloomFilter Index，避免了每次重复的文件 index 查找</td>
+<td></td>
+</tr>
+</tbody></table>
+<p>注意：<code>Flink只有一种state based index（和bucket_index），其他index是Spark可选配置。</code></p>
+<blockquote>
+<p>(3) <strong>全局索引与非全局索引</strong></p>
+</blockquote>
+<p>​	全局索引：全局索引在全表的所有分区范围下强制要求键的唯一性，也就是确保对给定的键有且只有一个对应的记录。全局索引提供了更强的保证，但是随着表增大，update&#x2F;delete 操作损失的性能越高，因此更适用于小表。</p>
+<p>​	非全局索引：默认的索引实现，只能保证数据在分区的唯一性。非全局索引依靠写入器为同一个记录的update&#x2F;delete提供一致的分区路径，同时大幅提高了效率，更适用于大表。</p>
+<p>从index的维护成本和写入性能的角度考虑，维护一个global index的难度更大，对写入性能的影响也更大，所以需要non-global index。</p>
+<p>​	HBase索引本质上是一个全局索引，bloom和simple index都有全局选项：</p>
+<ul>
+<li>hoodie.index.type&#x3D;GLOBAL_BLOOM</li>
+<li>hoodie.index.type&#x3D;GLOBAL_SIMPLE</li>
+</ul>
+<blockquote>
+<p>(4) <strong>索引的选择策略</strong></p>
+</blockquote>
+<p>:one:对事实表的延迟更新</p>
+<p>​	许多公司会在NoSQL数据存储中存放大量的交易数据。例如共享出行的行程表、股票买卖记录的表、和电商的订单表。这些表通常一直在增长，且大部分的更新随机发生在较新的记录上，而对旧记录有着长尾分布型的更新。这通常是源于交易关闭或者数据更正的延迟性。换句话说，大部分更新会发生在最新的几个分区上而小部分会在旧的分区。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231227356.gif" alt="WINWORD_EElJO8dGEI"></p>
+<p>​	对于这样的作业模式，布隆索引就能表现地很好，因为查询索引可以靠设置得当的布隆过滤器来裁剪很多数据文件。另外，如果生成的键可以以某种顺序排列，参与比较的文件数会进一步通过范围裁剪而减少。Hudi用所有文件的键域来构造区间树，这样能来高效地依据输入的更删记录的键域来排除不匹配的文件。</p>
+<p>​	为了高效地把记录键和布隆过滤器进行比对，即尽量减少过滤器的读取和均衡执行器间的工作量，Hudi缓存了输入记录并使用了自定义分区器和统计规律来解决数据的偏斜。有时，如果布隆过滤器的假阳性率过高，查询会增加数据的打乱操作。Hudi支持动态布隆过滤器（设置hoodie.bloom.index.filter.type&#x3D;DYNAMIC_V0）。它可以根据文件里存放的记录数量来调整大小从而达到设定的假阳性率。</p>
+<p>:two:对事件表的去重</p>
+<p>​	事件流无处不在。从Apache Kafka或其他类似的消息总线发出的事件数通常是事实表大小的10-100倍。事件通常把时间（到达时间、处理时间）作为首类处理对象，比如物联网的事件流、点击流数据、广告曝光数等等。由于这些大部分都是仅追加的数据，插入和更新只存在于最新的几个分区中。由于重复事件可能发生在整个数据管道的任一节点，在存放到数据湖前去重是一个常见的需求。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231228581.gif" alt="WINWORD_7ugZtz0ezA"></p>
+<p>​	总的来说，低消耗去重是一个非常有挑战的工作。虽然可以用一个键值存储来实现去重（即HBase索引），但索引存储的消耗会随着事件数增长而线性增长以至于变得不可行。事实上，有范围裁剪功能的布隆索引是最佳的解决方案。我们可以利用作为首类处理对象的时间来构造由事件时间戳和事件id（event_ts+event_id)组成的键，这样插入的记录就有了单调增长的键。这会在最新的几个分区里大幅提高裁剪文件的效益。</p>
+<p>:three:对维度表的随机更删</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401231229631.gif" alt="WINWORD_SMnuQhiOvg"></p>
+<p>​	正如之前提到的，如果范围比较不能裁剪许多文件的话，那么布隆索引并不能带来很好的效益。在这样一个随机写入的作业场景下，更新操作通常会触及表里大多数文件从而导致布隆过滤器依据输入的更新对所有文件标明阳性。最终会导致，即使采用了范围比较，也还是检查了所有文件。使用简单索引对此场景更合适，因为它不采用提前的裁剪操作，而是直接和所有文件的所需字段连接。如果额外的运维成本可以接受的话，也可以采用HBase索引，其对这些表能提供更加优越的查询效率。</p>
+<p>​	当使用全局索引时，也可以考虑通过设置hoodie.bloom.index.update.partition.path&#x3D;true或hoodie.simple.index.update.partition.path&#x3D;true来处理 的情况；例如对于以所在城市分区的用户表，会有用户迁至另一座城市的情况。这些表也非常适合采用Merge-On-Read表型。</p>
+<h4 id="3-1-4-表类型（Table-Types）"><a href="#3-1-4-表类型（Table-Types）" class="headerlink" title="3.1.4 表类型（Table Types）"></a>3.1.4 表类型（Table Types）</h4><blockquote>
+<p>(1) <strong>Copy On Write</strong></p>
+</blockquote>
+<p>​	在COW表中，只有数据文件&#x2F;基本文件（.parquet）,没有增量日志文件（.log.*）。</p>
+<p>​	对每一个新批次写入都将创建相应数据文件的新版本（新的FileSlice），新版本文件包括旧版本文件的记录以及来自传入批次的记录（全量最新）。</p>
+<p>​	假设我们有 3 个文件组，其中包含如下数据文件。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271056825.png" alt="image-20240127105611696"></p>
+<p>​	我们进行一批新的写入，在索引后，我们发现这些记录与File group 1 和File group 2 匹配，然后有新的插入，我们将为其创建一个新的文件组（File group 4）。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271056997.png" alt="image-20240127105637882"></p>
+<p>​	因此data_file1 和 data_file2 都将创建更新的版本，data_file1 V2 是data_file1 V1 的内容与data_file1 中传入批次匹配记录的记录合并。</p>
+<p>​	由于在写入期间进行合并，COW 会产生一些写入延迟。但是COW 的优势在于它的简单性，不需要其他表服务（如压缩），也相对容易调试。</p>
+<blockquote>
+<p>(2) <strong>Merge On Read</strong></p>
+</blockquote>
+<p>​	MOR表中，包含列存的基本文件（.parquet）和行存的增量日志文件（基于行的avro格式，.log.*）。</p>
+<p>​	顾名思义，MOR表的合并成本在读取端。因此在写入期间我们不会合并或创建较新的数据文件版本。标记&#x2F;索引完成后，对于具有要更新记录的现有数据文件，Hudi 创建增量日志文件并适当命名它们，以便它们都属于一个文件组。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271057176.png" alt="image-20240127105729081"></p>
+<p>​	读取端将实时合并基本文件及其各自的增量日志文件。每次的读取延迟都比较高（因为查询时进行合并），所以 Hudi 使用压缩机制来将数据文件和日志文件合并在一起并创建更新版本的数据文件。</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271057891.png" alt="image-20240127105746799"></p>
+<p>​	用户可以选择内联或异步模式运行压缩。Hudi也提供了不同的压缩策略供用户选择，最常用的一种是基于提交的数量。例如可以将压缩的最大增量日志配置为 4。这意味着在进行 4 次增量写入后，将对数据文件进行压缩并创建更新版本的数据文件。压缩完成后，读取端只需要读取最新的数据文件，而不必关心旧版本文件。</p>
+<p>​	MOR表的写入行为，依据 index 的不同会有细微的差别：</p>
+<ul>
+<li>对于 BloomFilter 这种无法对 log file 生成 index 的索引方案，对于 INSERT 消息仍然会写 base file （parquet format），只有 UPDATE 消息会 append log 文件（因为 base file 已经记录了该 UPDATE 消息的 FileGroup ID）。</li>
+<li>对于可以对 log file 生成 index 的索引方案，例如 Flink writer 中基于 state 的索引，每次写入都是 log format，并且会不断追加和 roll over。</li>
+</ul>
+<blockquote>
+<p>(3) <strong>COW</strong>与<strong>MOR</strong>的对比</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>性能对比</th>
+<th><strong>CopyOnWrite</strong></th>
+<th><strong>MergeOnRead</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据延迟</td>
+<td>高</td>
+<td>低</td>
+</tr>
+<tr>
+<td>查询延迟</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>Update(I&#x2F;O) 更新成本</td>
+<td>高（重写整个Parquet文件）</td>
+<td>低（追加到增量日志）</td>
+</tr>
+<tr>
+<td>Parquet文件大小</td>
+<td>低（更新成本I&#x2F;O高）</td>
+<td>较大（低更新成本）</td>
+</tr>
+<tr>
+<td>写放大</td>
+<td>大</td>
+<td>低（取决于压缩策略）</td>
+</tr>
+</tbody></table>
+<h4 id="3-1-5-查询类型（Query-Types）"><a href="#3-1-5-查询类型（Query-Types）" class="headerlink" title="3.1.5 查询类型（Query Types）"></a>3.1.5 查询类型（Query Types）</h4><p>Hudi支持如下三种查询类型：</p>
+<p>:one:<strong>Snapshot Queries</strong></p>
+<p>​		快照查询，可以查询指定commit&#x2F;delta commit即时操作后表的最新快照。</p>
+<p>​		在读时合并（MOR）表的情况下，它通过即时合并最新文件片的基本文件和增量文件来提供近实时表（几分钟）。</p>
+<p>​		对于写时复制（COW），它可以替代现有的parquet表（或相同基本文件类型的表），同时提供upsert&#x2F;delete和其他写入方面的功能，可以理解为查询最新版本的Parquet数据文件。</p>
+<p>​		下图是COW的快照查询：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271102643.png" alt="image-20240127110230537"></p>
+<p>:two:<strong>Incremental Queries</strong></p>
+<p>​	增量查询，可以查询给定commit&#x2F;delta commit即时操作以来新写入的数据。有效的提供变更流来启用增量数据管道。</p>
+<p>:three:<strong>Read Optimized Queries</strong></p>
+<p>​		读优化查询，可查看给定的commit&#x2F;compact即时操作的表的最新快照。仅将最新文件片的基本&#x2F;列文件暴露给查询，并保证与非Hudi表相同的列查询性能。</p>
+<p>​		下图是MOR表的快照查询与读优化查询的对比：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271104991.png" alt="image-20240127110424891"></p>
+<p>Read Optimized Queries是对Merge On Read表类型快照查询的优化。</p>
+<table>
+<thead>
+<tr>
+<th>性能对比</th>
+<th><strong>Snapshot</strong></th>
+<th><strong>Read Optimized</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>数据延迟</td>
+<td>低</td>
+<td>高</td>
+</tr>
+<tr>
+<td>查询延迟</td>
+<td>高（合并列式基础文件+行式增量日志文件）</td>
+<td>低(原始列式基础文件)</td>
+</tr>
+</tbody></table>
+<p>:four:<strong>不同表支持的查询类型</strong></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271106823.png" alt="image-20240127110613739"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271121467.gif" alt="WINWORD_SOA6XZbuXU"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401271129798.gif" alt="WINWORD_VQQ9XoSBSl"></p>
+<h3 id="3-2-数据写"><a href="#3-2-数据写" class="headerlink" title="3.2 数据写"></a>3.2 数据写</h3><h4 id="3-2-1-写操作"><a href="#3-2-1-写操作" class="headerlink" title="3.2.1 写操作"></a>3.2.1 写操作</h4><ul>
+<li>(1)   UPSERT：默认行为，数据先通过 index 打标(INSERT&#x2F;UPDATE)，有一些启发式算法决定消息的组织以优化文件的大小 &#x3D;&gt; CDC 导入</li>
+<li>(2)   INSERT：跳过 index，写入效率更高 &#x3D;&gt; Log Deduplication</li>
+<li>(3）BULK_INSERT：写排序，对大数据量的 Hudi 表初始化友好，对文件大小的限制 best effort（写 HFile）</li>
+</ul>
+<h4 id="3-2-2-写流程（UPSERT）"><a href="#3-2-2-写流程（UPSERT）" class="headerlink" title="3.2.2 写流程（UPSERT）"></a>3.2.2 写流程（UPSERT）</h4><blockquote>
+<p>(<strong>1</strong>）<strong>Copy On Write</strong></p>
+</blockquote>
+<ul>
+<li>（1）先对 records 按照 record key 去重</li>
+<li>（2）首先对这批数据创建索引 (HoodieKey &#x3D;&gt; HoodieRecordLocation)；通过索引区分哪些 records 是 update，哪些 records 是 insert（key 第一次写入）</li>
+<li>（3）对于 update 消息，会直接找到对应 key 所在的最新 FileSlice 的 base 文件，并做 merge 后写新的 base file (新的 FileSlice)</li>
+<li>（4）对于 insert 消息，会扫描当前 partition 的所有 SmallFile（小于一定大小的 base file），然后 merge 写新的 FileSlice；如果没有 SmallFile，直接写新的 FileGroup + FileSlice</li>
+</ul>
+<blockquote>
+<p>(<strong>2</strong>)  <strong>Merge On Read</strong></p>
+</blockquote>
+<ul>
+<li>（1）先对 records 按照 record key 去重（可选）</li>
+<li>（2）首先对这批数据创建索引 (HoodieKey &#x3D;&gt; HoodieRecordLocation)；通过索引区分哪些 records 是 update，哪些 records 是 insert（key 第一次写入）</li>
+<li>（3）如果是 insert 消息，如果 log file 不可建索引（默认），会尝试 merge 分区内最小的 base file （不包含 log file 的 FileSlice），生成新的 FileSlice；如果没有 base file 就新写一个 FileGroup + FileSlice + base file；如果 log file 可建索引，尝试 append 小的 log file，如果没有就新写一个 FileGroup + FileSlice + base file</li>
+<li>（4）如果是 update 消息，写对应的 file group + file slice，直接 append 最新的 log file（如果碰巧是当前最小的小文件，会 merge base file，生成新的 file slice）</li>
+<li>（5）log file 大小达到阈值会 roll over 一个新的</li>
+</ul>
+<h4 id="3-2-3-写流程（INSERT）"><a href="#3-2-3-写流程（INSERT）" class="headerlink" title="3.2.3 写流程（INSERT）"></a>3.2.3 写流程（INSERT）</h4><blockquote>
+<p>(<strong>1</strong>) <strong>Copy On Write</strong></p>
+</blockquote>
+<ul>
+<li>（1）先对 records 按照 record key 去重（可选）</li>
+<li>（2）不会创建 Index</li>
+<li>（3）如果有小的 base file 文件，merge base file，生成新的 FileSlice + base file，否则直接写新的 FileSlice + base file</li>
+</ul>
+<blockquote>
+<p>(<strong>2</strong>)  <strong>Merge On Read</strong></p>
+</blockquote>
+<ul>
+<li>（1）先对 records 按照 record key 去重（可选）</li>
+<li>（2）不会创建 Index</li>
+<li>（3）如果 log file 可索引，并且有小的 FileSlice，尝试追加或写最新的 log file；如果 log file 不可索引，写一个新的 FileSlice + base file</li>
+</ul>
+<h4 id="3-2-4-写流程（INSERT-OVERWRITE）"><a href="#3-2-4-写流程（INSERT-OVERWRITE）" class="headerlink" title="3.2.4 写流程（INSERT OVERWRITE）"></a>3.2.4 写流程（INSERT OVERWRITE）</h4><p>在同一分区中创建新的文件组集。现有的文件组被标记为 “删除”。根据新记录的数量创建新的文件组</p>
+<blockquote>
+<p>(1)  <strong>COW</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>在插入分区之前</strong></th>
+<th><strong>插入相同数量的记录覆盖</strong></th>
+<th><strong>插入覆盖更多的记录</strong></th>
+<th><strong>插入重写1条记录</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分区包含:<br />file1-t0.parquet，<br />file2-t0.parquet。</td>
+<td>分区将添加file3-t1.parquet，file4-t1.parquet。file1, file2在t1后的元数据中被标记为无效。</td>
+<td>分区将添加:<br />file3-t1.parquet，<br />file4-t1.parquet，<br />file5-t1.parquet，<br />… ,<br />fileN-t1.parquet。<br />file1, file2在t1后的元数据中被标记为无效</td>
+<td>分区将添加file3-t1.parquet。file1, file2在t1后的元数据中被标记为无效。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>(<strong>2</strong>)  <strong>MOR</strong></p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th><strong>在插入分区之前</strong></th>
+<th><strong>插入相同数量的记录覆盖</strong></th>
+<th><strong>插入覆盖更多的记录</strong></th>
+<th><strong>插入重写1条记录</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>分区包含:<br />file1-t0.parquet，<br />file2-t0.parquet。<br />.file1-t00.log</td>
+<td>file3-t1.parquet，<br />file4-t1.parquet。<br />file1, file2在t1后的元数据中被标记为无效。</td>
+<td>file3-t1.parquet,<br />file4-t1.parquet<br />…<br />fileN-t1.parquet<br />file1, file2在t1后的元数据中被标记为无效</td>
+<td>分区将添加file3-t1.parquet。file1, file2在t1后的元数据中被标记为无效。</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>(3) 优点</p>
+</blockquote>
+<ul>
+<li>（1）COW和MOR在执行方面非常相似。不干扰MOR的compaction。</li>
+<li>（2）减少parquet文件大小。</li>
+<li>（3）不需要更新关键路径中的外部索引。索引实现可以检查文件组是否无效（类似于在HBaseIndex中检查commit是否无效的方式）。</li>
+<li>（4）可以扩展清理策略，在一定的时间窗口后删除旧文件组。</li>
+</ul>
+<blockquote>
+<p>(4) 缺点</p>
+</blockquote>
+<p>:one:需要转发以前提交的元数据。</p>
+<ul>
+<li>在t1，比如file1被标记为无效，我们在t1.commit中存储 “invalidFiles&#x3D;file1”(或者在MOR中存储deltacommit)</li>
+<li>在t2，比如file2也被标记为无效。我们转发之前的文件，并在t2.commit中标记 “invalidFiles&#x3D;file1, file2”（或MOR的deltacommit）</li>
+</ul>
+<p>:two:忽略磁盘中存在的parquet文件也是Hudi的一个新行为, 可能容易出错,我们必须认识到新的行为，并更新文件系统的所有视图来忽略它们。这一点可能会在实现其他功能时造成问题。</p>
+<h4 id="3-2-5Key-生成策略"><a href="#3-2-5Key-生成策略" class="headerlink" title="3.2.5Key 生成策略"></a>3.2.5Key 生成策略</h4><p>用来生成 HoodieKey（record key + partition path），目前支持以下策略：</p>
+<ul>
+<li>支持多个字段组合 record keys</li>
+<li>支持多个字段组合的 parition path （可定制时间格式，Hive style path name）</li>
+<li>非分区表</li>
+</ul>
+<h4 id="3-2-6-删除策略"><a href="#3-2-6-删除策略" class="headerlink" title="3.2.6 删除策略"></a>3.2.6 删除策略</h4><p>:one:<strong>逻辑删：</strong>将 value 字段全部标记为 nul</p>
+<p>:two:<strong>物理删：</strong></p>
+<ul>
+<li>通过 OPERATION_OPT_KEY 删除所有的输入记录</li>
+<li>配置 PAYLOAD_CLASS_OPT_KEY &#x3D; org.apache.hudi.EmptyHoodieRecordPayload 删除所有的输入记录</li>
+<li>在输入记录添加字段：_hoodie_is_deleted</li>
+</ul>
+<h4 id="3-2-7-总结"><a href="#3-2-7-总结" class="headerlink" title="3.2.7 总结"></a>3.2.7 总结</h4><p>通过对写流程的梳理可以了解到 Apache Hudi 相对于其他数据湖方案的核心优势：</p>
+<ul>
+<li>写入过程充分优化了文件存储的小文件问题，Copy On Write 写会一直将一个 bucket （FileGroup）的 base 文件写到设定的阈值大小才会划分新的 bucket；Merge On Read 写在同一个 bucket 中，log file 也是一直 append 直到大小超过设定的阈值 roll over。</li>
+<li>对 UPDATE 和 DELETE 的支持非常高效，一条 record 的整个生命周期操作都发生在同一个 bucket，不仅减少小文件数量，也提升了数据读取的效率（不必要的 join 和 merge）。</li>
+</ul>
+<h3 id="3-3-数据读"><a href="#3-3-数据读" class="headerlink" title="3.3 数据读"></a>3.3 数据读</h3><h4 id="3-3-1-Snapshot读"><a href="#3-3-1-Snapshot读" class="headerlink" title="3.3.1 Snapshot读"></a>3.3.1 Snapshot读</h4><p>读取所有 partiiton 下每个 FileGroup 最新的 FileSlice 中的文件，Copy On Write 表读 parquet 文件，Merge On Read 表读 parquet + log 文件</p>
+<h4 id="3-3-2-Incremantal读"><a href="#3-3-2-Incremantal读" class="headerlink" title="3.3.2 Incremantal读"></a>3.3.2 Incremantal读</h4><p>​		<a target="_blank" rel="noopener" href="https://hudi.apache.org/docs/querying_data.html#spark-incr-query">https://hudi.apache.org/docs/querying_data.html#spark-incr-query</a></p>
+<p>​		当前的 Spark data source 可以指定消费的起始和结束 commit 时间，读取 commit 增量的数据集。但是内部的实现不够高效：拉取每个 commit 的全部目标文件再按照系统字段 <em>hoodie_commit_time</em> apply 过滤条件。</p>
+<h4 id="3-3-3-Streaming读"><a href="#3-3-3-Streaming读" class="headerlink" title="3.3.3 Streaming读"></a>3.3.3 Streaming读</h4><p>​		0.8.0 版本的 HUDI Flink writer 支持实时的增量订阅，可用于同步 CDC 数据，日常的数据同步 ETL pipeline。Flink 的 streaming 读做到了真正的流式读取，source 定期监控新增的改动文件，将读取任务下派给读 task。</p>
+<h3 id="3-4-Compaction"><a href="#3-4-Compaction" class="headerlink" title="3.4 Compaction"></a>3.4 Compaction</h3><p>（1）没有 base file：走 copy on write insert 流程，直接 merge 所有的 log file 并写 base file</p>
+<p>（2）有 base file：走 copy on write upsert 流程，先读 log file 建 index，再读 base file，最后读 log file 写新的 base file</p>
+<p>​		Flink 和 Spark streaming 的 writer 都可以 apply 异步的 compaction 策略，按照间隔 commits 数或者时间来触发 compaction 任务，在独立的 pipeline 中执行。</p>
+<h2 id="4-集成-Spark"><a href="#4-集成-Spark" class="headerlink" title="4. 集成 Spark"></a>4. 集成 Spark</h2><h3 id="4-1-环境准备"><a href="#4-1-环境准备" class="headerlink" title="4.1 环境准备"></a>4.1 环境准备</h3><blockquote>
+<p>(1)  hudi支持的spark版本</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Hudi</th>
+<th><strong>Spark 3 version</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>0.12.x</strong></td>
+<td><strong>3.3.x，3.2.x，3.1.x</strong></td>
+</tr>
+<tr>
+<td><strong>0.11.x</strong></td>
+<td><strong>3.2.x（default build, Spark bundle only），3.1.x</strong></td>
+</tr>
+<tr>
+<td><strong>0.10.x</strong></td>
+<td><strong>3.1.x(default build), 3.0.x</strong></td>
+</tr>
+<tr>
+<td><strong>0.7.0-0.9.0</strong></td>
+<td><strong>3.0.x</strong></td>
+</tr>
+<tr>
+<td><strong>0.6.0 and prior</strong></td>
+<td><strong>Not supported</strong>(不支持)</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>(2) 本实验使用以下环境</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>所需环境</th>
+<th>组件版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>hadoop</td>
+<td>3.1.3</td>
+</tr>
+<tr>
+<td>hudi</td>
+<td>0.12.0</td>
+</tr>
+<tr>
+<td>spark</td>
+<td>3.1.2</td>
+</tr>
+</tbody></table>
+<h4 id="4-1-1-安装spark"><a href="#4-1-1-安装spark" class="headerlink" title="4.1.1 安装spark"></a>4.1.1 安装spark</h4><p>略</p>
+<p><strong>拷贝编译好的包到spark的jars目录</strong></p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@master ~]# <span class="built_in">cp</span> /opt/module/hudi-0.12.0/packaging/hudi-spark-bundle/target/hudi-spark3.1-bundle_2.12-0.12.0-sources.jar <span class="variable">$SPARK_HOME</span>/jars </span><br><span class="line">[root@master ~]# ll <span class="variable">$SPARK_HOME</span>/jars | grep hudi</span><br><span class="line">-rw-r--r-- 1 root root 23759174 Jan 27 08:12 hudi-spark3.1-bundle_2.12-0.12.0-sources.jar</span><br></pre></td></tr></table></figure>
+
+<h4 id="4-1-2-启动hadoop服务"><a href="#4-1-2-启动hadoop服务" class="headerlink" title="4.1.2 启动hadoop服务"></a>4.1.2 启动hadoop服务</h4><figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-all.sh</span><br></pre></td></tr></table></figure>
+
+<p>或</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">start-dfs.sh</span><br><span class="line">start-yarn.sh</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="4-2-IDEA编码方式"><a href="#4-2-IDEA编码方式" class="headerlink" title="4.2 IDEA编码方式"></a>4.2 IDEA编码方式</h3><p>除了用shell交互式的操作，还可以自己编写Spark程序，打包提交。</p>
+<p>创建Maven工程，pom文件：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=<span class="string">&quot;1.0&quot;</span> encoding=<span class="string">&quot;UTF-8&quot;</span>?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.atguigu.hudi<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-hudi-demo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scala.version</span>&gt;</span>2.12.10<span class="tag">&lt;/<span class="name">scala.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scala.binary.version</span>&gt;</span>2.12<span class="tag">&lt;/<span class="name">scala.binary.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spark.version</span>&gt;</span>3.1.1<span class="tag">&lt;/<span class="name">spark.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">hadoop.version</span>&gt;</span>3.1.3<span class="tag">&lt;/<span class="name">hadoop.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">hudi.version</span>&gt;</span>0.12.0<span class="tag">&lt;/<span class="name">hudi.version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 依赖Scala语言 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.scala-lang<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>scala-library<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;scala.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- Spark Core 依赖 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-core_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spark.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>provided<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- Spark SQL 依赖 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-sql_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spark.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>provided<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.spark<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spark-hive_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spark.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>provided<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!-- Hadoop Client 依赖 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hadoop<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hadoop-client<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hadoop.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>provided<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">        <span class="comment">&lt;!-- hudi-spark3.1 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.hudi<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>hudi-spark3.1-bundle_$&#123;scala.binary.version&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;hudi.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>provided<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="comment">&lt;!-- assembly打包插件 --&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-assembly-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.0.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">id</span>&gt;</span>make-assembly<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">phase</span>&gt;</span>package<span class="tag">&lt;/<span class="name">phase</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>single<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">manifest</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">manifest</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">descriptorRef</span>&gt;</span>jar-with-dependencies<span class="tag">&lt;/<span class="name">descriptorRef</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">descriptorRefs</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="comment">&lt;!--Maven编译scala所需依赖--&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>net.alchim31.maven<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>scala-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>compile<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                            <span class="tag">&lt;<span class="name">goal</span>&gt;</span>testCompile<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>待整理优化….</p>
+
+                
+                <p class="end">__END__</p>
+            </div>
+            <div class="article-footer">
+                <div class="suffix-box">
+    <div class="suffix-box-left">
+        <img src="/image/sidebar/avatar_wyl.jpg" alt="wylblog">
+    </div>
+    <div class="suffix-box-right">
+        <span class="suffix-box-title">文章作者：</span>wylblog
+        <br>
+        <span class="suffix-box-title">文章出处：</span><a href="/2024/11/08/15-Hudi%E6%95%B0%E6%8D%AE%E6%B9%96%E9%85%8D%E7%BD%AE-0-12-0-md/" target="_blank">15.Hudi数据湖配置(0.12.0).md</a>
+        <br>
+        <span class="suffix-box-title">作者签名：</span>简单地活着, 肆意又精彩.
+        <br>
+        <span class="suffix-box-title">关于主题：</span><a href="https://github.com/first19326/Hexo-LiveForCode" target="_blank">Hexo - Live For Code</a>
+        <br>
+        <span class="suffix-box-title">版权声明：</span>文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" title="BY-NC-SA" target="_blank">BY-NC-SA</a> 许可协议，转载请注明出处
+        <br>
+    </div>
+    <div style="clear: both;"></div>
+</div>
+                
+                
+                    <div class="tag">
+                        标签：
+                        
+                            <a href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4/">大数据运维</a>
+                        
+                            <a href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93%E7%B3%BB%E5%88%97/">数据库系列</a>
+                        
+                    </div>
+                
+                <div class="article-prev-next">
+                    
+                    
+                        <a href="/2024/11/08/14-DolphinScheduler-3-1-4-%E6%B5%B7%E8%B1%9A%E8%B0%83%E5%BA%A6%E5%99%A8/" class="next-prefix">» </a> 下一篇：    <a href="/2024/11/08/14-DolphinScheduler-3-1-4-%E6%B5%B7%E8%B1%9A%E8%B0%83%E5%BA%A6%E5%99%A8/" title="发布于 2024-11-08 03:34">14.DolphinScheduler-3.1.4 海豚调度器</a>
+                    
+                </div>
+            </div>
+            
+    <div class="article-comments">
+        
+            <div class="comments-title">
+                评论列表
+            </div>
+        
+        <div class="comments-content"></div>
+    </div>
+    
+ 
+        </div>
+    
+</div>
+    <div id="footer">
+    <div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>
+</div>
+    <div id="sidebar">
+    <div class="menu-wrap" style="display:none;">
+        
+            <div class="menu-notice">
+                <span class="iconfont icon-notice"></span>
+                <div class="notice">
+                    <span>简单地活着，肆意而又精彩！</span>
+                </div>
+            </div>
+        
+        <nav class="menu">
+            <div class="menu-introduce"> 
+                <div class="introduce-avatar">
+                    <img src="/image/sidebar/avatar_wyl.jpg">
+                </div> 
+                <div class="introduce-info"> 
+                    <div class="introduce-user">
+                        
+                            <a href="https://devwyl1013.github.io" target="_blank"><span>wylblog</span></a>
+                        
+                    </div>
+                </div> 
+            </div> 
+            <div class="menu-list">
+                <ul>
+                    
+                        <li class=""><a href="/" class="" target="_self"><span class="iconfont icon-home-fill"></span>首页</a></li>
+                    
+                        <li class=""><a href="/category" class="" target="_self"><span class="iconfont icon-folder-fill"></span>分类</a></li>
+                    
+                        <li class=""><a href="/tag" class="" target="_self"><span class="iconfont icon-discount-fill"></span>标签</a></li>
+                    
+                        <li class=""><a href="/about" class="" target="_self"><span class="iconfont icon-about-fill"></span>关于</a></li>
+                    
+                        <li class=""><a href="javascript:;" class="search" target="_self"><span class="iconfont icon-search-menu"></span>搜索</a></li>
+                    
+                        <li class=""><a href="/comment" class="" target="_self"><span class="iconfont icon-comments-fill"></span>留言板</a></li>
+                    
+                        <li class=""><a href="/friend" class="" target="_self"><span class="iconfont icon-link"></span>友情链接</a></li>
+                    
+                </ul> 
+            </div> 
+            <div class="menu-link">
+                <div class="box">
+                    <div class="image-box"></div>
+                </div>
+                
+                    <a name="gitee" href="https://gitee.com/master_hj" class="" target="_blank" data=""><span class="iconfont icon-gitee"></span></a>
+                
+                    <a name="微博" href="https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583" class="" target="_blank" data=""><span class="iconfont icon-weibo"></span></a>
+                
+                    <a name="QQ" href="javascript:;" class="image" target="_self" data="/image/sidebar/qq.jpg"><span class="iconfont icon-qq"></span></a>
+                
+                    <a name="微信" href="javascript:;" class="image" target="_self" data="/image/sidebar/wx.jpg"><span class="iconfont icon-wechat"></span></a>
+                
+                    <a name="GitHub" href="https://github.com/wylblog" class="" target="_blank" data=""><span class="iconfont icon-github"></span></a>
+                
+            </div> 
+        </nav>
+        <button class="menu-button-close"></button>
+        <div class="morph-shape" id="morph-shape" data-morph-open="M-7.312,0H15c0,0,66,113.339,66,399.5C81,664.006,15,800,15,800H-7.312V0z;M-7.312,0H100c0,0,0,113.839,0,400c0,264.506,0,400,0,400H-7.312V0z">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 100 800" preserveAspectRatio="none">
+                <path d="M-7.312,0H0c0,0,0,113.839,0,400c0,264.506,0,400,0,400h-7.312V0z"/>
+            </svg>
+        </div>
+    </div>
+    <button class="menu-button-open">MENU</button>
+    <div class="menu-cover"></div>
+</div>
+    <link type="text/css" rel="stylesheet" href="/css/search.css">
+<script type="text/javascript" src="/js/iscroll.js"></script>
+<script type="text/javascript" src="/js/instantsearch.min.js"></script>
+<div class="search-window">
+    <div class="search-content">
+        <div class="search-content-icon">
+            <i class="iconfont icon-search"></i>
+        </div>
+        <div id="search-input" class="search-input"></div>
+    </div>
+
+    <div class="search-scroll">
+        <div class="search-result">
+            <div id="search-stats" class="search-stats"></div>
+            <div id="search-hits"></div>
+            <div id="search-pagination" class="search-pagination"></div>
+        </div>
+    </div>
+
+    <span class="search-close-icon">
+        <i class="iconfont icon-close"></i>
+    </span>
+</div>
+    <div id="tools">
+    <div class="progressbar-top"></div>
+    
+    <link type="text/css" rel="stylesheet" href="/css/APlayer.css">
+    <script type="text/javascript" src="/js/APlayer.min.js"></script>
+    <script type="text/javascript" src="/js/Meting.min.js"></script>
+    <script>
+        var meting_api = 'https://api.i-meto.com/meting/api?server=:server&type=:type&id=:id&auth=:auth&r=:r';
+    </script>
+    <meting-js id="3778678" lrcshow="false" server="netease" type="playlist" fixed="true" autoplay="false" loop="all" order="random" preload="auto" volume="0.67" mutex="true"></meting-js>
+
+    <div class="wrap-right">
+    <div class="wrap-right-hide">
+         <div class="wrap-right-button favorites">
+            <div class="iconbox" switch="false">
+                <span class="iconfont icon-favorites"></span>
+            </div>
+            <span class="icontext">关注</span>
+         </div>
+        <div class="wrap-right-button search">
+            <div class="iconbox">
+                <span class="iconfont icon-search-menu"></span>
+            </div>
+            <span class="icontext">搜索</span>
+        </div>
+        <div class="wrap-right-button menu-button">
+            <div class="iconbox">
+                <span class="iconfont icon-menu"></span>
+            </div>
+            <span class="icontext">菜单</span>
+        </div>
+        <div class="wrap-right-button mode">
+            <div class="light">
+                <div class="iconbox">
+                    <span class="iconfont icon-daymode"></span>
+                </div>
+                <span class="icontext">浅色模式</span>
+            </div>
+            <div class="dark">
+                <div class="iconbox">
+                    <span class="iconfont icon-nightmode-fill"></span>
+                </div>
+                <span class="icontext">深色模式</span>
+            </div>
+        </div>
+        <div class="wrap-right-button bottom">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">跳至底部</span>
+        </div>
+    </div>
+    <div class="wrap-right-show">
+        <div class="wrap-right-button set">
+            <div class="iconbox">
+                <span class="iconfont icon-setting"></span>
+            </div>
+            <span class="icontext">设置</span>
+        </div>
+        <div class="wrap-right-button top">
+            <div class="iconbox">
+                <span class="iconfont icon-top"></span>
+            </div>
+            <span class="icontext">返回顶部</span>
+        </div>
+    </div>
+</div>
+    <div class="loading"></div>
+</div>
+    <script>
+    window.config = {
+        GitHubUserName     : "first19326",
+        GitHubRepositories : "無以菱的博客",
+
+        User             : "wylblog",
+        UserAvatar       : "/image/sidebar/avatar_wyl.jpg",
+        WebsiteStartDate : "2020-10-13",
+        Home             : "https://devwyl1013.github.io",
+
+        WebsiteTitleBlur         : "(◍´꒳`◍) Hi, 期待你的到来",
+        WebsiteTitleBlurTimeOut  : 500,
+        WebsiteTitleFocus        : "(*´∇｀*) 欢迎回来!",
+        WebsiteTitleFocusTimeOut : 1000,
+        WebsiteFavicon           : {
+            light : "/image/website/logo/logo.png",
+            dark  : "/image/website/logo/logo-dark.png"
+        },
+
+        ProgressBar : {
+            id       : "topProgressBar",
+            color    : "#77B6FF",
+            height   : "2px",
+            duration : 0.2
+        },
+
+        Loading: {
+            rebound : {
+                tension  : 16,
+                friction : 5
+            },
+            spinner : {
+                id     : "spinner",
+                radius : 90,
+                sides  : 3,
+                depth  : 4,
+                colors : {
+                    background : "#F0F0F0",
+                    stroke     : "#272633",
+                    base       : "",
+                    child      : "#272633"
+                },
+                alwaysForward : true,
+                restAt        : 0.5,
+                renderBase    : false
+            }
+        },
+
+        HomeHeaderAnimationRendered : true,
+        HomeHeaderAnimation         : {
+            radius      : 15,
+            density     : 0.2,
+            color       : "rgba(255, 255, 255, .2)",
+            clearOffset : 0.3
+        },
+
+        BackAnimationRendered          : true,
+        IEBrowserBackAnimationRendered : false,
+        BackAnimation                  : {
+            colorSaturation  : "60%",
+            colorBrightness  : "50%",
+            colorAlpha       : 0.5,
+            colorCycleSpeed  : 5,
+            verticalPosition : "random",
+            horizontalSpeed  : 200,
+            ribbonCount      : 3,
+            strokeSize       : 0,
+            parallaxAmount   : -0.2,
+            animateSections  : true
+        },
+
+        HomeHeaderImage : [
+            
+                "/image/header/home.jpg",
+            
+                "/image/header/home.jpeg",
+            
+        ],
+        HomeBannerText  : "",
+
+        ArticleHeaderImage : [
+            
+                "/image/header/article.jpg",
+            
+        ],
+
+        OtherBannerText : "",
+
+        Error : {
+            icon    : "icon-swimming",
+            title   : "PAGE NOT FOUND",
+            content : [
+                
+                    "很抱歉，您访问的页面不存在！",
+                
+                    "可能是输入地址有误或该地址已变更。",
+                
+            ],
+            buttons : [
+                
+                    {
+                        icon  : "icon-home",
+                        text  : "返回首页",
+                        href  : "/",
+                        class : ""
+                    },
+                
+            ]
+        },
+
+        MenuNotice : {
+            enable : true,
+            notice : "简单地活着，肆意而又精彩！",
+            speed  : 20
+        },
+        MenuList : [
+            
+                {
+                    name   : "首页",
+                    icon   : "icon-home-fill",
+                    href   : "/",
+                    type   : "index",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "分类",
+                    icon   : "icon-folder-fill",
+                    href   : "/category",
+                    type   : "category",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "标签",
+                    icon   : "icon-discount-fill",
+                    href   : "/tag",
+                    type   : "tag",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "关于",
+                    icon   : "icon-about-fill",
+                    href   : "/about",
+                    type   : "about",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "搜索",
+                    icon   : "icon-search-menu",
+                    href   : "javascript:;",
+                    type   : "",
+                    class  : "search",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "留言板",
+                    icon   : "icon-comments-fill",
+                    href   : "/comment",
+                    type   : "comment",
+                    class  : "",
+                    target : "_self"
+                },
+            
+                {
+                    name   : "友情链接",
+                    icon   : "icon-link",
+                    href   : "/friend",
+                    type   : "friend",
+                    class  : "",
+                    target : "_self"
+                },
+            
+        ],
+        MenuLink : [
+            
+                
+                    {
+                        name   : "gitee",
+                        icon   : "icon-gitee",
+                        href   : "https://gitee.com/master_hj",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "微博",
+                        icon   : "icon-weibo",
+                        href   : "https://m.weibo.cn/u/5566622835?t=0&luicode=10000011&lfid=231583",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+                    {
+                        name   : "QQ",
+                        icon   : "icon-qq",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/qq.jpg"
+                    },
+                
+                    {
+                        name   : "微信",
+                        icon   : "icon-wechat",
+                        href   : "javascript:;",
+                        class  : "image",
+                        target : "_self",
+                        image  : "/image/sidebar/wx.jpg"
+                    },
+                
+                    {
+                        name   : "GitHub",
+                        icon   : "icon-github",
+                        href   : "https://github.com/wylblog",
+                        class  : "",
+                        target : "_blank",
+                        image  : ""
+                    },
+                
+            
+        ],
+
+        FooterStyle : 2,
+        BottomText  : "<div><span class='face'>ღゝ◡╹)ノ♡</span></div><div>【人生若只如初见<span><i class='iconfont icon-like-fill'></i></span>何事秋风悲画扇】</div><div>&copy; 2020-2023 WorstOne. All Rights Reserved.</div>",
+
+        ConsoleList : [
+            
+                
+                    [
+                        
+                            
+                                "Based on cnblogs theme SimpleMemory.",
+                            
+                                "",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "SimpleMemory Author:",
+                            
+                                "BNDong",
+                            
+                        
+                    ],
+                
+                    [
+                        
+                            
+                                "Theme:",
+                            
+                                "LiveForCode",
+                            
+                        
+                    ],
+                
+            
+        ],
+
+        FontIconExtend : "",
+
+        Donate : {
+            paypal  : "",
+            bitcoin : "",
+            alipay  : "/image/donate/alipay.png",
+            wechat  : "/image/donate/wechat.png"
+        },
+
+        Search : {
+            applicationID : "010C3EANT8",
+            apiKey        : "c7abab9f11b79102b9aff7fe6d41447d",
+            indexName     : "Notes",
+            hits          : {
+                page : 10
+            },
+            labels        : {
+                placeholder : "搜索",
+                empty       : "未发现与 「${query}」 相关的内容",
+                stats       : "${hits} 条相关条目，使用了 ${time} 毫秒",
+            }
+        }, 
+
+        Comment : {
+            switch : true,
+            type   : "Valine",
+        },
+
+        Waline : {
+            el              : ".comments-content",
+            serverURL       : "",
+            path            : window.location.pathname,
+            meta            : "['nick', 'mail', 'link']",
+            requiredMeta    : "['nick', 'mail']",
+            pageSize        : 10,
+            lang            : "zh-cn",
+            locale: {
+                admin       : "博主",
+                anonymous   : "匿名用户",
+                sofa        : "快来做第一个评论的人吧 ~",
+                placeholder : "你是我一生只会遇见一次的惊喜...",
+            },
+            dark            : "html[color-scheme='dark']",
+            search          : false,
+            pageview        : true,
+            comment         : true,
+            copyright       : false,
+        },
+
+        Valine : {
+            el             : ".comments-content",
+            appId          : "srhKtvWPQTWYKh3qX8G8M7v0-gzGzoHsz",
+            appKey         : "8uVSP1q6UlALVC5igYfIfv2h",
+            serverURLs     : "",
+            placeholder    : "你是我一生只会遇见一次的惊喜...",
+            avatar         : "mm",
+            meta           : "nick,mail,link",
+            requiredFields : "nick,mail",
+            pageSize       : 5,
+            lang           : "zh-cn",
+            visitor        : true,
+            enableQQ       : true
+        },
+
+        Tocbot : {
+            switch                : true,
+            tocSelector           : ".toc",
+            contentSelector       : ".article-body",
+            headingSelector       : "h1, h2, h3, h4, h5",
+            headingsOffset        : 0,
+            scrollSmooth          : true,
+            scrollSmoothOffset    : -5,
+            positionFixedSelector : ".toc",
+            positionFixedClass    : "toc-fixed",
+            fixedSidebarOffset    : "",
+        },
+
+        Require : {
+            baseUrl     : "/js/",
+            waitSeconds : 100
+        },
+
+        Music : {
+            type : "Meting"
+        },
+        APlayer : {
+            container : ".aplayer",
+            fixed     : true,
+            autoplay  : false,
+            loop      : "all",
+            order     : "random",
+            preload   : "auto",
+            volume    : 0.67,
+            mutex     : true,
+            lrcType   : 3,
+            audio     : [
+                
+                    {
+                        name   : "Endless Tears",
+                        artist : "CLIFF EDGE",
+                        cover  : "/music/cover/Endless Tears.jpg",
+                        url    : "/music/song/Endless Tears.mp3",
+                        lrc    : "/music/lrc/Endless Tears.lrc"
+                    },
+                
+            ]
+        },
+        Meting : {
+            api      : "https://api.i-meto.com/meting/api",
+            id       : "3778678", 
+            lrcshow  : false, 
+            server   : "netease", 
+            type     : "playlist", 
+            fixed    : true, 
+            autoplay : false, 
+            loop     : "all", 
+            order    : "random", 
+            preload  : "auto", 
+            volume   : 0.67, 
+            mutex    : true
+        },
+
+        Mouse : {
+            enable  : true,
+            options : {
+                size  : 6,
+                sizeF : 24
+            }
+        },
+
+        LazyLoad : {
+            default : "/image/website/lazyload.svg"
+        },
+  
+        Style : {
+            aplayer          : "/css/APlayer.css",
+            archive          : "/css/archive.css",
+            base             : "/css/base.css",
+            clipboard        : "/css/clipboard.css",
+            code             : "/css/code.css",
+            donate           : "/css/donate.css",
+            fancybox         : "/css/jquery.fancybox.css",
+            footer           : "/css/footer.css",
+            iconfont         : "/iconfont/iconfont.css",
+            index            : "/css/index.css",
+            menuBubble       : "/css/menu-bubble.css",
+            mouse            : "/css/mouse.css",
+            page             : "/css/page.css",
+            post             : "/css/post.css",
+            search           : "/css/search.css",
+            tocbot           : "/css/tocbot.css",
+            valine           : "/css/valine.css",
+            waline           : "/css/waline.css",
+            walineCustom     : "/css/waline-custom.css"
+        },
+
+        Script: {
+            aplayer          : "/js/APlayer.min.js",
+            config           : "/js/require.config.js",
+            index            : "/js/index.js",
+            instantSearch    : "/js/instantsearch.min.js",
+            iscroll          : "/js/iscroll.js",
+            jQuery           : "/js/jquery-3.4.1.min.js",
+            loading          : "/js/loading.js",
+            meting           : "/js/Meting.min.js",
+            require          : "/js/require.min.js",
+            waline           : "/js/waline.mjs",
+            pageview         : "/js/pageview.mjs",
+            comment          : "/js/comment.mjs",
+        },
+
+        Font: {
+            LongCang    : "/font/LongCang.css",
+            Monda       : "/font/Monda.css",
+            NotoSansSC  : "/font/NotoSansSC.css",
+            NotoSerifSC : "/font/NotoSerifSC.css",
+            Playball    : "/font/Playball.css",
+            PTMono      : "/font/PTMono.css",
+            Roboto      : "/font/Roboto.css",
+            RobotoSlab  : "/font/RobotoSlab.css",
+            Rosario     : "/font/Rosario.css",
+            UbuntuMono  : "/font/UbuntuMono.css"
+        },
+
+        Suffix : {
+            about : "简单地活着, 肆意又精彩."
+        },
+            
+        Theme : {
+            url  : "https://github.com/first19326/Hexo-LiveForCode",
+            name : "Hexo - Live For Code"
+        }  
+    };
+</script>
+    <script type="text/javascript" src="/js/index.js"></script>
+</body>
+</html>
