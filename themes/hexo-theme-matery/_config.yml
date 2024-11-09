@@ -44,8 +44,8 @@ menu:
 # 站点运行开始时间.
 time:
   enable: false
-  year: 2019 # 年份
-  month: 06 # 月份
+  year: 2023 # 年份
+  month: 10 # 月份
   date: 28 # 日期
   hour: 00 # 小时
   minute: 00 # 分钟
@@ -117,8 +117,11 @@ recommend:
 
 # Configure website favicon and LOGO
 # 配置网站favicon和网站LOGO
-favicon: /favicon_back.png
-logo: /medias/logo_wyl.png
+# favicon: /favicon_back.png
+# logo: /medias/logo_wyl.png
+## 添加至图床
+favicon: "https://img.picui.cn/free/2024/11/10/67306caab06fb.png"
+logo: "https://img.picui.cn/free/2024/11/10/67306cc31ca6c.png"
 
 # The configuration of the second button in the home banner,
 # including the display name of the button, the font awesome icon, and the hyperlink to the button.
@@ -169,8 +172,12 @@ code:
 reward:
   enable: true
   title: 你的赏识是我前进的动力
-  wechat: /medias/reward/wechat_wyl.png
-  alipay: /medias/reward/alipay_wyl.jpg
+  # wechat: /medias/reward/wechat_wyl.png
+  # alipay: /medias/reward/alipay_wyl.jpg
+  # 添加至图床
+  wechat: "https://img.picui.cn/free/2024/11/10/67306da5565ae.png"
+  alipay: "https://img.picui.cn/free/2024/11/10/67306dc163e90.jpg"
+
 
 # Whether to activate the copyright information of the blog and author when copying the post content.
 # minCharNumber: Approve copyright information by copying at least how many characters.
@@ -210,7 +217,7 @@ clicklove:
 # profile in about page, including avatars, career, and personal introductions.
 # 在”关于”页面中配置个人信息，包括头像、职业和个人介绍.
 profile:
-  avatar: /medias/avatar_wyl.jpg
+  avatar: "https://cdn.jsdelivr.net/gh/wylblog/cdn@master/static/image/sidebar/avatar_wyl.jpg"
   career: 桂林电子科技大学 | 大数据管理与应用 
   introduction:  云计算练习两年半的小白鼠
 
@@ -277,6 +284,7 @@ mySkills:
 # config gallery of my photos in about page.
 # If you don't want to display this `Gallery` content, you can deactivate or delete this configuration.
 # 在“关于”页面配置"我的相册"图片，如果你不需要这些信息则可以将其设置为不激活或者将其删除.
+############# 相册 ##############
 myGallery:
   enable: true
   data:
