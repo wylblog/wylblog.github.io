@@ -128,6 +128,28 @@ hexo s
 
 ![image-20241108004342429](https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202411080043615.png)
 
+:five:上传至服务端(github)
+
+安装所需插件:
+
+```sh
+npm install hexo-deployer-git --save
+```
+
+配置好相关配置:
+
+![image-20241110164536112](https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202411101645190.png)
+
+开始上传:
+
+```sh
+hexo d --debug
+```
+
+![image-20241110164613285](https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202411101646341.png)
+
+
+
 ## 5. hexo常用指令
 
 ### 5.1 基础命令:star:
