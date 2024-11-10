@@ -183,7 +183,7 @@ reward:
 # minCharNumber: Approve copyright information by copying at least how many characters.
 # 是否激活复制文章时追加博客和作者的版权信息.
 copyright:
-  enable: false
+  enable: true
   minCharNumber: 120 # 至少复制多少个字符就追加版权信息.
   description: 本文章著作权归作者所有，任何形式的转载都请注明出处。
 
@@ -263,15 +263,15 @@ mySkills:
 
     JavaScript:
       background: 'linear-gradient(to right, #9900FF 0%, #CC66FF 100%)'
-      percent: 80%
+      percent: 50%
 
     HTML5:
       background: 'linear-gradient(to right, #2196F3 0%, #42A5F5 100%)'
-      percent: 80%
+      percent: 50%
 
     CSS:
       background: 'linear-gradient(to right, #00BCD4 0%, #80DEEA 100%)'
-      percent: 70%
+      percent: 50%
 
     SQL:
       background: 'linear-gradient(to right, #4CAF50 0%, #81C784 100%)'
@@ -291,9 +291,9 @@ myGallery:
     - /medias/featureimages/0.jpg
     - /medias/featureimages/1.jpg
     - /medias/featureimages/2.jpg
-    - /medias/zcy/zcy01.jpg
-    - /medias/zcy/zcy02.jpg
-    - /medias/zcy/zcy03.jpg
+    # - /medias/zcy/zcy01.jpg
+    # - /medias/zcy/zcy02.jpg
+    # - /medias/zcy/zcy03.jpg
 
 # Whether to display post-calender in the `archive` page
 # 设置在归档页面中是否显示'文章日历'控件
@@ -567,6 +567,7 @@ canvas_nest:
 
 # 背景静止彩带.
 ribbon:
+  # enable: false
   enable: false
   size: 150 # 彩带大小, 默认: 90.
   alpha: 0.6 # 彩带透明度 (0 ~ 1), 默认: 0.6.
@@ -575,7 +576,8 @@ ribbon:
 
 # 背景动态彩带.
 ribbon_dynamic:
-  enable: false
+  # enable: false
+  enable: true
 
 # sharejs文章分享模块.
 # 支持顺序，可选项目为twitter, facebook, google, qq, qzone, wechat, weibo, douban, linkedin.
@@ -634,8 +636,10 @@ jsDelivr:
   
 # 网站背景图
 background:
-  enable: false
-  url: "https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg"
+  enable: true
+  # url: "https://cdn.jsdelivr.net/gh/Tokisaki-Galaxy/res/site/medias/background.jpg"
+  # url: "https://img.picui.cn/free/2024/11/11/6730da980e1fd.png"
+  url: "https://img.picui.cn/free/2024/11/11/6730db8aa5d12.jpg"
 
 # 说说 https://artitalk.js.org/
 artitalk:
