@@ -15,7 +15,7 @@ timezone: 'Asia/Shanghai'
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
 # 在此处设置您的网站url。例如，如果您使用GitHub页面，请将url设置为'https://username.github.io/project'
 # url: http://Adawyl.github.io
-url: http://wylblog.github.io
+url: https://www.wylblog.cn/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 pretty_urls:
