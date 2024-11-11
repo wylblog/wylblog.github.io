@@ -13,8 +13,6 @@ timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-# 在此处设置您的网站url。例如，如果您使用GitHub页面，请将url设置为'https://username.github.io/project'
-# url: http://Adawyl.github.io
 url: https://www.wylblog.cn/
 permalink: :year/:month/:day/:title/
 permalink_defaults:
@@ -46,16 +44,16 @@ post_asset_folder: false
 relative_link: false
 future: true
 syntax_highlighter: highlight.js
+# 优化后!!!!
+############# 禁止更改 ################
 highlight:
-  line_number: true
-  auto_detect: false
-  tab_replace: ''
-  wrap: true
-  hljs: false
+  enable: false
 prismjs:
+  enable: true
   preprocess: true
   line_number: true
   tab_replace: ''
+######################################
 
 # Home page setting
 # path: Root path for your blogs index page. (default = '')
@@ -95,23 +93,10 @@ include:
 exclude:
 ignore:
 
-#################### 后期新增 ##################
-# # 新增Search 搜索
-# search:
-#   path: search.xml
-#   field: post
-
-# Translate Chinese Link to Pinyin (Recommended)
-# permalink_pinyin:
-#   enable: true
-#   separator: '-' # default: '-'
-
-################################################
-
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: hexo-theme-matery
+theme: hexo-theme-matery 
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
@@ -119,4 +104,3 @@ deploy:
   type: git
   repo: git@github.com:wylblog/wylblog.github.io.git
   branch: master
-

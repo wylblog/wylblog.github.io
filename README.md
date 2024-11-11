@@ -2,6 +2,8 @@
 拉去项目后,需要先安装依赖,才可以启动项目
 npm install
 
+> 环境所包的版本放在文章末尾:
+
 ## 1. 安装Git和NodeJS  
 
 - 在Windows上使用Git，可以从Git官网直接 https://git-scm.com/downloads，然后按默认选项安 装即可。安装完成后，在开始菜单里找到“Git”->“Git Bash”，蹦出一个类似命令行窗口的东西，就 说明Git安装成功！
@@ -238,3 +240,39 @@ hexo d --debug
    ```bash
    hexo clean && hexo generate && hexo deploy
    ```
+
+
+
+## 6. 所需包版本
+
+package.json:
+
+```json
+{
+  "name": "hexo-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "hexo generate",
+    "clean": "hexo clean",
+    "deploy": "hexo deploy",
+    "server": "hexo server"
+  },
+  "hexo": {
+    "version": "5.4.2"
+  },
+  "dependencies": {
+    "hexo": "^5.0.0",
+    "hexo-generator-archive": "^2.0.0",
+    "hexo-generator-category": "^2.0.0",
+    "hexo-generator-index": "^3.0.0",
+    "hexo-generator-tag": "^2.0.0",
+    "hexo-renderer-ejs": "^2.0.0",
+    "hexo-renderer-marked": "^6.0.0",
+    "hexo-renderer-stylus": "^3.0.0",
+    "hexo-server": "^3.0.0",
+    "hexo-theme-landscape": "^1.0.0"
+  }
+}
+```
+
