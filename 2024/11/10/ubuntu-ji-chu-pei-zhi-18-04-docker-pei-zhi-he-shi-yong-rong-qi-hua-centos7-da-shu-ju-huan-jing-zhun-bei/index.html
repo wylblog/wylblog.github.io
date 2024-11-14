@@ -1,0 +1,1697 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="keywords" content="Ubuntu基础配置(18.04)+Docker配置和使用+容器化centos7大数据环境准备, WuYiLing&#39;s Blog">
+    <meta name="description" content="1.ubuntu 基础配置环境：ubuntu 18.04
+安装完Ubuntu之后，除了需要新建用户、设置密码之外，我们还要设置root密码，虽然Ubuntu默认有root超级管理员账户，但是具体的密码我们可以自行设置
+1.1设置root密码">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="renderer" content="webkit|ie-stand|ie-comp">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+
+
+    <title>Ubuntu基础配置(18.04)+Docker配置和使用+容器化centos7大数据环境准备 | WuYiLing&#39;s Blog</title>
+    <link rel="icon" type="image/png" href="https://img.picui.cn/free/2024/11/10/67306caab06fb.png">
+    
+
+
+    <!-- bg-cover style     -->
+
+
+
+<link rel="stylesheet" type="text/css" href="/libs/awesome/css/all.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/materialize/materialize.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/aos/aos.css">
+<link rel="stylesheet" type="text/css" href="/libs/animate/animate.min.css">
+<link rel="stylesheet" type="text/css" href="/libs/lightGallery/css/lightgallery.min.css">
+<link rel="stylesheet" type="text/css" href="/css/matery.css">
+<link rel="stylesheet" type="text/css" href="/css/my.css">
+<link rel="stylesheet" type="text/css" href="/css/dark.css" media="none" onload="if(media!='all')media='all'">
+
+
+
+
+    <link rel="stylesheet" href="/libs/tocbot/tocbot.css">
+    <link rel="stylesheet" href="/css/post.css">
+
+
+
+
+    
+        <link rel="stylesheet" type="text/css" href="/css/reward.css">
+    
+
+
+
+    <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+
+<meta name="generator" content="Hexo 5.4.2"></head>
+
+
+<body>
+    <header class="navbar-fixed">
+    <nav id="headNav" class="bg-color nav-transparent">
+        <div id="navContainer" class="nav-wrapper container">
+            <div class="brand-logo">
+                <a href="/" class="waves-effect waves-light">
+                    
+                    <img src="https://img.picui.cn/free/2024/11/13/673439e447e45.jpg" class="logo-img" alt="LOGO">
+                    
+                    <span class="logo-span">WuYiLing&#39;s Blog</span>
+                </a>
+            </div>
+            
+
+<a href="#" data-target="mobile-nav" class="sidenav-trigger button-collapse"><i class="fas fa-bars"></i></a>
+<ul class="right nav-menu">
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/" class="waves-effect waves-light">
+      
+      <i class="fas fa-home" style="zoom: 0.6;"></i>
+      
+      <span>首页</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/tags" class="waves-effect waves-light">
+      
+      <i class="fas fa-tags" style="zoom: 0.6;"></i>
+      
+      <span>标签</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/categories" class="waves-effect waves-light">
+      
+      <i class="fas fa-bookmark" style="zoom: 0.6;"></i>
+      
+      <span>分类</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/archives" class="waves-effect waves-light">
+      
+      <i class="fas fa-archive" style="zoom: 0.6;"></i>
+      
+      <span>归档</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/friends" class="waves-effect waves-light">
+      
+      <i class="fas fa-address-book" style="zoom: 0.6;"></i>
+      
+      <span>友链</span>
+    </a>
+    
+  </li>
+  
+  <li class="hide-on-med-and-down nav-item">
+    
+    <a href="/about" class="waves-effect waves-light">
+      
+      <i class="fas fa-user-circle" style="zoom: 0.6;"></i>
+      
+      <span>关于</span>
+    </a>
+    
+  </li>
+  
+  <li>
+    <a href="#searchModal" class="modal-trigger waves-effect waves-light">
+      <i id="searchIcon" class="fas fa-search" title="搜索" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+  <li>
+    <a href="javascript:;" class="waves-effect waves-light" onclick="switchNightMode()" title="深色/浅色模式" >
+      <i id="sum-moon-icon" class="fas fa-sun" style="zoom: 0.85;"></i>
+    </a>
+  </li>
+</ul>
+
+
+<div id="mobile-nav" class="side-nav sidenav">
+
+    <div class="mobile-head bg-color">
+        
+        <img src="https://img.picui.cn/free/2024/11/13/673439e447e45.jpg" class="logo-img circle responsive-img">
+        
+        <div class="logo-name">WuYiLing&#39;s Blog</div>
+        <div class="logo-desc">
+            
+            Never really desperate, only the lost of the soul.
+            
+        </div>
+    </div>
+
+    <ul class="menu-list mobile-menu-list">
+        
+        <li class="m-nav-item">
+	  
+		<a href="/" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-home"></i>
+			
+			首页
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/tags" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-tags"></i>
+			
+			标签
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/categories" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-bookmark"></i>
+			
+			分类
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/archives" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-archive"></i>
+			
+			归档
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/friends" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-address-book"></i>
+			
+			友链
+		</a>
+          
+        </li>
+        
+        <li class="m-nav-item">
+	  
+		<a href="/about" class="waves-effect waves-light">
+			
+			    <i class="fa-fw fas fa-user-circle"></i>
+			
+			关于
+		</a>
+          
+        </li>
+        
+        
+    </ul>
+</div>
+
+
+        </div>
+
+        
+    </nav>
+
+</header>
+
+    
+<script src="/libs/cryptojs/crypto-js.min.js"></script>
+<script>
+    (function() {
+        let pwd = '';
+        if (pwd && pwd.length > 0) {
+            if (pwd !== CryptoJS.SHA256(prompt('请输入访问本文章的密码')).toString(CryptoJS.enc.Hex)) {
+                alert('密码错误，将返回主页！');
+                location.href = '/';
+            }
+        }
+    })();
+</script>
+
+
+
+
+<div class="bg-cover pd-header post-cover" style="background-image: url('/medias/featureimages/4.jpg')">
+    <div class="container" style="right: 0px;left: 0px;">
+        <div class="row">
+            <div class="col s12 m12 l12">
+                <div class="brand">
+                    <h1 class="description center-align post-title">Ubuntu基础配置(18.04)+Docker配置和使用+容器化centos7大数据环境准备</h1>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<main class="post-container content">
+
+    
+    <div class="row">
+    <div id="main-content" class="col s12 m12 l9">
+        <!-- 文章内容详情 -->
+<div id="artDetail">
+    <div class="card">
+        <div class="card-content article-info">
+            <div class="row tag-cate">
+                <div class="col s7">
+                    
+                    <div class="article-tag">
+                        
+                            <a href="/tags/Bigdata/">
+                                <span class="chip bg-color">Bigdata</span>
+                            </a>
+                        
+                            <a href="/tags/Docker/">
+                                <span class="chip bg-color">Docker</span>
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+                <div class="col s5 right-align">
+                    
+                    <div class="post-cate">
+                        <i class="fas fa-bookmark fa-fw icon-category"></i>
+                        
+                            <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4%E7%B3%BB%E5%88%97/" class="post-category">
+                                大数据运维系列
+                            </a>
+                        
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="post-info">
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-minus fa-fw"></i>发布日期:&nbsp;&nbsp;
+                    2024-11-10
+                </div>
+                
+
+                
+                <div class="post-date info-break-policy">
+                    <i class="far fa-calendar-check fa-fw"></i>更新日期:&nbsp;&nbsp;
+                    2024-11-11
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-file-word fa-fw"></i>文章字数:&nbsp;&nbsp;
+                    4.3k
+                </div>
+                
+
+                
+                <div class="info-break-policy">
+                    <i class="far fa-clock fa-fw"></i>阅读时长:&nbsp;&nbsp;
+                    20 分
+                </div>
+                
+
+                
+                    <div id="busuanzi_container_page_pv" class="info-break-policy">
+                        <i class="far fa-eye fa-fw"></i>阅读次数:&nbsp;&nbsp;
+                        <span id="busuanzi_value_page_pv"></span>
+                    </div>
+				
+            </div>
+        </div>
+        <hr class="clearfix">
+
+        
+        <!-- 是否加载使用自带的 prismjs. -->
+        <link rel="stylesheet" href="/libs/prism/prism.min.css">
+        
+
+        
+
+        <div class="card-content article-card-content">
+            <div id="articleContent">
+                <h2 id="1-ubuntu-基础配置"><a href="#1-ubuntu-基础配置" class="headerlink" title="1.ubuntu 基础配置"></a>1.ubuntu 基础配置</h2><p>环境：<code>ubuntu 18.04</code></p>
+<p>安装完Ubuntu之后，除了需要新建用户、设置密码之外，我们还要设置root密码，虽然Ubuntu默认有root超级管理员账户，但是具体的密码我们可以自行设置</p>
+<h3 id="1-1设置root密码："><a href="#1-1设置root密码：" class="headerlink" title="1.1设置root密码："></a>1.1设置root密码：</h3><p>1.启动Ubuntu<br>启动Ubuntu，有图形界面的，启动终端即可</p>
+<p>2.终端输入sudo passwd root</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">passwd</span> root<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324207.png" alt="image-20230320172400074"></p>
+<p>验证测试：</p>
+<p>验证：输入<strong>su -</strong> 后输入超级管理员账户的密码</p>
+<h3 id="1-2-更换源："><a href="#1-2-更换源：" class="headerlink" title="1.2 更换源："></a>1.2 更换源：</h3><p>更换下载源，不更换的话安装docker时会很慢，可以选择阿里或者清华源</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> <span class="token function">vim</span> 
+<span class="token function">sudo</span> <span class="token function">cp</span> /etc/apt/sources.list /etc/apt/sources.list.bak		备份
+<span class="token function">sudo</span> <span class="token function">vi</span> /etc/apt/sources.list    <span class="token comment">#添加清华源</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>清华源：</p>
+<p><a target="_blank" rel="noopener" href="https://mirrors.tuna.tsinghua.edu.cn/help/ubuntu/">ubuntu | 镜像站使用帮助 | 清华大学开源软件镜像站 | Tsinghua Open Source Mirror</a></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释</span>
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse
+<span class="token comment"># deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic main restricted universe multiverse</span>
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse
+<span class="token comment"># deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-updates main restricted universe multiverse</span>
+deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse
+<span class="token comment"># deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-backports main restricted universe multiverse</span>
+
+<span class="token comment"># deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse</span>
+<span class="token comment"># # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-security main restricted universe multiverse</span>
+
+deb http://security.ubuntu.com/ubuntu/ bionic-security main restricted universe multiverse
+<span class="token comment"># deb-src http://security.ubuntu.com/ubuntu/ bionic-security main restricted universe multiverse</span>
+
+<span class="token comment"># 预发布软件源，不建议启用</span>
+<span class="token comment"># deb https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse</span>
+<span class="token comment"># # deb-src https://mirrors.tuna.tsinghua.edu.cn/ubuntu/ bionic-proposed main restricted universe multiverse</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#更新源</span>
+<span class="token function">sudo</span> <span class="token function">apt</span> update<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h3 id="1-3-安装ssh服务："><a href="#1-3-安装ssh服务：" class="headerlink" title="1.3 安装ssh服务："></a>1.3 安装ssh服务：</h3><p>（方便连接xshell工具）</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> openssh-server <span class="token parameter variable">-y</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>解决windows Ubuntu 之间复制粘贴问题：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> autoremove open-vm-tools <span class="token parameter variable">-y</span>	//卸载已有的工具
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> open-vm-tools <span class="token parameter variable">-y</span>		//安装工具open-vm-tools
+<span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> open-vm-tools-desktop <span class="token parameter variable">-y</span> //安装open-vm-tools-desktop<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>ubuntu下安装asbru-cm工具：</p>
+<p>Asbru-CM是一种开源的配置管理工具，用于管理和部署服务器配置。它提供了一个Web界面，使用户可以轻松地管理和监控多台服务器的配置。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> <span class="token function">curl</span> <span class="token parameter variable">-y</span>
+
+<span class="token function">curl</span> <span class="token parameter variable">-s</span> https://packagecloud.io/install/repositories/asbru-cm/asbru-cm/script.deb.sh <span class="token operator">|</span> <span class="token function">sudo</span> <span class="token function">bash</span>
+
+<span class="token function">sudo</span> <span class="token function">apt</span> <span class="token function">install</span> asbru-cm <span class="token parameter variable">-y</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h2 id="2-Docker配置"><a href="#2-Docker配置" class="headerlink" title="2. Docker配置"></a>2. Docker配置</h2><p>因为某些原因,国内已经访问不了docker官网,所以此处改成使用阿里源安装docker</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/single_0910/article/details/120562065">Ubuntu18.04使用阿里源镜像安装Docker并配置镜像加速【图文详细】_阿里的ubuntu镜像源安装-CSDN博客</a></p>
+<h3 id="2-1-如果之前安装过docker，卸载旧版本docker"><a href="#2-1-如果之前安装过docker，卸载旧版本docker" class="headerlink" title="2.1 如果之前安装过docker，卸载旧版本docker"></a>2.1 如果之前安装过docker，卸载旧版本docker</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> remove <span class="token function">docker</span> docker-engine docker.io containerd runc<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="2-2-更新及安装工具软件"><a href="#2-2-更新及安装工具软件" class="headerlink" title="2.2 更新及安装工具软件"></a>2.2 更新及安装工具软件</h3><h4 id="2-2-1-更新系统里的所有的能更新的软件"><a href="#2-2-1-更新系统里的所有的能更新的软件" class="headerlink" title="2.2.1 更新系统里的所有的能更新的软件"></a>2.2.1 更新系统里的所有的能更新的软件</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> update<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="2-2-2-安装几个工具软件"><a href="#2-2-2-安装几个工具软件" class="headerlink" title="2.2.2 安装几个工具软件"></a>2.2.2 安装几个工具软件</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> apt-transport-https ca-certificates <span class="token function">curl</span> gnupg lsb-release <span class="token parameter variable">-y</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="2-2-3-增加一个docker的官方GPG-key："><a href="#2-2-3-增加一个docker的官方GPG-key：" class="headerlink" title="2.2.3 增加一个docker的官方GPG key："></a>2.2.3 增加一个docker的官方GPG key：</h4><p>gpgkey：是用来验证软件的真伪 ——防伪的</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">curl</span> <span class="token parameter variable">-fsSL</span> http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg <span class="token operator">|</span> <span class="token function">sudo</span> gpg <span class="token parameter variable">--dearmor</span> <span class="token parameter variable">-o</span> /usr/share/keyrings/docker-archive-keyring.gpg<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>2.2.4 下载仓库文件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token builtin class-name">echo</span> <span class="token string">"deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg<span class="token variable"><span class="token variable">$(</span>lsb_release <span class="token parameter variable">-cs</span><span class="token variable">)</span></span> stable"</span> <span class="token operator">|</span> <span class="token function">sudo</span> <span class="token function">tee</span> /etc/apt/sources.list.d/docker.list <span class="token operator">></span> /dev/null<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="2-3-安装docker"><a href="#2-3-安装docker" class="headerlink" title="2.3 安装docker"></a>2.3 安装docker</h3><h4 id="2-3-1-再次更新系统"><a href="#2-3-1-再次更新系统" class="headerlink" title="2.3.1 再次更新系统"></a>2.3.1 再次更新系统</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> update<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="2-3-2-安装docker-ce软件"><a href="#2-3-2-安装docker-ce软件" class="headerlink" title="2.3.2 安装docker-ce软件"></a>2.3.2 安装docker-ce软件</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">apt-get</span> <span class="token function">install</span> docker-ce docker-ce-cli containerd.io <span class="token parameter variable">-y</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="2-4-查看是否启动docker"><a href="#2-4-查看是否启动docker" class="headerlink" title="2.4 查看是否启动docker"></a>2.4 查看是否启动docker</h3><p>由于docker安装的时候自带设置启动，所以直接查看进程是否启动就可以了</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">ps</span> aux<span class="token operator">|</span><span class="token function">grep</span> <span class="token function">docker</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324877.png" alt="image-20230812180124831"></p>
+<p>安装成功</p>
+<h2 id="3-Docker-服务操作"><a href="#3-Docker-服务操作" class="headerlink" title="3. Docker 服务操作"></a>3. Docker 服务操作</h2><h3 id="3-1-常用命令"><a href="#3-1-常用命令" class="headerlink" title="3.1 常用命令"></a>3.1 常用命令</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">service</span> <span class="token function">docker</span> start  <span class="token comment"># 启动Docker</span>
+<span class="token function">sudo</span> <span class="token function">service</span> <span class="token function">docker</span> stop  <span class="token comment"># 停止Docker</span>
+<span class="token function">sudo</span> <span class="token function">service</span> <span class="token function">docker</span> restart  <span class="token comment"># 重启Docker</span>
+<span class="token function">sudo</span> <span class="token function">service</span> <span class="token function">docker</span> status  <span class="token comment"># 查看Docker状态</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#查看docker容器</span>
+<span class="token function">docker</span> <span class="token function">ps</span>    <span class="token comment">#查看当前运行的容器</span>
+<span class="token function">docker</span> <span class="token function">ps</span> <span class="token parameter variable">-a</span>    <span class="token comment">#查看所有容器</span>
+<span class="token function">docker</span> <span class="token function">rm</span> <span class="token parameter variable">-f</span> <span class="token variable"><span class="token variable">$(</span><span class="token function">docker</span> <span class="token function">ps</span> <span class="token parameter variable">-aq</span><span class="token variable">)</span></span>  <span class="token comment">#删除所有容器</span>
+<span class="token function">docker</span> images  <span class="token comment">#查看docker镜像</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#导入镜像包,两者都会恢复为镜像</span>
+<span class="token function">docker</span> load <span class="token operator">&lt;</span> /home/hj/大数据比赛环境包/bigdata.tar
+<span class="token function">docker</span> load <span class="token parameter variable">-i</span> <span class="token operator">&lt;</span> /home/hj/大数据比赛环境包/bigdata.tar
+<span class="token comment">#导入容器包,两者都会恢复为镜像</span>
+<span class="token function">docker</span> <span class="token function">import</span> 路径
+
+<span class="token comment">#删除镜像（镜像有创建过容器则需要删除容器才可以删除镜像）</span>
+<span class="token function">docker</span> rmi 镜像名或镜像ID
+
+<span class="token comment">#删除所有容器</span>
+<span class="token function">docker</span> <span class="token function">rm</span> <span class="token parameter variable">-f</span> <span class="token variable"><span class="token variable">$(</span><span class="token function">docker</span> <span class="token function">ps</span> <span class="token parameter variable">-aq</span><span class="token variable">)</span></span>
+<span class="token function">docker</span> <span class="token function">rm</span> 容器
+
+<span class="token comment">#启动容器</span>
+<span class="token function">docker</span> start 容器id
+
+<span class="token comment">#运行容器</span>
+<span class="token function">docker</span> <span class="token builtin class-name">exec</span> <span class="token parameter variable">-it</span> 容器id /bin/bash
+
+<span class="token comment">#将容器导成镜像</span>
+<span class="token function">sudo</span> <span class="token function">docker</span> commit <span class="token parameter variable">-a</span> <span class="token string">"镜像作者"</span> <span class="token parameter variable">-m</span> <span class="token string">"提交成镜像的说明信息"</span> 容器的名称 新镜像名称:标签
+
+<span class="token function">docker</span> 上传文件到容器
+<span class="token function">docker</span> <span class="token function">cp</span> /home/hj/clickhouse-21.9.4.35（tgz） master:/opt/
+
+从容器中上传文件到本地
+<span class="token function">docker</span> <span class="token function">cp</span> master:/opt/ /home/hj<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="3-2-Docker-的镜像操作"><a href="#3-2-Docker-的镜像操作" class="headerlink" title="3.2 Docker 的镜像操作"></a>3.2 Docker 的镜像操作</h3><h4 id="3-2-1-列出镜像"><a href="#3-2-1-列出镜像" class="headerlink" title="3.2.1 列出镜像"></a>3.2.1 列出镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> images<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>结果：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324626.png" alt="image-20230812180956921"></p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>REPOSITORY</td>
+<td>镜像所在的仓库名称</td>
+</tr>
+<tr>
+<td>TAG</td>
+<td>镜像标签(版本)</td>
+</tr>
+<tr>
+<td>IMAGEID</td>
+<td>镜像ID</td>
+</tr>
+<tr>
+<td>CREATED</td>
+<td>镜像的创建日期(不是获取该镜像的日期)</td>
+</tr>
+<tr>
+<td>SIZE</td>
+<td>镜像大小</td>
+</tr>
+</tbody></table>
+<h4 id="3-2-2-搜索镜像"><a href="#3-2-2-搜索镜像" class="headerlink" title="3.2.2 搜索镜像"></a>3.2.2 搜索镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> search 镜像名<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-2-3-拉取镜像"><a href="#3-2-3-拉取镜像" class="headerlink" title="3.2.3 拉取镜像"></a>3.2.3 拉取镜像</h4><p>要想获取某个镜像，我们可以使用pull命令，从仓库中拉取镜像到本地。</p>
+<p>如果下载镜像时不指定标签，则默认会下载仓库中最新版本的镜像，即选择标签为 latest 标签。</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> pull 仓库名称/标签<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-2-4-删除镜像"><a href="#3-2-4-删除镜像" class="headerlink" title="3.2.4 删除镜像"></a>3.2.4 删除镜像</h4><p>镜像有创建过容器则需要删除容器才可以删除镜像（或者直接强制删除）</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#普通删除</span>
+<span class="token function">docker</span> rmi 镜像名或镜像ID
+<span class="token comment">#强制删除</span>
+<span class="token function">docker</span> rmi <span class="token parameter variable">-f</span> 镜像名或镜像ID<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-2-5-导入镜像"><a href="#3-2-5-导入镜像" class="headerlink" title="3.2.5 导入镜像"></a>3.2.5 导入镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#方法1</span>
+<span class="token function">docker</span> load <span class="token operator">&lt;</span> 镜像包
+<span class="token comment">#方法2</span>
+<span class="token function">sudo</span> <span class="token function">docker</span> load <span class="token parameter variable">-i</span> 镜像包<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h4 id="3-2-6-导出镜像"><a href="#3-2-6-导出镜像" class="headerlink" title="3.2.6 导出镜像"></a>3.2.6 导出镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> save –o /opt/导出名称.tar 镜像名称:标签<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h3 id="3-3-Docker容器操作"><a href="#3-3-Docker容器操作" class="headerlink" title="3.3 Docker容器操作"></a>3.3 Docker容器操作</h3><h4 id="3-3-1-创建容器"><a href="#3-3-1-创建容器" class="headerlink" title="3.3.1 创建容器"></a>3.3.1 创建容器</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token punctuation">[</span>option<span class="token punctuation">]</span> 镜像名:tag <span class="token punctuation">[</span>向启动容器中传入的命令<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p> 常用可选参数说明：</p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>意义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>-i</td>
+<td>表示以“交互模式”运行容器</td>
+</tr>
+<tr>
+<td>-t</td>
+<td>表示容器启动后会进入其命令行。加入这两个参数后，容器创建就能登录进去。即分配一个伪终端。</td>
+</tr>
+<tr>
+<td>–name</td>
+<td>为创建的容器命名</td>
+</tr>
+<tr>
+<td>-v</td>
+<td>表示目录映射关系(前者是宿主机目录，后者是映射到宿主机上的目录，即 宿主机目录:容器中目录)，可以使用多个-v 做多个目录或文件映射。注意:最好做目录映射，在宿主机上做修改，然后 共享到容器上。</td>
+</tr>
+<tr>
+<td>-d</td>
+<td>在run后面加上-d参数,则会创建一个守护式容器在后台运行(这样创建容器后不 会自动登录容器，如果只加-i -t 两个参数，创建后就会自动进去容器)。</td>
+</tr>
+<tr>
+<td>-p</td>
+<td>表示端口映射，前者是宿主机端口，后者是容器内的映射端口。可以使用多个-p 做多个端口映射</td>
+</tr>
+<tr>
+<td>-e</td>
+<td>为容器设置环境变量</td>
+</tr>
+<tr>
+<td>–network</td>
+<td>指定网桥</td>
+</tr>
+</tbody></table>
+<h4 id="3-3-2-进入已运行容器"><a href="#3-3-2-进入已运行容器" class="headerlink" title="3.3.2 进入已运行容器"></a>3.3.2 进入已运行容器</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token builtin class-name">exec</span> <span class="token parameter variable">-it</span> 容器名或容器ID /bin/bash<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-3-3-查看容器"><a href="#3-3-3-查看容器" class="headerlink" title="3.3.3 查看容器"></a>3.3.3 查看容器</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token function">ps</span>     <span class="token comment">#查看当前运行的容器</span>
+<span class="token function">docker</span> <span class="token function">ps</span> –a    <span class="token comment">#查看当前所有的容器</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+<h4 id="3-3-4-启动容器"><a href="#3-3-4-启动容器" class="headerlink" title="3.3.4 启动容器"></a>3.3.4 启动容器</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> start 容器名或容器ID<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-3-5-停止容器"><a href="#3-3-5-停止容器" class="headerlink" title="3.3.5 停止容器"></a>3.3.5 停止容器</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> stop 容器名或容器ID<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-3-6-删除容器"><a href="#3-3-6-删除容器" class="headerlink" title="3.3.6 删除容器"></a>3.3.6 删除容器</h4><p>（运行中的容器不能删除）</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token function">rm</span> 容器名或容器ID <span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h4 id="3-3-7-将容器保存为镜像"><a href="#3-3-7-将容器保存为镜像" class="headerlink" title="3.3.7 将容器保存为镜像"></a>3.3.7 将容器保存为镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> commit <span class="token punctuation">[</span>OPTIONS<span class="token punctuation">]</span> CONTAINER <span class="token punctuation">[</span>REPOSITORY<span class="token punctuation">]</span>:<span class="token punctuation">[</span>TAG<span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>OPTIONS说明：</p>
+<p>-a :提交的镜像作者；</p>
+<p>-c :使用Dockerfile指令来创建镜像；</p>
+<p>-m :提交时的说明文字；</p>
+<p>-p :在commit时，将容器暂停。</p>
+<p>$ docker commit 容器名 镜像名:tag</p>
+<h3 id="3-4-docker网络设置"><a href="#3-4-docker网络设置" class="headerlink" title="3.4 docker网络设置"></a>3.4 docker网络设置</h3><h4 id="3-4-1-Docker基本网络"><a href="#3-4-1-Docker基本网络" class="headerlink" title="3.4.1 Docker基本网络"></a>3.4.1 Docker基本网络</h4><p><code>Docker安装后自动创建3种网络：bridge、host、none</code></p>
+<p>Docker在启动时会开启一个虚拟网桥设备docker0，默认的地址为172.17.0.1&#x2F;16，容器启动后都会被桥接到docker0上，并自动分配到一个ip地址。</p>
+<table>
+<thead>
+<tr>
+<th align="left">bridge 桥接网络模式：</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1、为每一个容器分配、设置IP等，并将容器连接到一个docker0虚拟网桥，默认为该模式</td>
+</tr>
+<tr>
+<td align="left">2、为容器分配独立IP，具有很好的网络隔离性，服务不会跟宿主机上的服务发送端口冲突问题</td>
+</tr>
+<tr>
+<td align="left">3、主机和容器间通过桥接的方式进行通信</td>
+</tr>
+<tr>
+<td align="left">4、只能单机使用，不适合跨主机docker服务间通信</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th align="left">host 主机本地网络模式：</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">1、docker容器共享主机的ip、端口号等等网络资源，如果单机部署</td>
+</tr>
+<tr>
+<td align="left">2、只能单机使用，不适合跨主机docker服务间通信</td>
+</tr>
+<tr>
+<td align="left">3、这种网络模式效率最高</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th align="left">overlay 集群网络模式：</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">多节点集群下统一分配服务独立ip</td>
+</tr>
+<tr>
+<td align="left">跨机器节点上的docker服务间能互相通信</td>
+</tr>
+<tr>
+<td align="left">支持主机节点和集群网络内的节点间互相通信</td>
+</tr>
+<tr>
+<td align="left">支持节点间加密通信 注：windows机器节点不支持加密通信</td>
+</tr>
+</tbody></table>
+<p><code>添加网桥，创建容器时可以指定网桥，不使用默认网桥</code></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> network <span class="token function">ls</span>            <span class="token comment">#查看所有网络</span>
+<span class="token function">docker</span> network inspect 网络   <span class="token comment">#查看网络的相关信息</span>
+
+<span class="token comment">#自定义创建的默认default bridge   </span>
+
+<span class="token function">docker</span> network create <span class="token parameter variable">--driver</span> bridge <span class="token parameter variable">--subnet</span> <span class="token number">192.168</span>.1.1/24 <span class="token parameter variable">--gateway</span> <span class="token number">192.168</span>.1.1 mynet <span class="token comment">#自定义创建一个网络mynet</span>
+
+<span class="token function">docker</span> network <span class="token function">rm</span> 网络id  <span class="token comment">#删除网络</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h2 id="4-Docker封装Centos7大数据环境"><a href="#4-Docker封装Centos7大数据环境" class="headerlink" title="4.Docker封装Centos7大数据环境"></a>4.Docker封装Centos7大数据环境</h2><h3 id="4-1-编写Dockerfile"><a href="#4-1-编写Dockerfile" class="headerlink" title="4.1 编写Dockerfile"></a>4.1 编写Dockerfile</h3><p>Pull一个centos7镜像，在此镜像基础上安装ssh服务，开放端口，上传jdk、hadoop等组件等操作，封装成hadoop大数据环境</p>
+<blockquote>
+<p>已经封装好的镜像:</p>
+<pre class="line-numbers language-none"><code class="language-none">registry.cn-hangzhou.aliyuncs.com&#x2F;shangguan-hj&#x2F;bigdata:gxjzy<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>拉取</p>
+<pre class="line-numbers language-none"><code class="language-none">docker pull registry.cn-hangzhou.aliyuncs.com&#x2F;510_repo&#x2F;bigdata:gxjzy<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+</blockquote>
+<h4 id="4-1-2-编写第一个dockerfile，封装一个新的镜像"><a href="#4-1-2-编写第一个dockerfile，封装一个新的镜像" class="headerlink" title="4.1.2 编写第一个dockerfile，封装一个新的镜像"></a>4.1.2 编写第一个dockerfile，封装一个新的镜像</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment"># 选择一个已有的os镜像作为基础  </span>
+FROM centos:7
+<span class="token comment"># 安装openssh-server和sudo软件包  </span>
+RUN yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> openssh-server <span class="token function">sudo</span>
+<span class="token comment">#安装openssh-clients</span>
+RUN yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> openssh-clients
+<span class="token comment"># 修改ssh配置文件，方便后面通过root用户进行ssh远程登录</span>
+RUN <span class="token function">sed</span> <span class="token parameter variable">-i</span> <span class="token string">'s/ GSSAPIAuthentication yes /#GSSAPIAuthentication yes/g'</span> /etc/ssh/sshd_config
+RUN <span class="token function">sed</span> <span class="token parameter variable">-i</span> <span class="token string">'s/ GSSAPICleanupCredentials no /#GSSAPICleanupCredentials no/g'</span> /etc/ssh/sshd_config
+
+<span class="token comment">#安装initscripts，方便 ip addr 查询网络状态</span>
+RUN yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> initscripts
+
+<span class="token comment">#安装防火墙 </span>
+RUN yum <span class="token function">install</span> firewalld <span class="token parameter variable">-y</span>
+
+<span class="token comment">#安装which  hadoop版本号查看需要用到  </span>
+RUN yum <span class="token function">install</span> <span class="token function">which</span> <span class="token parameter variable">-y</span>
+
+<span class="token comment">#mysql 初始化报错 ，缺少libnuma.so.1情况，缺啥补啥 </span>
+RUN yum <span class="token function">install</span> numactl <span class="token parameter variable">-y</span>
+RUN yum <span class="token function">install</span> libaio <span class="token parameter variable">-y</span>
+RUN yum <span class="token function">install</span> libnuma.so.1 <span class="token parameter variable">-y</span>
+
+
+<span class="token comment"># 添加用户root，密码123，并且将此用户添加到sudoers里  </span>
+RUN <span class="token builtin class-name">echo</span> <span class="token string">"root:123"</span> <span class="token operator">|</span> chpasswd
+RUN <span class="token builtin class-name">echo</span> <span class="token string">"root   ALL=(ALL)       ALL"</span> <span class="token operator">>></span> /etc/sudoers
+
+<span class="token comment"># 启动sshd服务并且暴露22端口  </span>
+RUN <span class="token function">mkdir</span> /var/run/sshd
+EXPOSE <span class="token number">22</span>
+CMD <span class="token punctuation">[</span><span class="token string">"/usr/sbin/sshd"</span>, <span class="token string">"-D"</span><span class="token punctuation">]</span>
+RUN <span class="token function">mkdir</span> /opt/<span class="token punctuation">&#123;</span>software,module<span class="token punctuation">&#125;</span>
+<span class="token comment">#封装：docker build -t"centos-ssh-root" . </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>编辑好脚本后，使用build命令开始运行</p>
+<p>格式：docker build -t”镜像名称” . </p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> build -t<span class="token string">"centos-ssh-root"</span> <span class="token builtin class-name">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>运行效果：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324924.png" alt="image-20230812190933232"></p>
+<p>查看创建的镜像：</p>
+<p> <img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324183.png" alt="image-20230812191126430"></p>
+<h4 id="4-1-3-编写第二个Dockerfile，上传所需环境包，再次封装成一个新的镜像"><a href="#4-1-3-编写第二个Dockerfile，上传所需环境包，再次封装成一个新的镜像" class="headerlink" title="4.1.3 编写第二个Dockerfile，上传所需环境包，再次封装成一个新的镜像"></a>4.1.3 编写第二个Dockerfile，上传所需环境包，再次封装成一个新的镜像</h4><p>封装的系统只是完成了ssh服务的安装，开放22端口，配置root用户。并没有达到大数据环境的使用要求，接下来在这个封装好的系统上，再进行封装，上传大数据环境需要的组件</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token comment">#软件包根据自己所需的填写</span>
+FROM centos-ssh-root
+COPY apache-flume-1.9.0-bin.tar.gz /opt/software/
+COPY apache-hive-3.1.2-bin.tar.gz /opt/software/
+COPY flink-1.14.0-bin-scala_2.12.tgz /opt/software/
+COPY hadoop-3.1.3.tar.gz /opt/software/
+COPY hbase-2.2.3-bin.tar.gz /opt/software/
+COPY jdk-8u162-linux-x64.tar.gz /opt/software/
+COPY kafka_2.12-2.4.1.tgz /opt/software/
+COPY maxwell-1.29.0.tar.gz /opt/software/
+COPY redis-6.2.6.tar.gz /opt/software/
+COPY scala-2.12.0.tgz /opt/software/
+COPY spark-3.1.1-bin-hadoop3.2.tgz /opt/software/
+COPY clickhouse-21.9.4.35 /opt/software/
+COPY mysql /opt/software/
+COPY zookeeper-3.4.6.tar.gz /opt/software/
+COPY sqoop-1.4.2.bin__hadoop-2.0.0-alpha.tar.gz /opt/software/
+
+<span class="token comment">#封装：docker build -t"bigdata" . </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>编辑好脚本后，使用build命令开始运行</p>
+<p>格式：docker build -t”镜像名称” . </p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> build -t<span class="token string">"bigdata"</span> <span class="token builtin class-name">.</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>运行效果：<img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324473.png" alt="image-20230812191358805"></p>
+<p>查看新封装的镜像：</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202309241324220.png" alt="image-20230812192151801"></p>
+<h4 id="4-1-4-star-镜像优化"><a href="#4-1-4-star-镜像优化" class="headerlink" title="4.1.4 :star:镜像优化"></a>4.1.4 :star:镜像优化</h4><blockquote>
+<p>综合上面两个dockerfile进行镜像优化</p>
+</blockquote>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">FROM centos:7
+RUN yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> openssh-server <span class="token function">sudo</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> openssh-clients <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token function">sed</span> <span class="token parameter variable">-i</span> <span class="token string">'s/ GSSAPIAuthentication yes /#GSSAPIAuthentication yes/g'</span> /etc/ssh/sshd_config <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token function">sed</span> <span class="token parameter variable">-i</span> <span class="token string">'s/ GSSAPICleanupCredentials no /#GSSAPICleanupCredentials no/g'</span> /etc/ssh/sshd_config <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    yum <span class="token function">install</span> <span class="token parameter variable">-y</span> <span class="token parameter variable">--nogpgcheck</span> initscripts <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    yum <span class="token function">install</span> <span class="token function">which</span> <span class="token parameter variable">-y</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    yum <span class="token function">install</span> numactl libaio libnuma.so.1 <span class="token parameter variable">-y</span> <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"root:1"</span> <span class="token operator">|</span> chpasswd <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token builtin class-name">echo</span> <span class="token string">"root   ALL=(ALL)       ALL"</span> <span class="token operator">>></span> /etc/sudoers <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token function">mkdir</span> /var/run/sshd <span class="token operator">&amp;&amp;</span> <span class="token punctuation">\</span>
+    <span class="token function">mkdir</span> /opt/<span class="token punctuation">&#123;</span>software,module<span class="token punctuation">&#125;</span> 
+COPY <span class="token builtin class-name">.</span> /opt/software 
+EXPOSE <span class="token number">22</span>
+CMD <span class="token punctuation">[</span><span class="token string">"/usr/sbin/sshd"</span>, <span class="token string">"-D"</span><span class="token punctuation">]</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<blockquote>
+<p>开始构建</p>
+</blockquote>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata<span class="token punctuation">]</span><span class="token comment"># docker build -t bigdata .</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<blockquote>
+<p>查看构建的镜像</p>
+</blockquote>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata<span class="token punctuation">]</span><span class="token comment"># docker images | grep bigdata</span>
+bigdata                                                  latest    78d3e81ed5ac   <span class="token number">4</span> hours ago   <span class="token number">5</span>.57GB<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span></span></code></pre>
+
+
+
+<h3 id="4-2-Hadoop配置容器启动："><a href="#4-2-Hadoop配置容器启动：" class="headerlink" title="4.2 Hadoop配置容器启动："></a>4.2 Hadoop配置容器启动：</h3><p><strong>集群规划，一主两从</strong></p>
+<blockquote>
+<p>master:</p>
+</blockquote>
+<p>测试:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">-id</span> <span class="token parameter variable">--name</span> master <span class="token parameter variable">--hostname</span> master <span class="token parameter variable">--net</span> mynet <span class="token parameter variable">--privileged</span><span class="token operator">=</span>true <span class="token parameter variable">-v</span> /sys/fs/cgroup:/sys/fs/cgroup <span class="token parameter variable">-P</span> <span class="token parameter variable">-p</span> <span class="token number">50070</span>:50070 <span class="token parameter variable">-p</span> <span class="token number">8088</span>:8088 bigdata /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>:star: 实战:</p>
+<p>自定义创建docker网络:</p>
+<p>(这会创建一个自定义网络，允许在该网络内分配IP地址，并且子网为<code>192.168.1.0/24</code>)</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker</span> network create <span class="token parameter variable">--subnet</span><span class="token operator">=</span><span class="token number">192.168</span>.1.0/24 mynet<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>创建一个名为master的容器,ip为192.168.1.10:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker</span> run <span class="token parameter variable">-d</span> <span class="token parameter variable">--privileged</span> <span class="token parameter variable">--name</span> master <span class="token parameter variable">--hostname</span> master <span class="token parameter variable">--network</span> mynet <span class="token parameter variable">--ip</span> <span class="token number">192.168</span>.1.10 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-p</span> <span class="token number">16010</span>:16010 <span class="token parameter variable">-p</span> <span class="token number">2181</span>:2181 <span class="token parameter variable">-p</span> <span class="token number">3306</span>:3306 <span class="token parameter variable">-p</span> <span class="token number">6379</span>:6379 <span class="token parameter variable">-p</span> <span class="token number">8031</span>:8031 <span class="token parameter variable">-p</span> <span class="token number">8032</span>:8032 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-p</span> <span class="token number">8033</span>:8033 <span class="token parameter variable">-p</span> <span class="token number">8080</span>:8080 <span class="token parameter variable">-p</span> <span class="token number">8081</span>:8081 <span class="token parameter variable">-p</span> <span class="token number">8020</span>:8020 <span class="token parameter variable">-p</span> <span class="token number">8088</span>:8088 <span class="token parameter variable">-p</span> <span class="token number">8123</span>:8123 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-p</span> <span class="token number">9000</span>:9000 <span class="token parameter variable">-p</span> <span class="token number">9083</span>:9083 <span class="token parameter variable">-p</span> <span class="token number">9092</span>:9092 <span class="token parameter variable">-p</span> <span class="token number">9866</span>:9866 <span class="token parameter variable">-p</span> <span class="token number">9870</span>:9870 <span class="token parameter variable">-p</span> <span class="token number">10000</span>:10000 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-p</span> <span class="token number">60010</span>:60010 <span class="token parameter variable">-p</span> <span class="token number">12321</span>:12321 <span class="token parameter variable">-p</span> <span class="token number">4040</span>:4040 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> /sys/fs/cgroup:/sys/fs/cgroup <span class="token punctuation">\</span>
+  bigdata:gxjzy /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<blockquote>
+<p>slave1:</p>
+</blockquote>
+<p>测试:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">-id</span> <span class="token parameter variable">--name</span> slave1 <span class="token parameter variable">--hostname</span> slave1 <span class="token parameter variable">--net</span> mynet <span class="token parameter variable">--privileged</span><span class="token operator">=</span>true <span class="token parameter variable">-P</span> bigdata /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>:star: 实战:</p>
+<p>创建一个名为master的容器,ip为192.168.1.10:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker</span> run <span class="token parameter variable">-d</span> <span class="token parameter variable">--privileged</span> <span class="token parameter variable">--name</span> slave1 <span class="token parameter variable">--hostname</span> slave1 <span class="token parameter variable">--network</span> mynet <span class="token parameter variable">--ip</span> <span class="token number">192.168</span>.1.20 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> /sys/fs/cgroup:/sys/fs/cgroup <span class="token punctuation">\</span>
+  bigdata:gxjzy /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+
+
+
+
+<blockquote>
+<p>slave2:</p>
+</blockquote>
+<p>测试:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> run <span class="token parameter variable">-id</span> <span class="token parameter variable">--name</span> slave2 <span class="token parameter variable">--hostname</span> slave2 <span class="token parameter variable">--net</span> mynet <span class="token parameter variable">--privileged</span><span class="token operator">=</span>true <span class="token parameter variable">-P</span> bigdata /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p>:star: 实战:</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">sudo</span> <span class="token function">docker</span> run <span class="token parameter variable">-d</span> <span class="token parameter variable">--privileged</span> <span class="token parameter variable">--name</span> slave2 <span class="token parameter variable">--hostname</span> slave2 <span class="token parameter variable">--network</span> mynet <span class="token parameter variable">--ip</span> <span class="token number">192.168</span>.1.30 <span class="token punctuation">\</span>
+  <span class="token parameter variable">-v</span> /sys/fs/cgroup:/sys/fs/cgroup <span class="token punctuation">\</span>
+  bigdata:gxjzy /usr/sbin/init<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span></span></code></pre>
+
+<p>查看创建情况：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token function">ps</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401080117475.png" alt="image-20240108011713901"></p>
+<p>iptables端口映射（略）(后续添加端口映射需要使用)</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash">iptables <span class="token parameter variable">-t</span> nat <span class="token parameter variable">-vnL</span>  <span class="token comment">#查看端口映射</span>
+
+iptables <span class="token parameter variable">-t</span> nat <span class="token parameter variable">-A</span> DOCKER <span class="token parameter variable">-p</span> tcp <span class="token parameter variable">--dport</span> <span class="token number">8089</span> <span class="token parameter variable">-j</span> DNAT --to-destination <span class="token number">192.168</span>.12.10:8088  <span class="token comment">#添加端口映射</span>
+
+iptables <span class="token parameter variable">-t</span> nat <span class="token parameter variable">-vnL</span> DOCKER --line-number <span class="token comment">#显示端口行号</span>
+
+iptables <span class="token parameter variable">-t</span> nat <span class="token parameter variable">-D</span> DOCKER <span class="token punctuation">&#123;</span>行号<span class="token punctuation">&#125;</span>  <span class="token comment">#删除规则</span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p>进入容器：</p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token function">docker</span> <span class="token builtin class-name">exec</span> <span class="token parameter variable">-it</span> master <span class="token function">bash</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<h2 id="5-使用docker-compose编排工具快速建立基础环境"><a href="#5-使用docker-compose编排工具快速建立基础环境" class="headerlink" title="5. 使用docker-compose编排工具快速建立基础环境"></a>5. 使用docker-compose编排工具快速建立基础环境</h2><blockquote>
+<p>首先安装好docker-compose编排工具(略)</p>
+</blockquote>
+<h3 id="5-1-编写docker-compose-yml"><a href="#5-1-编写docker-compose-yml" class="headerlink" title="5.1 编写docker-compose.yml"></a>5.1 编写docker-compose.yml</h3><p>自定义容器ip:</p>
+<table>
+<thead>
+<tr>
+<th>容器</th>
+<th>ip</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>master</td>
+<td>192.168.1.10</td>
+</tr>
+<tr>
+<td>slave1</td>
+<td>192.168.1.20</td>
+</tr>
+<tr>
+<td>slave2</td>
+<td>192.168.1.30</td>
+</tr>
+</tbody></table>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># vim docker-compose.yml </span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<pre class="line-numbers language-yaml" data-language="yaml"><code class="language-yaml"><span class="token key atrule">version</span><span class="token punctuation">:</span> <span class="token string">"2.2"</span>
+<span class="token key atrule">services</span><span class="token punctuation">:</span>
+  <span class="token key atrule">master</span><span class="token punctuation">:</span>
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> always
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> registry.cn<span class="token punctuation">-</span>hangzhou.aliyuncs.com/shangguan<span class="token punctuation">-</span>hj/bigdata<span class="token punctuation">:</span>gxjzy
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> master
+    <span class="token key atrule">hostname</span><span class="token punctuation">:</span> master
+    <span class="token key atrule">networks</span><span class="token punctuation">:</span>
+      <span class="token key atrule">mynet</span><span class="token punctuation">:</span>
+        <span class="token key atrule">ipv4_address</span><span class="token punctuation">:</span> <span class="token string">"192.168.1.10"</span>
+    <span class="token key atrule">privileged</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 1022<span class="token punctuation">:</span><span class="token number">22</span>
+      <span class="token punctuation">-</span> 50070<span class="token punctuation">:</span><span class="token number">50070</span>
+      <span class="token punctuation">-</span> 8088<span class="token punctuation">:</span><span class="token number">8088</span>
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> /sys/fs/cgroup<span class="token punctuation">:</span>/sys/fs/cgroup
+    <span class="token key atrule">command</span><span class="token punctuation">:</span> /usr/sbin/init
+
+  <span class="token key atrule">slave1</span><span class="token punctuation">:</span>
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> always
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> registry.cn<span class="token punctuation">-</span>hangzhou.aliyuncs.com/shangguan<span class="token punctuation">-</span>hj/bigdata<span class="token punctuation">:</span>gxjzy
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> slave1
+    <span class="token key atrule">hostname</span><span class="token punctuation">:</span> slave1
+    <span class="token key atrule">networks</span><span class="token punctuation">:</span>
+      <span class="token key atrule">mynet</span><span class="token punctuation">:</span>
+        <span class="token key atrule">ipv4_address</span><span class="token punctuation">:</span> <span class="token string">"192.168.1.20"</span>
+    <span class="token key atrule">privileged</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 1023<span class="token punctuation">:</span><span class="token number">22</span>
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> /sys/fs/cgroup<span class="token punctuation">:</span>/sys/fs/cgroup
+    <span class="token key atrule">command</span><span class="token punctuation">:</span> /usr/sbin/init
+    
+  <span class="token key atrule">slave2</span><span class="token punctuation">:</span>
+    <span class="token key atrule">restart</span><span class="token punctuation">:</span> always
+    <span class="token key atrule">image</span><span class="token punctuation">:</span> registry.cn<span class="token punctuation">-</span>hangzhou.aliyuncs.com/shangguan<span class="token punctuation">-</span>hj/bigdata<span class="token punctuation">:</span>gxjzy
+    <span class="token key atrule">container_name</span><span class="token punctuation">:</span> slave2
+    <span class="token key atrule">hostname</span><span class="token punctuation">:</span> slave2
+    <span class="token key atrule">networks</span><span class="token punctuation">:</span>
+      <span class="token key atrule">mynet</span><span class="token punctuation">:</span>
+        <span class="token key atrule">ipv4_address</span><span class="token punctuation">:</span> <span class="token string">"192.168.1.30"</span>
+    <span class="token key atrule">privileged</span><span class="token punctuation">:</span> <span class="token boolean important">true</span>
+    <span class="token key atrule">ports</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> 1024<span class="token punctuation">:</span><span class="token number">22</span>
+    <span class="token key atrule">volumes</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> /sys/fs/cgroup<span class="token punctuation">:</span>/sys/fs/cgroup
+    <span class="token key atrule">command</span><span class="token punctuation">:</span> /usr/sbin/init
+
+<span class="token comment"># 连接外部网络</span>
+<span class="token key atrule">networks</span><span class="token punctuation">:</span>
+  <span class="token key atrule">mynet</span><span class="token punctuation">:</span>
+    <span class="token key atrule">ipam</span><span class="token punctuation">:</span>
+      <span class="token key atrule">config</span><span class="token punctuation">:</span>
+      <span class="token punctuation">-</span> <span class="token key atrule">subnet</span><span class="token punctuation">:</span> 192.168.1.0/24<span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<h3 id="5-2-启动docker容器"><a href="#5-2-启动docker容器" class="headerlink" title="5.2 启动docker容器"></a>5.2 启动docker容器</h3><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker-compose up -d</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111500849.png" alt="image-20231211150006708"></p>
+<h3 id="5-3-查看创建情况"><a href="#5-3-查看创建情况" class="headerlink" title="5.3 查看创建情况"></a>5.3 查看创建情况</h3><h4 id="5-3-1-方式一-了解"><a href="#5-3-1-方式一-了解" class="headerlink" title="5.3.1 方式一(了解):"></a>5.3.1 方式一(了解):</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker-compose ps</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111501626.png" alt="image-20231211150148532"></p>
+<h4 id="5-3-2-方式二"><a href="#5-3-2-方式二" class="headerlink" title="5.3.2 方式二:"></a>5.3.2 方式二:</h4><pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker ps</span><span aria-hidden="true" class="line-numbers-rows"><span></span></span></code></pre>
+
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111502108.png" alt="image-20231211150204022"></p>
+<h3 id="5-4-进入容器"><a href="#5-4-进入容器" class="headerlink" title="5.4 进入容器"></a>5.4 进入容器</h3><p><strong>master:</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker exec -it master bash</span>
+<span class="token punctuation">[</span>root@master /<span class="token punctuation">]</span><span class="token comment"># ip a</span>
+<span class="token number">1</span>: lo: <span class="token operator">&lt;</span>LOOPBACK,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">65536</span> qdisc noqueue state UNKNOWN group default qlen <span class="token number">1000</span>
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet <span class="token number">127.0</span>.0.1/8 scope <span class="token function">host</span> lo
+       valid_lft forever preferred_lft forever
+<span class="token number">96</span>: eth0@if97: <span class="token operator">&lt;</span>BROADCAST,MULTICAST,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">1500</span> qdisc noqueue state UP group default 
+    link/ether 02:42:c0:a8:01:02 brd ff:ff:ff:ff:ff:ff link-netnsid <span class="token number">0</span>
+    inet <span class="token number">192.168</span>.1.2/24 brd <span class="token number">192.168</span>.1.255 scope global eth0
+       valid_lft forever preferred_lft forever
+<span class="token punctuation">[</span>root@master /<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>slave1:</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker exec -it slave1 bash</span>
+<span class="token punctuation">[</span>root@slave1 /<span class="token punctuation">]</span><span class="token comment"># ip a</span>
+<span class="token number">1</span>: lo: <span class="token operator">&lt;</span>LOOPBACK,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">65536</span> qdisc noqueue state UNKNOWN group default qlen <span class="token number">1000</span>
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet <span class="token number">127.0</span>.0.1/8 scope <span class="token function">host</span> lo
+       valid_lft forever preferred_lft forever
+<span class="token number">34</span>: eth0@if35: <span class="token operator">&lt;</span>BROADCAST,MULTICAST,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">1500</span> qdisc noqueue state UP group default 
+    link/ether 02:42:c0:a8:01:04 brd ff:ff:ff:ff:ff:ff link-netnsid <span class="token number">0</span>
+    inet <span class="token number">192.168</span>.1.4/24 brd <span class="token number">192.168</span>.1.255 scope global eth0
+       valid_lft forever preferred_lft forever
+<span class="token punctuation">[</span>root@slave1 /<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+<p><strong>slave2:</strong></p>
+<pre class="line-numbers language-bash" data-language="bash"><code class="language-bash"><span class="token punctuation">[</span>root@docker-server ~/bigdata-work<span class="token punctuation">]</span><span class="token comment"># docker exec -it slave2 bash</span>
+<span class="token punctuation">[</span>root@slave2 /<span class="token punctuation">]</span><span class="token comment"># ip a</span>
+<span class="token number">1</span>: lo: <span class="token operator">&lt;</span>LOOPBACK,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">65536</span> qdisc noqueue state UNKNOWN group default qlen <span class="token number">1000</span>
+    link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
+    inet <span class="token number">127.0</span>.0.1/8 scope <span class="token function">host</span> lo
+       valid_lft forever preferred_lft forever
+<span class="token number">32</span>: eth0@if33: <span class="token operator">&lt;</span>BROADCAST,MULTICAST,UP,LOWER_UP<span class="token operator">></span> mtu <span class="token number">1500</span> qdisc noqueue state UP group default 
+    link/ether 02:42:c0:a8:01:03 brd ff:ff:ff:ff:ff:ff link-netnsid <span class="token number">0</span>
+    inet <span class="token number">192.168</span>.1.3/24 brd <span class="token number">192.168</span>.1.255 scope global eth0
+       valid_lft forever preferred_lft forever
+<span class="token punctuation">[</span>root@slave2 /<span class="token punctuation">]</span><span class="token comment"># </span><span aria-hidden="true" class="line-numbers-rows"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span></code></pre>
+
+
+
+<h3 id="5-5-连接客户端工具xshell"><a href="#5-5-连接客户端工具xshell" class="headerlink" title="5.5 连接客户端工具xshell"></a>5.5 连接客户端工具xshell</h3><p>&#x3D;&#x3D;注意定义的ssh端口&#x3D;&#x3D;</p>
+<blockquote>
+<p>master</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111517302.png"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111515957.png" alt="image-20231211151542886"></p>
+<blockquote>
+<p>slave1</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111516827.png" alt="image-20231211151638743"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111516374.png" alt="image-20231211151651296"></p>
+<blockquote>
+<p>slave2</p>
+</blockquote>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111518533.png" alt="image-20231211151809445"></p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202312111518365.png" alt="image-20231211151826289"></p>
+<p>完成</p>
+<h2 id="6-asbru-cm工具的使用"><a href="#6-asbru-cm工具的使用" class="headerlink" title="6. asbru-cm工具的使用"></a>6. asbru-cm工具的使用</h2><p>1、</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401080134495.png" alt="image-20230320175907854"></p>
+<p>2、</p>
+<p><img src="https://hj-typora-images-1319512400.cos.ap-guangzhou.myqcloud.com/images/202401080134744.png" alt="image-20230320180309740"></p>
+
+                
+            </div>
+            <hr/>
+
+            
+
+    <div class="reprint" id="reprint-statement">
+        
+            <div class="reprint__author">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-user">
+                        文章作者:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="/about" rel="external nofollow noreferrer">無以菱</a>
+                </span>
+            </div>
+            <div class="reprint__type">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-link">
+                        文章链接:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    <a href="https://www.wylblog.cn/2024/11/10/ubuntu-ji-chu-pei-zhi-18-04-docker-pei-zhi-he-shi-yong-rong-qi-hua-centos7-da-shu-ju-huan-jing-zhun-bei/">https://www.wylblog.cn/2024/11/10/ubuntu-ji-chu-pei-zhi-18-04-docker-pei-zhi-he-shi-yong-rong-qi-hua-centos7-da-shu-ju-huan-jing-zhun-bei/</a>
+                </span>
+            </div>
+            <div class="reprint__notice">
+                <span class="reprint-meta" style="font-weight: bold;">
+                    <i class="fas fa-copyright">
+                        版权声明:
+                    </i>
+                </span>
+                <span class="reprint-info">
+                    本博客所有文章除特別声明外，均采用
+                    <a href="https://creativecommons.org/licenses/by/4.0/deed.zh" rel="external nofollow noreferrer" target="_blank">CC BY 4.0</a>
+                    许可协议。转载请注明来源
+                    <a href="/about" target="_blank">無以菱</a>
+                    !
+                </span>
+            </div>
+        
+    </div>
+
+    <script async defer>
+      document.addEventListener("copy", function (e) {
+        let toastHTML = '<span>复制成功，请遵循本文的转载规则</span><button class="btn-flat toast-action" onclick="navToReprintStatement()" style="font-size: smaller">查看</a>';
+        M.toast({html: toastHTML})
+      });
+
+      function navToReprintStatement() {
+        $("html, body").animate({scrollTop: $("#reprint-statement").offset().top - 80}, 800);
+      }
+    </script>
+
+
+
+            <div class="tag_share" style="display: block;">
+                <div class="post-meta__tag-list" style="display: inline-block;">
+                    
+                        <div class="article-tag">
+                            
+                                <a href="/tags/Bigdata/">
+                                    <span class="chip bg-color">Bigdata</span>
+                                </a>
+                            
+                                <a href="/tags/Docker/">
+                                    <span class="chip bg-color">Docker</span>
+                                </a>
+                            
+                        </div>
+                    
+                </div>
+                <div class="post_share" style="zoom: 80%; width: fit-content; display: inline-block; float: right; margin: -0.15rem 0;">
+                    <link rel="stylesheet" type="text/css" href="/libs/share/css/share.min.css">
+<div id="article-share">
+
+    
+    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <script src="/libs/share/js/social-share.min.js"></script>
+    
+
+    
+
+</div>
+
+                </div>
+            </div>
+            
+                <div id="reward">
+    <a href="#rewardModal" class="reward-link modal-trigger btn-floating btn-medium waves-effect waves-light red">赏</a>
+
+    <!-- Modal Structure -->
+    <div id="rewardModal" class="modal">
+        <div class="modal-content">
+            <a class="close modal-close"><i class="fas fa-times"></i></a>
+            <h4 class="reward-title">你的赏识是我前进的动力</h4>
+            <div class="reward-content">
+                <div class="reward-tabs">
+                    <ul class="tabs row">
+                        <li class="tab col s6 alipay-tab waves-effect waves-light"><a href="#alipay">支付宝</a></li>
+                        <li class="tab col s6 wechat-tab waves-effect waves-light"><a href="#wechat">微 信</a></li>
+                    </ul>
+                    <div id="alipay">
+                        <img src="https://img.picui.cn/free/2024/11/10/67306dc163e90.jpg" class="reward-img" alt="支付宝打赏二维码">
+                    </div>
+                    <div id="wechat">
+                        <img src="https://img.picui.cn/free/2024/11/10/67306da5565ae.png" class="reward-img" alt="微信打赏二维码">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    $(function () {
+        $('.tabs').tabs();
+    });
+</script>
+
+            
+        </div>
+    </div>
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+<article id="prenext-posts" class="prev-next articles">
+    <div class="row article-row">
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge left-badge text-color">
+                <i class="fas fa-chevron-left"></i>&nbsp;上一篇</div>
+            <div class="card">
+                <a href="/2024/11/10/golang-ji-chu-huan-jing-pei-zhi/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/15.jpg" class="responsive-img" alt="Golang基础环境配置">
+                        
+                        <span class="card-title">Golang基础环境配置</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                        <span class="publish-date">
+                            <i class="far fa-clock fa-fw icon-date"></i>2024-11-10
+                        </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E8%BF%90%E7%BB%B4%E5%BC%80%E5%8F%91/" class="post-category">
+                                    运维开发
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Golang/">
+                        <span class="chip bg-color">Golang</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+        
+        <div class="article col s12 m6" data-aos="fade-up">
+            <div class="article-badge right-badge text-color">
+                下一篇&nbsp;<i class="fas fa-chevron-right"></i>
+            </div>
+            <div class="card">
+                <a href="/2024/11/10/hadoop-huan-jing-pei-zhi-he-ji/">
+                    <div class="card-image">
+                        
+                        
+                        <img src="/medias/featureimages/16.jpg" class="responsive-img" alt="Hadoop环境配置合集">
+                        
+                        <span class="card-title">Hadoop环境配置合集</span>
+                    </div>
+                </a>
+                <div class="card-content article-content">
+                    <div class="summary block-with-text">
+                        
+                            
+                        
+                    </div>
+                    <div class="publish-info">
+                            <span class="publish-date">
+                                <i class="far fa-clock fa-fw icon-date"></i>2024-11-10
+                            </span>
+                        <span class="publish-author">
+                            
+                            <i class="fas fa-bookmark fa-fw icon-category"></i>
+                            
+                            <a href="/categories/%E5%A4%A7%E6%95%B0%E6%8D%AE%E8%BF%90%E7%BB%B4%E7%B3%BB%E5%88%97/" class="post-category">
+                                    大数据运维系列
+                                </a>
+                            
+                            
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="card-action article-tags">
+                    
+                    <a href="/tags/Bigdata/">
+                        <span class="chip bg-color">Bigdata</span>
+                    </a>
+                    
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</article>
+
+</div>
+
+
+<script>
+    $('#articleContent').on('copy', function (e) {
+        // IE8 or earlier browser is 'undefined'
+        if (typeof window.getSelection === 'undefined') return;
+
+        var selection = window.getSelection();
+        // if the selection is short let's not annoy our users.
+        if (('' + selection).length < Number.parseInt('200')) {
+            return;
+        }
+
+        // create a div outside of the visible area and fill it with the selected text.
+        var bodyElement = document.getElementsByTagName('body')[0];
+        var newdiv = document.createElement('div');
+        newdiv.style.position = 'absolute';
+        newdiv.style.left = '-99999px';
+        bodyElement.appendChild(newdiv);
+        newdiv.appendChild(selection.getRangeAt(0).cloneContents());
+
+        // we need a <pre> tag workaround.
+        // otherwise the text inside "pre" loses all the line breaks!
+        if (selection.getRangeAt(0).commonAncestorContainer.nodeName === 'PRE' || selection.getRangeAt(0).commonAncestorContainer.nodeName === 'CODE') {
+            newdiv.innerHTML = "<pre>" + newdiv.innerHTML + "</pre>";
+        }
+
+        var url = document.location.href;
+        newdiv.innerHTML += '<br />'
+            + '来源: WuYiLing&#39;s Blog<br />'
+            + '文章作者: 無以菱<br />'
+            + '文章链接: <a href="' + url + '">' + url + '</a><br />'
+            + '本文章著作权归作者所有，任何形式的转载都请注明出处。';
+
+        selection.selectAllChildren(newdiv);
+        window.setTimeout(function () {bodyElement.removeChild(newdiv);}, 200);
+    });
+</script>
+
+
+<!-- 代码块功能依赖 -->
+<script type="text/javascript" src="/libs/codeBlock/codeBlockFuction.js"></script>
+
+
+  <!-- 是否加载使用自带的 prismjs. -->
+  <script type="text/javascript" src="/libs/prism/prism.min.js"></script>
+
+
+<!-- 代码语言 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeLang.js"></script>
+
+
+<!-- 代码块复制 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeCopy.js"></script>
+
+
+<!-- 代码块收缩 -->
+
+<script type="text/javascript" src="/libs/codeBlock/codeShrink.js"></script>
+
+
+
+    </div>
+    <div id="toc-aside" class="expanded col l3 hide-on-med-and-down">
+        <div class="toc-widget card" style="background-color: white;">
+            <div class="toc-title"><i class="far fa-list-alt"></i>&nbsp;&nbsp;目录</div>
+            <div id="toc-content"></div>
+        </div>
+    </div>
+</div>
+
+<!-- TOC 悬浮按钮. -->
+
+<div id="floating-toc-btn" class="hide-on-med-and-down">
+    <a class="btn-floating btn-large bg-color">
+        <i class="fas fa-list-ul"></i>
+    </a>
+</div>
+
+
+<script src="/libs/tocbot/tocbot.min.js"></script>
+<script>
+    $(function () {
+        tocbot.init({
+            tocSelector: '#toc-content',
+            contentSelector: '#articleContent',
+            headingsOffset: -($(window).height() * 0.4 - 45),
+            collapseDepth: Number('0'),
+            headingSelector: 'h2, h3, h4'
+        });
+
+        // Set scroll toc fixed.
+        let tocHeight = parseInt($(window).height() * 0.4 - 64);
+        let $tocWidget = $('.toc-widget');
+        $(window).scroll(function () {
+            let scroll = $(window).scrollTop();
+            /* add post toc fixed. */
+            if (scroll > tocHeight) {
+                $tocWidget.addClass('toc-fixed');
+            } else {
+                $tocWidget.removeClass('toc-fixed');
+            }
+        });
+
+        
+        /* 修复文章卡片 div 的宽度. */
+        let fixPostCardWidth = function (srcId, targetId) {
+            let srcDiv = $('#' + srcId);
+            if (srcDiv.length === 0) {
+                return;
+            }
+
+            let w = srcDiv.width();
+            if (w >= 450) {
+                w = w + 21;
+            } else if (w >= 350 && w < 450) {
+                w = w + 18;
+            } else if (w >= 300 && w < 350) {
+                w = w + 16;
+            } else {
+                w = w + 14;
+            }
+            $('#' + targetId).width(w);
+        };
+
+        // 切换TOC目录展开收缩的相关操作.
+        const expandedClass = 'expanded';
+        let $tocAside = $('#toc-aside');
+        let $mainContent = $('#main-content');
+        $('#floating-toc-btn .btn-floating').click(function () {
+            if ($tocAside.hasClass(expandedClass)) {
+                $tocAside.removeClass(expandedClass).hide();
+                $mainContent.removeClass('l9');
+            } else {
+                $tocAside.addClass(expandedClass).show();
+                $mainContent.addClass('l9');
+            }
+            fixPostCardWidth('artDetail', 'prenext-posts');
+        });
+        
+    });
+</script>
+
+    
+
+</main>
+
+
+
+
+    <footer class="page-footer bg-color">
+    
+
+    <div class="container row center-align"
+         style="margin-bottom: 0px !important;">
+        <div class="col s12 m8 l8 copy-right">
+            Copyright&nbsp;&copy;
+            
+                <span id="year">2023-2024</span>
+            
+            <a href="/about" target="_blank">無以菱</a>
+            <!-- |&nbsp;Powered by&nbsp;<a href="https://hexo.io/" target="_blank">Hexo</a> -->
+            |&nbsp;每天进步一点点&nbsp;<a href="/about" target="_blank">(=ＴェＴ=)挨骂</a>
+            |&nbsp;永远支持&nbsp;<a href="https://m.weibo.cn/u/3179885602" target="_blank">ZCY</a>
+            
+            <br>
+            
+                &nbsp;<i class="fas fa-chart-area"></i>&nbsp;站点总字数:&nbsp;<span
+                        class="white-color">50.1k</span>
+            
+            
+            
+                
+            
+            
+                <span id="busuanzi_container_site_pv">
+                &nbsp;|&nbsp;<i class="far fa-eye"></i>&nbsp;总访问量:&nbsp;
+                    <span id="busuanzi_value_site_pv" class="white-color"></span>
+            </span>
+            
+            
+                <span id="busuanzi_container_site_uv">
+                &nbsp;|&nbsp;<i class="fas fa-users"></i>&nbsp;总访问人数:&nbsp;
+                    <span id="busuanzi_value_site_uv" class="white-color"></span>
+            </span>
+            
+            <br>
+
+            <!-- 运行天数提醒. -->
+            
+            <br>
+            
+        </div>
+        <div class="col s12 m4 l4 social-link social-statis">
+    <a href="https://github.com/wylblog" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
+        <i class="fab fa-github"></i>
+    </a>
+
+
+
+    <a href="mailto:2794998160@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
+        <i class="fas fa-envelope-open"></i>
+    </a>
+
+
+
+
+
+
+
+    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=2794998160" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 2794998160" data-position="top" data-delay="50">
+        <i class="fab fa-qq"></i>
+    </a>
+
+
+
+    <a href="https://m.weibo.cn/u/3179885602" class="tooltipped" target="_blank" data-tooltip="关注我的微博: https://m.weibo.cn/u/3179885602" data-position="top" data-delay="50">
+        <i class="fab fa-weibo"></i>
+    </a>
+
+
+
+
+
+</div>
+    </div>
+</footer>
+
+<div class="progress-bar"></div>
+
+
+    <!-- 搜索遮罩框 -->
+<div id="searchModal" class="modal">
+    <div class="modal-content">
+        <div class="search-header">
+            <span class="title"><i class="fas fa-search"></i>&nbsp;&nbsp;搜索</span>
+            <input type="search" id="searchInput" name="s" placeholder="请输入搜索的关键字"
+                   class="search-input">
+        </div>
+        <div id="searchResult"></div>
+    </div>
+</div>
+
+<script type="text/javascript">
+$(function () {
+    var searchFunc = function (path, search_id, content_id) {
+        'use strict';
+        $.ajax({
+            url: path,
+            dataType: "xml",
+            success: function (xmlResponse) {
+                // get the contents from search data
+                var datas = $("entry", xmlResponse).map(function () {
+                    return {
+                        title: $("title", this).text(),
+                        content: $("content", this).text(),
+                        url: $("url", this).text()
+                    };
+                }).get();
+                var $input = document.getElementById(search_id);
+                var $resultContent = document.getElementById(content_id);
+                $input.addEventListener('input', function () {
+                    var str = '<ul class=\"search-result-list\">';
+                    var keywords = this.value.trim().toLowerCase().split(/[\s\-]+/);
+                    $resultContent.innerHTML = "";
+                    if (this.value.trim().length <= 0) {
+                        return;
+                    }
+                    // perform local searching
+                    datas.forEach(function (data) {
+                        var isMatch = true;
+                        var data_title = data.title.trim().toLowerCase();
+                        var data_content = data.content.trim().replace(/<[^>]+>/g, "").toLowerCase();
+                        var data_url = data.url;
+                        data_url = data_url.indexOf('/') === 0 ? data.url : '/' + data_url;
+                        var index_title = -1;
+                        var index_content = -1;
+                        var first_occur = -1;
+                        // only match artiles with not empty titles and contents
+                        if (data_title !== '' && data_content !== '') {
+                            keywords.forEach(function (keyword, i) {
+                                index_title = data_title.indexOf(keyword);
+                                index_content = data_content.indexOf(keyword);
+                                if (index_title < 0 && index_content < 0) {
+                                    isMatch = false;
+                                } else {
+                                    if (index_content < 0) {
+                                        index_content = 0;
+                                    }
+                                    if (i === 0) {
+                                        first_occur = index_content;
+                                    }
+                                }
+                            });
+                        }
+                        // show search results
+                        if (isMatch) {
+                            str += "<li><a href='" + data_url + "' class='search-result-title'>" + data_title + "</a>";
+                            var content = data.content.trim().replace(/<[^>]+>/g, "");
+                            if (first_occur >= 0) {
+                                // cut out 100 characters
+                                var start = first_occur - 20;
+                                var end = first_occur + 80;
+                                if (start < 0) {
+                                    start = 0;
+                                }
+                                if (start === 0) {
+                                    end = 100;
+                                }
+                                if (end > content.length) {
+                                    end = content.length;
+                                }
+                                var match_content = content.substr(start, end);
+                                // highlight all keywords
+                                keywords.forEach(function (keyword) {
+                                    var regS = new RegExp(keyword, "gi");
+                                    match_content = match_content.replace(regS, "<em class=\"search-keyword\">" + keyword + "</em>");
+                                });
+
+                                str += "<p class=\"search-result\">" + match_content + "...</p>"
+                            }
+                            str += "</li>";
+                        }
+                    });
+                    str += "</ul>";
+                    $resultContent.innerHTML = str;
+                });
+            }
+        });
+    };
+
+    searchFunc('/search.xml', 'searchInput', 'searchResult');
+});
+</script>
+
+    <!-- 白天和黑夜主题 -->
+<div class="stars-con">
+    <div id="stars"></div>
+    <div id="stars2"></div>
+    <div id="stars3"></div>  
+</div>
+
+<script>
+    function switchNightMode() {
+        $('<div class="Cuteen_DarkSky"><div class="Cuteen_DarkPlanet"></div></div>').appendTo($('body')),
+        setTimeout(function () {
+            $('body').hasClass('DarkMode') 
+            ? ($('body').removeClass('DarkMode'), localStorage.setItem('isDark', '0'), $('#sum-moon-icon').removeClass("fa-sun").addClass('fa-moon')) 
+            : ($('body').addClass('DarkMode'), localStorage.setItem('isDark', '1'), $('#sum-moon-icon').addClass("fa-sun").removeClass('fa-moon')),
+            
+            setTimeout(function () {
+            $('.Cuteen_DarkSky').fadeOut(1e3, function () {
+                $(this).remove()
+            })
+            }, 2e3)
+        })
+    }
+</script>
+
+    <!-- 回到顶部按钮 -->
+<div id="backTop" class="top-scroll">
+    <a class="btn-floating btn-large waves-effect waves-light" href="#!">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+</div>
+
+
+    <script src="/libs/materialize/materialize.min.js"></script>
+    <script src="/libs/masonry/masonry.pkgd.min.js"></script>
+    <script src="/libs/aos/aos.js"></script>
+    <script src="/libs/scrollprogress/scrollProgress.min.js"></script>
+    <script src="/libs/lightGallery/js/lightgallery-all.min.js"></script>
+    <script src="/js/matery.js"></script>
+    <!-- 添加强大的板娘 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/gh/17lai/live2d-widget@latest/autoload.js"></script>
+    <!-- 添加完成 -->
+
+    
+
+    
+    
+    
+        
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/sakura.js"><\/script>');
+            }
+        </script>
+    
+
+    <!-- 雪花特效 -->
+    
+
+    <!-- 鼠标星星特效 -->
+    
+
+     
+        <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+        <script src="/libs/others/TencentCaptcha.js"></script>
+        <button id="TencentCaptcha" data-appid="xxxxxxxxxx" data-cbfn="callback" type="button" hidden></button>
+    
+
+    <!-- Baidu Analytics -->
+
+    <!-- Baidu Push -->
+
+<script>
+    (function () {
+        var bp = document.createElement('script');
+        var curProtocol = window.location.protocol.split(':')[0];
+        if (curProtocol === 'https') {
+            bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';
+        } else {
+            bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+        }
+        var s = document.getElementsByTagName("script")[0];
+        s.parentNode.insertBefore(bp, s);
+    })();
+</script>
+
+    
+    <script src="/libs/others/clicklove.js" async="async"></script>
+    
+    
+    <script async src="/libs/others/busuanzi.pure.mini.js"></script>
+    
+
+    
+
+    
+
+    <!--腾讯兔小巢-->
+    
+    
+
+    
+    
+    <script type="text/javascript" size="150" alpha='0.6'
+        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
+    
+
+    
+
+    
+    <script src="/libs/instantpage/instantpage.js" type="module"></script>
+    
+
+</body>
+
+</html>
