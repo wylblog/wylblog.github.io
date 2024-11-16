@@ -53,6 +53,8 @@ Hive是基于Hadoop的一个数据仓库工具，可以将结构化的数据文�
 
 
     <script src="/libs/jquery/jquery-3.6.0.min.js"></script>
+    <!-- 新增加载动画 -->
+    <link rel="stylesheet" type="text/css" href="/css/loading.css">
 
 <meta name="generator" content="Hexo 5.4.2"></head>
 
@@ -1321,7 +1323,7 @@ load data inpath <span class="token string">'/data081/order.csv'</span> into tab
 <div id="article-share">
 
     
-    <div class="social-share" data-sites="twitter,facebook,google,qq,qzone,wechat,weibo,douban,linkedin" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
+    <div class="social-share" data-sites="qq,qzone,wechat,weibo" data-wechat-qrcode-helper="<p>微信扫一扫即可分享！</p>"></div>
     <script src="/libs/share/js/social-share.min.js"></script>
     
 
@@ -1956,74 +1958,69 @@ load data inpath <span class="token string">'/data081/order.csv'</span> into tab
             <br>
 
             <!-- 运行天数提醒. -->
+            <!-- 站点运行时间优化后如下: -->
             
-                <span id="sitetime"> Loading ...</span>
+                <span id="sitetime">Loading...</span>
                 <script>
-                    var calcSiteTime = function () {
-                        var seconds = 1000;
-                        var minutes = seconds * 60;
-                        var hours = minutes * 60;
-                        var days = hours * 24;
-                        var years = days * 365;
-                        var today = new Date();
-                        var startYear = "2024";
-                        var startMonth = "10";
-                        var startDate = "13";
-                        var startHour = "0";
-                        var startMinute = "0";
-                        var startSecond = "0";
-                        var todayYear = today.getFullYear();
-                        var todayMonth = today.getMonth() + 1;
-                        var todayDate = today.getDate();
-                        var todayHour = today.getHours();
-                        var todayMinute = today.getMinutes();
-                        var todaySecond = today.getSeconds();
-                        var t1 = Date.UTC(startYear, startMonth, startDate, startHour, startMinute, startSecond);
-                        var t2 = Date.UTC(todayYear, todayMonth, todayDate, todayHour, todayMinute, todaySecond);
-                        var diff = t2 - t1;
-                        var diffYears = Math.floor(diff / years);
-                        var diffDays = Math.floor((diff / days) - diffYears * 365);
+                // 定义常量，表示毫秒、秒、分钟、小时和天的对应关系
+                var seconds = 1000; // 1 秒 = 1000 毫秒
+                var minutes = seconds * 60; // 1 分钟 = 60 秒
+                var hours = minutes * 60; // 1 小时 = 60 分钟
+                var days = hours * 24; // 1 天 = 24 小时
 
-                        // 区分是否有年份.
-                        var language = 'zh-CN';
-                        if (startYear === String(todayYear)) {
-                            document.getElementById("year").innerHTML = todayYear;
-                            var daysTip = 'This site has been running for ' + diffDays + ' days';
-                            if (language === 'zh-CN') {
-                                daysTip = '本站已运行 ' + diffDays + ' 天';
-                            } else if (language === 'zh-HK') {
-                                daysTip = '本站已運行 ' + diffDays + ' 天';
-                            }
-                            document.getElementById("sitetime").innerHTML = daysTip;
-                        } else {
-                            document.getElementById("year").innerHTML = startYear + " - " + todayYear;
-                            var yearsAndDaysTip = 'This site has been running for ' + diffYears + ' years and '
-                                + diffDays + ' days';
-                            if (language === 'zh-CN') {
-                                yearsAndDaysTip = '本站已运行 ' + diffYears + ' 年 ' + diffDays + ' 天';
-                            } else if (language === 'zh-HK') {
-                                yearsAndDaysTip = '本站已運行 ' + diffYears + ' 年 ' + diffDays + ' 天';
-                            }
-                            document.getElementById("sitetime").innerHTML = yearsAndDaysTip;
-                        }
-                    }
+                // 主函数，用于动态计算并更新运行时间
+            var calcSiteTime = function () {
+                // 获取起始时间，从主题配置中读取
+                var startYear = "2024"; // 配置的年份
+                var startMonth = "10" - 1; // 配置的月份（JS月份从 0 开始）
+                var startDate = "13"; // 配置的日期
+                var startHour = "0"; // 配置的小时
+                var startMinute = "0"; // 配置的分钟
+                var startSecond = "0"; // 配置的秒
 
-                    calcSiteTime();
-                </script>
-            
+                // 获取站点启动时间
+                var startTime = new Date(startYear, startMonth, startDate, startHour, startMinute, startSecond);
+
+                // 动态更新函数
+                var updateTime = function () {
+                var now = new Date(); // 当前时间
+                var diff = now - startTime; // 计算时间差（毫秒数）
+
+                // 计算天、小时、分钟、秒
+                var diffDays = Math.floor(diff / days); // 天数
+                var diffHours = Math.floor((diff % days) / hours); // 小时数
+                var diffMinutes = Math.floor((diff % hours) / minutes); // 分钟数
+                var diffSeconds = Math.floor((diff % minutes) / seconds); // 秒数
+
+                // 判断语言环境，构建显示内容
+                var language = 'zh-CN'; // 获取站点语言
+                var timeText = `This site has been running for ${diffDays} days ${diffHours} hours ${diffMinutes} minutes ${diffSeconds} seconds.`;
+                if (language === 'zh-CN') {
+                    timeText = `<i class="fa-solid fa-rocket"></i>本站居然已经运行 ${diffDays} 天 ${diffHours} 小时 ${diffMinutes} 分 ${diffSeconds} 秒，如果出问题，那肯定是缓存的锅！`;
+                } else if (language === 'zh-HK') {
+                    timeText = `<i class="fa-solid fa-rocket"></i>本站居然已經運行了 ${diffDays} 天 ${diffHours} 小時 ${diffMinutes} 分 ${diffSeconds} 秒，如果出問題，那肯定係緩存嘅鍋！`;
+                }
+
+                // 将结果插入到指定位置
+                document.getElementById("sitetime").innerHTML = timeText;
+            };
+
+            // 初始化更新一次
+            updateTime();
+
+            // 每秒更新一次运行时间
+            setInterval(updateTime, 1000);
+        };
+
+        // 调用主函数
+        calcSiteTime();
+    </script>
+
+
             <br>
             
         </div>
         <div class="col s12 m4 l4 social-link social-statis">
-    <a href="https://github.com/wylblog" class="tooltipped" target="_blank" data-tooltip="访问我的GitHub" data-position="top" data-delay="50">
-        <i class="fab fa-github"></i>
-    </a>
-
-
-
-    <a href="mailto:2794998160@qq.com" class="tooltipped" target="_blank" data-tooltip="邮件联系我" data-position="top" data-delay="50">
-        <i class="fas fa-envelope-open"></i>
-    </a>
 
 
 
@@ -2031,15 +2028,8 @@ load data inpath <span class="token string">'/data081/order.csv'</span> into tab
 
 
 
-    <a href="tencent://AddContact/?fromId=50&fromSubId=1&subcmd=all&uin=2794998160" class="tooltipped" target="_blank" data-tooltip="QQ联系我: 2794998160" data-position="top" data-delay="50">
-        <i class="fab fa-qq"></i>
-    </a>
 
 
-
-    <a href="https://m.weibo.cn/u/3179885602" class="tooltipped" target="_blank" data-tooltip="关注我的微博: https://m.weibo.cn/u/3179885602" data-position="top" data-delay="50">
-        <i class="fab fa-weibo"></i>
-    </a>
 
 
 
@@ -2187,6 +2177,29 @@ $(function () {
     </a>
 </div>
 
+    <!-- 新增加载动画 -->
+    
+    <div id="loading-box">
+      <div class="loading-left-bg"></div>
+      <div class="loading-right-bg"></div>
+      <div class="spinner-box">
+        <div class="configure-border-1">
+          <div class="configure-core"></div>
+        </div>
+        <div class="configure-border-2">
+          <div class="configure-core"></div>
+        </div>
+        <div class="loading-word">加载中...</div>
+      </div>
+    </div>
+    <!-- 页面加载动画 -->
+    <script>
+      $(document).ready(function () {
+        document.body.style.overflow = 'auto';
+        document.getElementById('loading-box').classList.add("loaded")
+      })
+    </script>
+    
 
     <script src="/libs/materialize/materialize.min.js"></script>
     <script src="/libs/masonry/masonry.pkgd.min.js"></script>
@@ -2204,20 +2217,19 @@ $(function () {
     
     
     
-        
-        <script type="text/javascript">
-            // 只在桌面版网页启用特效
-            var windowWidth = $(window).width();
-            if (windowWidth > 768) {
-                document.write('<script type="text/javascript" src="/libs/others/sakura.js"><\/script>');
-            }
-        </script>
-    
 
     <!-- 雪花特效 -->
     
 
     <!-- 鼠标星星特效 -->
+     
+        <script type="text/javascript">
+            // 只在桌面版网页启用特效
+            var windowWidth = $(window).width();
+            if (windowWidth > 768) {
+                document.write('<script type="text/javascript" src="/libs/others/star.js"><\/script>');
+            }
+        </script>
     
 
      
@@ -2258,11 +2270,12 @@ $(function () {
     <!--腾讯兔小巢-->
     
     
+    <script type="text/javascript" color="0,0,255"
+        pointColor="0,0,255" opacity='0.7'
+        zIndex="-1" count="99"
+        src="/libs/background/canvas-nest.js"></script>
+    
 
-    
-    
-    <script type="text/javascript" size="150" alpha='0.6'
-        zIndex="-1" src="/libs/background/ribbon-refresh.min.js" async="async"></script>
     
 
     
